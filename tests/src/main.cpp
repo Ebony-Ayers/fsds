@@ -4,7 +4,7 @@
 
 int main(int /*argc*/, const char** /*argv*/)
 {
-	std::cout << "Hello World" << std::endl;
+	fsds::basic_list<int> l;
 	
 	return 0;
 }

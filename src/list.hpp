@@ -1,21 +1,26 @@
 #pragma once
 
 #include <iterator>
+#include <algorithm>
+#include <limits>
 
 namespace fsds
 {
-	template<typename T, typename Allocator = std::allocator<T>, typename ThreadSycronisationObject = void>
+	template<typename T, typename Allocator = std::allocator<T>, typename ThreadSycronisationObject = int>
 	class basic_list
 	{
 		public:
-			typedef T value_type;
-			typedef Allocator allocator_type;
-			typedef size_t size_type;
-			typedef std::ptrdiff_t difference_type;
-			typedef value_type& reference;
-			typedef const value_type& const_reference ;
-			typedef std::allocator_traits<Allocator>::pointer pointer;
-			typedef std::allocator_traits<Allocator>::cconst_pointer const_pointer;
+			void foo();
+
+			
+			using value_type		= T;
+			using allocator_type	= Allocator;
+			using size_type			= size_t;
+			using difference_type	= std::ptrdiff_t;
+			using reference			= value_type&;
+			using const_reference	= const value_type& ;
+			using pointer			= std::allocator_traits<Allocator>::pointer;
+			using const_pointer		= std::allocator_traits<Allocator>::const_pointer;
 			/*
 			//itterator and const itterator
 			typedef std::reverse_iterator<iterator> reverse_iterator
@@ -23,6 +28,8 @@ namespace fsds
 			*/
 
 			//constuctors
+
+			
 
 			constexpr basic_list() noexcept(noexcept(Allocator()));
 			constexpr explicit basic_list(const Allocator& alloc) noexcept;
@@ -119,11 +126,12 @@ namespace fsds
 			constexpr iterator erase(const_iterator first, const_iterator last);
 			*/
 
+			
 			constexpr void push_back(const T& value);
 			constexpr void push_back(T&& value);
 
 			template<typename... Args>
-			constexpr reference emplace_back(Args&&... args);
+			constexpr void emplace_back(Args&&... args);
 
 			constexpr void pop_back();
 
@@ -131,13 +139,15 @@ namespace fsds
 			constexpr void resize(size_type count, const value_type& value);
 
 			constexpr void swap(basic_list& other) noexcept(std::allocator_traits<Allocator>::propagate_on_container_swap::value || std::allocator_traits<Allocator>::is_always_equal::value);
+			
 		
 		private:
 			T* m_data;
 			size_type m_size;
-			size_type m_maximumSize;
+			size_type m_capacity;
 	};
 
+	/*
 	template<typename T, typename Allocator = std::allocator<T>, typename ThreadSycronisationObject>
 	constexpr bool operator==(const fsds::basic_list<T, Allocator, ThreadSycronisationObject>& lhs, const fsds::basic_list<T, Allocator, ThreadSycronisationObject>& rhs);
 	template<typename T, typename Allocator = std::allocator<T>, typename ThreadSycronisationObject>
@@ -152,6 +162,7 @@ namespace fsds
 	bool operator>=(const fsds::basic_list<T, Allocator, ThreadSycronisationObject>& lhs, const fsds::basic_list<T, Allocator, ThreadSycronisationObject>& rhs);
 	//template<typename T, typename Allocator = std::allocator<T>, typename ThreadSycronisationObject>
 	//constexpr operator<=>(const fsds::basic_list<T, Allocator, ThreadSycronisationObject>& lhs, const fsds::basic_list<T, Allocator, ThreadSycronisationObject>& rhs);
+	*/
 }
 
 #include "list.inl"
