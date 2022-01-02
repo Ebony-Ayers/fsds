@@ -3,6 +3,7 @@
 #include <iterator>
 #include <algorithm>
 #include <limits>
+#include <stdexcept>
 
 namespace fsds
 {
@@ -10,9 +11,6 @@ namespace fsds
 	class basic_list
 	{
 		public:
-			void foo();
-
-			
 			using value_type		= T;
 			using allocator_type	= Allocator;
 			using size_type			= size_t;
@@ -21,8 +19,57 @@ namespace fsds
 			using const_reference	= const value_type& ;
 			using pointer			= std::allocator_traits<Allocator>::pointer;
 			using const_pointer		= std::allocator_traits<Allocator>::const_pointer;
+
+			struct iterator
+			{
+				public:
+					using iterator_catagory		= std::contiguous_iterator_tag;
+					using size_type				= size_t;
+					using difference_type		= std::ptrdiff_t;
+					using value_type			= T;
+					using pointer				= value_type*;
+					using reference				= value_type&;
+
+					reference operator*() const;
+					pointer operator->();
+					reference operator[](size_type pos) const;
+
+					iterator& operator++();
+					iterator& operator++(int);
+					iterator& operator--();
+					iterator& operator--(int);
+
+					iterator begin();
+					iterator end();
+				
+				private:
+					pointer m_ptr;
+			};
+			template<typename BasicListT, typename BasicListAllocator, typename BasicListThreadSycronisationObject>
+			friend bool operator==(const basic_list<BasicListT, BasicListAllocator, BasicListThreadSycronisationObject>::iterator& lhs, const basic_list<BasicListT, BasicListAllocator, BasicListThreadSycronisationObject>::iterator& rhs);
+			template<typename BasicListT, typename BasicListAllocator, typename BasicListThreadSycronisationObject>
+			friend bool operator!=(const basic_list<BasicListT, BasicListAllocator, BasicListThreadSycronisationObject>::iterator& lhs, const basic_list<BasicListT, BasicListAllocator, BasicListThreadSycronisationObject>::iterator& rhs);
+			template<typename BasicListT, typename BasicListAllocator, typename BasicListThreadSycronisationObject>
+			friend bool operator<(const basic_list<BasicListT, BasicListAllocator, BasicListThreadSycronisationObject>::iterator& lhs, const basic_list<BasicListT, BasicListAllocator, BasicListThreadSycronisationObject>::iterator& rhs);
+			template<typename BasicListT, typename BasicListAllocator, typename BasicListThreadSycronisationObject>
+			friend bool operator>(const basic_list<BasicListT, BasicListAllocator, BasicListThreadSycronisationObject>::iterator& lhs, const basic_list<BasicListT, BasicListAllocator, BasicListThreadSycronisationObject>::iterator& rhs);
+			template<typename BasicListT, typename BasicListAllocator, typename BasicListThreadSycronisationObject>
+			friend bool operator<=(const basic_list<BasicListT, BasicListAllocator, BasicListThreadSycronisationObject>::iterator& lhs, const basic_list<BasicListT, BasicListAllocator, BasicListThreadSycronisationObject>::iterator& rhs);
+			template<typename BasicListT, typename BasicListAllocator, typename BasicListThreadSycronisationObject>
+			friend bool operator>=(const basic_list<BasicListT, BasicListAllocator, BasicListThreadSycronisationObject>::iterator& lhs, const basic_list<BasicListT, BasicListAllocator, BasicListThreadSycronisationObject>::iterator& rhs);
+
+			iterator& operator+=(size_type value);
+			iterator& operator-=(size_type value);
+			template<typename BasicListT, typename BasicListAllocator, typename BasicListThreadSycronisationObject>
+			friend iterator operator+(const basic_list<BasicListT, BasicListAllocator, BasicListThreadSycronisationObject>::iterator& lhs, const size_type& rhs);
+			template<typename BasicListT, typename BasicListAllocator, typename BasicListThreadSycronisationObject>
+			friend iterator operator+(const size_type& lhs, const basic_list<BasicListT, BasicListAllocator, BasicListThreadSycronisationObject>::iterator& rhs);
+			template<typename BasicListT, typename BasicListAllocator, typename BasicListThreadSycronisationObject>
+			friend iterator operator-(const basic_list<BasicListT, BasicListAllocator, BasicListThreadSycronisationObject>::iterator& lhs, const size_type& rhs);
+			template<typename BasicListT, typename BasicListAllocator, typename BasicListThreadSycronisationObject>
+			friend iterator operator-(const size_type& lhs, const basic_list<BasicListT, BasicListAllocator, BasicListThreadSycronisationObject>::iterator& rhs);
 			/*
-			//itterator and const itterator
+			//iterator and const iterator
 			typedef std::reverse_iterator<iterator> reverse_iterator
 			typedef std::reverse_iterator<const_iterator> const_reverse_iterator
 			*/
@@ -141,7 +188,11 @@ namespace fsds
 			constexpr void swap(basic_list& other) noexcept(std::allocator_traits<Allocator>::propagate_on_container_swap::value || std::allocator_traits<Allocator>::is_always_equal::value);
 			
 		
-		private:
+		//private:
+			template<bool shouldShrink>
+			constexpr void reallocate(const size_type& newCapacity);
+			constexpr void allocate(const size_type& newCapacity);
+
 			T* m_data;
 			size_type m_size;
 			size_type m_capacity;
