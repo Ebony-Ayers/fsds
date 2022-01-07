@@ -4,7 +4,7 @@
 
 int main(int /*argc*/, const char** /*argv*/)
 {
-	fsds::basic_list<int> l;
+	fsds::BasicList<int> l;
 
 	l.push_back(1);
 	l.push_back(2);
@@ -24,6 +24,14 @@ int main(int /*argc*/, const char** /*argv*/)
 	std::cout << std::endl;
 	std::cout << l.size() << std::endl;
 	std::cout << l.capacity() << std::endl;
+
+	fsds::BasicList<int> notL;
+
+	std::cout << (l == notL) << std::endl;
+	int a;
+
+	fsds::BasicList<int>::iterator it1(nullptr);
+	fsds::BasicList<int>::iterator it2(&a);
 	
 	return 0;
 }
