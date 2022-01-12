@@ -64,6 +64,9 @@ endif()
 add_subdirectory(src)
 target_link_libraries(${primary_target_name} PRIVATE ${project_options_library})
 
+add_subdirectory(lib/fast-thread-syncronization)
+target_link_libraries(${primary_target_name} PUBLIC fts)
+
 #Speeds up compilation
 option(ENABLE_UNITY "Enable Unity builds of projects" ON)
 if(ENABLE_UNITY)

@@ -1,47 +1,47 @@
 namespace fsds
 {
 	template<typename T>
-	BasicListIterator<T>::BasicListIterator(pointer ptr)
+	ListIterator<T>::ListIterator(pointer ptr)
 	: m_ptr(ptr)
 	{}
 	
 	template<typename T>
-	BasicListIterator<T>::reference BasicListIterator<T>::operator*() const
+	ListIterator<T>::reference ListIterator<T>::operator*() const
 	{
 		return *(this->m_ptr);
 	}
 	template<typename T>
-	BasicListIterator<T>::pointer BasicListIterator<T>::operator->()
+	ListIterator<T>::pointer ListIterator<T>::operator->()
 	{
 		return this->m_ptr;
 	}
 	template<typename T>
-	BasicListIterator<T>::reference BasicListIterator<T>::operator[](size_type pos) const
+	ListIterator<T>::reference ListIterator<T>::operator[](size_type pos) const
 	{
 		return this->m_ptr[pos];
 	}
 
 	template<typename T>
-	BasicListIterator<T>& BasicListIterator<T>::operator++()
+	ListIterator<T>& ListIterator<T>::operator++()
 	{
 		this->m_ptr++;
 		return this;
 	}
 	template<typename T>
-	BasicListIterator<T>& BasicListIterator<T>::operator++(int)
+	ListIterator<T>& ListIterator<T>::operator++(int)
 	{
 		auto previous = *this;
 		this->m_ptr++;
 		return previous;
 	}
 	template<typename T>
-	BasicListIterator<T>& BasicListIterator<T>::operator--()
+	ListIterator<T>& ListIterator<T>::operator--()
 	{
 		this->m_ptr--;
 		return this;
 	}
 	template<typename T>
-	BasicListIterator<T>& BasicListIterator<T>::operator--(int)
+	ListIterator<T>& ListIterator<T>::operator--(int)
 	{
 		auto previous = *this;
 		this->m_ptr--;
@@ -49,96 +49,102 @@ namespace fsds
 	}
 
 	template<typename T>
-	BasicListIterator<T>& BasicListIterator<T>::operator+=(size_type value)
+	ListIterator<T>& ListIterator<T>::operator+=(size_type value)
 	{
 		this->m_ptr += value;
 		return *this;
 	}
 	template<typename T>
-	BasicListIterator<T>& BasicListIterator<T>::operator-=(size_type value)
+	ListIterator<T>& ListIterator<T>::operator-=(size_type value)
 	{
 		this->m_ptr -= value;
 		return *this;
 	}
 
 	template<typename T>
-	bool operator==(const BasicListIterator<T>& lhs, const BasicListIterator<T>& rhs)
+	ListIterator<T>::pointer ListIterator<T>::getPtr() const
 	{
-		return lhs.m_ptr == rhs.m_ptr;
-	}
-	template<typename T>
-	bool operator!=(const BasicListIterator<T>& lhs, const BasicListIterator<T>& rhs)
-	{
-		return lhs.m_ptr != rhs.m_ptr;
-	}
-	template<typename T>
-	bool operator<(const BasicListIterator<T>& lhs, const BasicListIterator<T>& rhs)
-	{
-		return lhs.m_ptr < rhs.m_ptr;
-	}
-	template<typename T>
-	bool operator<=(const BasicListIterator<T>& lhs, const BasicListIterator<T>& rhs)
-	{
-		return lhs.m_ptr <= rhs.m_ptr;
-	}
-	template<typename T>
-	bool operator>(const BasicListIterator<T>& lhs, const BasicListIterator<T>& rhs)
-	{
-		return lhs.m_ptr > rhs.m_ptr;
-	}
-	template<typename T>
-	bool operator>=(const BasicListIterator<T>& lhs, const BasicListIterator<T>& rhs)
-	{
-		return lhs.m_ptr >= rhs.m_ptr;
+		return this->m_ptr;
 	}
 
 	template<typename T>
-	BasicListIterator<T> operator+(const BasicListIterator<T>& lhs, const typename BasicListIterator<T>::size_type& rhs)
+	bool operator==(const ListIterator<T>& lhs, const ListIterator<T>& rhs)
 	{
-		return BasicListIterator<T>(lhs.m_ptr + rhs);
+		return lhs.getPtr() == rhs.getPtr();
 	}
 	template<typename T>
-	BasicListIterator<T> operator+(const typename BasicListIterator<T>::size_type& lhs, const BasicListIterator<T>& rhs)
+	bool operator!=(const ListIterator<T>& lhs, const ListIterator<T>& rhs)
 	{
-		return BasicListIterator<T>(rhs.m_ptr + lhs);
+		return lhs.getPtr() != rhs.getPtr();
 	}
 	template<typename T>
-	BasicListIterator<T> operator-(const BasicListIterator<T>& lhs, const typename BasicListIterator<T>::size_type& rhs)
+	bool operator<(const ListIterator<T>& lhs, const ListIterator<T>& rhs)
 	{
-		return BasicListIterator<T>(lhs.m_ptr - rhs);
+		return lhs.getPtr() < rhs.getPtr();
 	}
 	template<typename T>
-	BasicListIterator<T> operator-(const typename BasicListIterator<T>::size_type& lhs, const BasicListIterator<T>& rhs)
+	bool operator<=(const ListIterator<T>& lhs, const ListIterator<T>& rhs)
 	{
-		return BasicListIterator<T>(rhs.m_ptr - lhs);
+		return lhs.getPtr() <= rhs.getPtr();
+	}
+	template<typename T>
+	bool operator>(const ListIterator<T>& lhs, const ListIterator<T>& rhs)
+	{
+		return lhs.getPtr() > rhs.getPtr();
+	}
+	template<typename T>
+	bool operator>=(const ListIterator<T>& lhs, const ListIterator<T>& rhs)
+	{
+		return lhs.getPtr() >= rhs.getPtr();
+	}
+
+	template<typename T>
+	ListIterator<T> operator+(const ListIterator<T>& lhs, const typename ListIterator<T>::size_type& rhs)
+	{
+		return ListIterator<T>(lhs.getPtr() + rhs);
+	}
+	template<typename T>
+	ListIterator<T> operator+(const typename ListIterator<T>::size_type& lhs, const ListIterator<T>& rhs)
+	{
+		return ListIterator<T>(rhs.getPtr() + lhs);
+	}
+	template<typename T>
+	ListIterator<T> operator-(const ListIterator<T>& lhs, const typename ListIterator<T>::size_type& rhs)
+	{
+		return ListIterator<T>(lhs.getPtr() - rhs);
+	}
+	template<typename T>
+	ListIterator<T> operator-(const typename ListIterator<T>::size_type& lhs, const ListIterator<T>& rhs)
+	{
+		return ListIterator<T>(rhs.getPtr() - lhs);
 	}
 
 
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::BasicList() noexcept(noexcept(Allocator()))
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::List() noexcept(noexcept(Allocator()))
 	: m_data(nullptr), m_size(0), m_capacity(0)
 	{}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::BasicList(const Allocator& alloc) noexcept
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::List(const Allocator& alloc) noexcept
 	: m_data(nullptr), m_size(0), m_capacity(0)
 	{}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::BasicList(size_type count, const T& value, const Allocator& alloc)
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::List(size_type count, const T& value, const Allocator& alloc)
 	: m_data(nullptr), m_size(count), m_capacity(count)
 	{
 		this->m_data = alloc.allocate(count);
 		std::fill(this->m_data, this->m_data + this->m_size, value);
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::BasicList(size_type count, const Allocator& alloc)
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::List(size_type count, const Allocator& alloc)
 	: m_data(nullptr), m_size(count), m_capacity(count)
 	{
 		this->m_data = alloc.allocate(count);
 		std::fill(this->m_data, this->m_data + this->m_size, value_type());
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
+	template<typename T, typename Allocator>
 	template<typename InputIt>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::BasicList(InputIt first, InputIt last, const Allocator& alloc)
+	constexpr List<T, Allocator>::List(InputIt first, InputIt last, const Allocator& alloc)
 	{
 		auto size = std::distance(first, last);
 		this->m_data = alloc.allocate(size);
@@ -146,47 +152,47 @@ namespace fsds
 		this->m_size = size;
 		this->m_capacity = size;
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::BasicList(const BasicList& other)
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::List(const List& other)
 	: m_data(nullptr), m_size(other.m_size), m_capacity(other.m_capacity)
 	{
 		Allocator alloc;
 		this->m_data = alloc.allocate(other.m_size);
 		std::copy(other.m_data, other.m_data + other.m_size, this->m_data);
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::BasicList(const BasicList& other, const Allocator& alloc)
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::List(const List& other, const Allocator& alloc)
 	: m_data(nullptr), m_size(other.m_size), m_capacity(other.m_capacity)
 	{
 		this->m_data = alloc.allocate(other.m_size);
 		std::copy(other.m_data, other.m_data + other.m_size, this->m_data);
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::BasicList(BasicList&& other) noexcept
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::List(List&& other) noexcept
 	: m_data(other.m_data), m_size(other.m_size), m_capacity(other.m_capacity)
 	{
 		other.m_data = nullptr;
 		other.m_size = 0;
 		other.m_capacity = 0;
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::BasicList(BasicList&& other, const Allocator& alloc)
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::List(List&& other, const Allocator& alloc)
 	: m_data(other.m_data), m_size(other.m_size), m_capacity(other.m_capacity)
 	{
 		other.m_data = nullptr;
 		other.m_size = 0;
 		other.m_capacity = 0;
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::BasicList(std::initializer_list<T> init, const Allocator& alloc)
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::List(std::initializer_list<T> init, const Allocator& alloc)
 	: m_data(nullptr), m_size(init.size()), m_capacity(init.size())
 	{
 		this->m_data = alloc.allocate(init.size());
 		std::copy(init.begin(), init.end(), this->m_size);
 	}
 
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::~BasicList()
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::~List()
 	{
 		if(this->m_data != nullptr)
 		{
@@ -195,16 +201,16 @@ namespace fsds
 		}
 	}
 
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>& BasicList<T, Allocator, ThreadSycronisationObject>::operator=(const BasicList& other)
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>& List<T, Allocator>::operator=(const List& other)
 	{
 		this->allocate(other.m_size);
 		std::copy(other.m_data, other.m_data + other.m_size, this->m_data);
 		this->m_size = other.m_size;
 		this->m_capacity = other.m_capacity;
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>& BasicList<T, Allocator, ThreadSycronisationObject>::operator=(BasicList&& other) noexcept(std::allocator_traits<Allocator>::propagate_on_container_move_assignment::value || std::allocator_traits<Allocator>::is_always_equal::value)
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>& List<T, Allocator>::operator=(List&& other) noexcept(std::allocator_traits<Allocator>::propagate_on_container_move_assignment::value || std::allocator_traits<Allocator>::is_always_equal::value)
 	{
 		this->m_data = other.m_data;
 		this->m_size = other.m_size;
@@ -213,8 +219,8 @@ namespace fsds
 		other.m_size = 0;
 		other.m_capacity = 0;
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>& BasicList<T, Allocator, ThreadSycronisationObject>::operator=(std::initializer_list<T> ilist)
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>& List<T, Allocator>::operator=(std::initializer_list<T> ilist)
 	{
 		auto size = ilist.size();
 		this->allocate(size);
@@ -223,17 +229,17 @@ namespace fsds
 		this->m_capacity = size;
 	}
 
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr void BasicList<T, Allocator, ThreadSycronisationObject>::assign(size_type count, const T& value)
+	template<typename T, typename Allocator>
+	constexpr void List<T, Allocator>::assign(size_type count, const T& value)
 	{
 		this->allocate(count);
 		std::fill(this->m_data, this->m_data + count, value);
 		this->m_size = count;
 		this->m_capacity = count;
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
+	template<typename T, typename Allocator>
 	template<typename InputIt>
-	constexpr void BasicList<T, Allocator, ThreadSycronisationObject>::assign(InputIt first, InputIt last)
+	constexpr void List<T, Allocator>::assign(InputIt first, InputIt last)
 	{
 		auto size = std::distance(first, last);
 		this->allocate(size);
@@ -241,8 +247,8 @@ namespace fsds
 		this->m_size = size;
 		this->m_capacity = size;
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr void BasicList<T, Allocator, ThreadSycronisationObject>::assign(std::initializer_list<T> ilist)
+	template<typename T, typename Allocator>
+	constexpr void List<T, Allocator>::assign(std::initializer_list<T> ilist)
 	{
 		auto size = ilist.size();
 		this->allocate(size);
@@ -251,8 +257,8 @@ namespace fsds
 		this->m_capacity = size;
 	}
 
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::reference BasicList<T, Allocator, ThreadSycronisationObject>::at(size_type pos)
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::reference List<T, Allocator>::at(size_type pos)
 	{
 		if(pos < m_size) [[likely]]
 		{
@@ -260,11 +266,11 @@ namespace fsds
 		}
 		else
 		{
-			throw std::out_of_range("fsds::BasicList index out of range");
+			throw std::out_of_range("fsds::List index out of range");
 		}
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::const_reference BasicList<T, Allocator, ThreadSycronisationObject>::at(size_type pos) const
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::const_reference List<T, Allocator>::at(size_type pos) const
 	{
 		if(pos < m_size) [[likely]]
 		{
@@ -272,176 +278,176 @@ namespace fsds
 		}
 		else
 		{
-			throw std::out_of_range("fsds::BasicList index out of range");
-		}
-	}
-
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::reference BasicList<T, Allocator, ThreadSycronisationObject>::operator[](size_type pos)
-	{
-		if(pos < m_size) [[likely]]
-		{
-			return this->m_data[pos];
-		}
-		else
-		{
-			throw std::out_of_range("fsds::BasicList index out of range");
-		}
-	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::const_reference BasicList<T, Allocator, ThreadSycronisationObject>::operator[](size_type pos) const
-	{
-		if(pos < m_size) [[likely]]
-		{
-			return this->m_data[pos];
-		}
-		else
-		{
-			throw std::out_of_range("fsds::BasicList index out of range");
+			throw std::out_of_range("fsds::List index out of range");
 		}
 	}
 
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::reference BasicList<T, Allocator, ThreadSycronisationObject>::front()
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::reference List<T, Allocator>::operator[](size_type pos)
+	{
+		if(pos < m_size) [[likely]]
+		{
+			return this->m_data[pos];
+		}
+		else
+		{
+			throw std::out_of_range("fsds::List index out of range");
+		}
+	}
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::const_reference List<T, Allocator>::operator[](size_type pos) const
+	{
+		if(pos < m_size) [[likely]]
+		{
+			return this->m_data[pos];
+		}
+		else
+		{
+			throw std::out_of_range("fsds::List index out of range");
+		}
+	}
+
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::reference List<T, Allocator>::front()
 	{
 		return this->m_data[0];
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::const_reference BasicList<T, Allocator, ThreadSycronisationObject>::front() const
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::const_reference List<T, Allocator>::front() const
 	{
 		return this->m_data[0];
 	}
 
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::reference BasicList<T, Allocator, ThreadSycronisationObject>::back()
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::reference List<T, Allocator>::back()
 	{
 		return this->m_data[this->m_size-1];
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::const_reference BasicList<T, Allocator, ThreadSycronisationObject>::back() const
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::const_reference List<T, Allocator>::back() const
 	{
 		return this->m_data[this->m_size-1];
 	}
 
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr T* BasicList<T, Allocator, ThreadSycronisationObject>::data() noexcept
+	template<typename T, typename Allocator>
+	constexpr T* List<T, Allocator>::data() noexcept
 	{
 		return this->m_data;
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr const T* BasicList<T, Allocator, ThreadSycronisationObject>::data() const noexcept
+	template<typename T, typename Allocator>
+	constexpr const T* List<T, Allocator>::data() const noexcept
 	{
 		return this->m_data;
 	}
 
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::iterator BasicList<T, Allocator, ThreadSycronisationObject>::begin() noexcept
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::iterator List<T, Allocator>::begin() noexcept
 	{
 		return iterator(this->m_data);
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::const_iterator BasicList<T, Allocator, ThreadSycronisationObject>::begin() const noexcept
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::const_iterator List<T, Allocator>::begin() const noexcept
 	{
 		return const_iterator(this->m_data);
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::const_iterator BasicList<T, Allocator, ThreadSycronisationObject>::cbegin() const noexcept
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::const_iterator List<T, Allocator>::cbegin() const noexcept
 	{
 		return const_iterator(this->m_data);
 	}
 
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::iterator BasicList<T, Allocator, ThreadSycronisationObject>::end() noexcept
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::iterator List<T, Allocator>::end() noexcept
 	{
 		return iterator(this->m_data + this->m_size);
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::const_iterator BasicList<T, Allocator, ThreadSycronisationObject>::end() const noexcept
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::const_iterator List<T, Allocator>::end() const noexcept
 	{
 		return const_iterator(this->m_data + this->m_size);
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::const_iterator BasicList<T, Allocator, ThreadSycronisationObject>::cend() const noexcept
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::const_iterator List<T, Allocator>::cend() const noexcept
 	{
 		return const_iterator(this->m_data + this->m_size);
 	}
 
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::reverse_iterator BasicList<T, Allocator, ThreadSycronisationObject>::rbegin() noexcept
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::reverse_iterator List<T, Allocator>::rbegin() noexcept
 	{
 		return reverse_iterator(this->m_data);
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::const_reverse_iterator BasicList<T, Allocator, ThreadSycronisationObject>::rbegin() const noexcept
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::const_reverse_iterator List<T, Allocator>::rbegin() const noexcept
 	{
 		return const_reverse_iterator(this->m_data);
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::const_reverse_iterator BasicList<T, Allocator, ThreadSycronisationObject>::crbegin() const noexcept
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::const_reverse_iterator List<T, Allocator>::crbegin() const noexcept
 	{
 		return const_reverse_iterator(this->m_data);
 	}
 
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::reverse_iterator BasicList<T, Allocator, ThreadSycronisationObject>::rend() noexcept
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::reverse_iterator List<T, Allocator>::rend() noexcept
 	{
 		return reverse_iterator(this->m_data + this->m_size);
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::const_reverse_iterator BasicList<T, Allocator, ThreadSycronisationObject>::rend() const noexcept
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::const_reverse_iterator List<T, Allocator>::rend() const noexcept
 	{
 		return const_reverse_iterator(this->m_data + this->m_size);
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::const_reverse_iterator BasicList<T, Allocator, ThreadSycronisationObject>::crend() const noexcept
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::const_reverse_iterator List<T, Allocator>::crend() const noexcept
 	{
 		return const_reverse_iterator(this->m_data + this->m_size);
 	}
 
 
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	[[nodiscard]] constexpr bool BasicList<T, Allocator, ThreadSycronisationObject>::empty() const noexcept
+	template<typename T, typename Allocator>
+	[[nodiscard]] constexpr bool List<T, Allocator>::empty() const noexcept
 	{
 		return (this->m_size == 0);
 	}
 	
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::size_type BasicList<T, Allocator, ThreadSycronisationObject>::size() const noexcept
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::size_type List<T, Allocator>::size() const noexcept
 	{
 		return this->m_size;
 	}
 	
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::size_type BasicList<T, Allocator, ThreadSycronisationObject>::max_size() const noexcept
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::size_type List<T, Allocator>::max_size() const noexcept
 	{
 		return std::numeric_limits<size_t>::max() / sizeof(T);
 	}
 	
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr void BasicList<T, Allocator, ThreadSycronisationObject>::reserve(size_type new_cap)
+	template<typename T, typename Allocator>
+	constexpr void List<T, Allocator>::reserve(size_type new_cap)
 	{
 		if(new_cap > this->max_size) [[likely]]
 		{
-			this->reallocate(new_cap);
+			this->reallocate<false>(new_cap);
 		}
 	}
 	
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::size_type BasicList<T, Allocator, ThreadSycronisationObject>::capacity() const noexcept
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::size_type List<T, Allocator>::capacity() const noexcept
 	{
 		return this->m_capacity;
 	}
 	
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr void BasicList<T, Allocator, ThreadSycronisationObject>::shrink_to_fit()
+	template<typename T, typename Allocator>
+	constexpr void List<T, Allocator>::shrink_to_fit()
 	{
-		this->reallocate(this->m_size);
+		this->reallocate<false>(this->m_size);
 	}
 
 
 
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr void BasicList<T, Allocator, ThreadSycronisationObject>::clear() noexcept
+	template<typename T, typename Allocator>
+	constexpr void List<T, Allocator>::clear() noexcept
 	{
 		Allocator alloc;
 		alloc.deallocate(this->m_data, this->m_size);
@@ -450,8 +456,8 @@ namespace fsds
 		this->m_capacity = 0;
 	}
 
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::iterator BasicList<T, Allocator, ThreadSycronisationObject>::insert(const_iterator pos, const T& value)
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::iterator List<T, Allocator>::insert(const_iterator pos, const T& value)
 	{
 		if(this->m_size >= this->m_capacity) [[unlikely]]
 		{
@@ -461,8 +467,8 @@ namespace fsds
 		this->m_data[pos] = value;
 		this->m_size++;
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::iterator BasicList<T, Allocator, ThreadSycronisationObject>::insert(const_iterator pos, T&& value)
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::iterator List<T, Allocator>::insert(const_iterator pos, T&& value)
 	{
 		if(this->m_size >= this->m_capacity) [[unlikely]]
 		{
@@ -472,8 +478,8 @@ namespace fsds
 		this->m_data[pos] = value;
 		this->m_size++;
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::iterator BasicList<T, Allocator, ThreadSycronisationObject>::insert(const_iterator pos, size_type count, const T& value)
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::iterator List<T, Allocator>::insert(const_iterator pos, size_type count, const T& value)
 	{
 		if(this->m_size + count >= this->m_capacity) [[unlikely]]
 		{
@@ -490,9 +496,9 @@ namespace fsds
 		std::fill(this->m_data + pos, this->m_data + pos + count, value);
 		this->m_size += count;
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
+	template<typename T, typename Allocator>
 	template<typename InputIt>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::iterator BasicList<T, Allocator, ThreadSycronisationObject>::insert(const_iterator pos, InputIt first, InputIt last)
+	constexpr List<T, Allocator>::iterator List<T, Allocator>::insert(const_iterator pos, InputIt first, InputIt last)
 	{
 		size_t count = std::distance(first, last);
 
@@ -511,8 +517,8 @@ namespace fsds
 		std::copy(first, last, this->m_data + pos);
 		this->m_size += count;
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::iterator BasicList<T, Allocator, ThreadSycronisationObject>::insert(const_iterator pos, std::initializer_list<T> ilist)
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::iterator List<T, Allocator>::insert(const_iterator pos, std::initializer_list<T> ilist)
 	{
 		size_t count = ilist.size();
 
@@ -532,24 +538,24 @@ namespace fsds
 		this->m_size += count;
 	}
 	
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
+	template<typename T, typename Allocator>
 	template<typename... Args>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::iterator BasicList<T, Allocator, ThreadSycronisationObject>::emplace(const_iterator pos, Args&&... args)
+	constexpr List<T, Allocator>::iterator List<T, Allocator>::emplace(const_iterator pos, Args&&... args)
 	{
 		std::copy(this->m_data + pos, this->m_data + this->m_size, this->m_data + pos + 1);
 		*pos = T(args...);
 		return pos;
 	}
 
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::iterator BasicList<T, Allocator, ThreadSycronisationObject>::erase(const_iterator pos)
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::iterator List<T, Allocator>::erase(const_iterator pos)
 	{
 		std::copy(this->m_data + pos + 1, this->m_data + this->m_size, this->m_data + pos);
 		this->m_size--;
 		return iterator(this->m_data + pos);
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr BasicList<T, Allocator, ThreadSycronisationObject>::iterator BasicList<T, Allocator, ThreadSycronisationObject>::erase(const_iterator first, const_iterator last)
+	template<typename T, typename Allocator>
+	constexpr List<T, Allocator>::iterator List<T, Allocator>::erase(const_iterator first, const_iterator last)
 	{
 		size_t count = std::distance(first, last);
 		std::copy(this->m_data + last, this->m_data + this->m_size, first);
@@ -557,8 +563,8 @@ namespace fsds
 		return first;
 	}
 	
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr void BasicList<T, Allocator, ThreadSycronisationObject>::push_back(const T& value)
+	template<typename T, typename Allocator>
+	constexpr void List<T, Allocator>::push_back(const T& value)
 	{
 		if(this->m_size >= this->m_capacity) [[unlikely]]
 		{
@@ -567,8 +573,8 @@ namespace fsds
 		this->m_data[this->m_size] = value;
 		this->m_size++;
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr void BasicList<T, Allocator, ThreadSycronisationObject>::push_back(T&& value)
+	template<typename T, typename Allocator>
+	constexpr void List<T, Allocator>::push_back(T&& value)
 	{
 		if(this->m_size >= this->m_capacity) [[unlikely]]
 		{
@@ -578,26 +584,26 @@ namespace fsds
 		this->m_size++;
 	}
 
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
+	template<typename T, typename Allocator>
 	template<typename... Args>
-	constexpr void BasicList<T, Allocator, ThreadSycronisationObject>::emplace_back(Args&&... args)
+	constexpr void List<T, Allocator>::emplace_back(Args&&... args)
 	{
 		if(this->m_size == this->m_capacity) [[unlikely]]
 		{
-			this->reallocate(this->m_size * 2);
+			this->reallocate<false>(this->m_size * 2);
 		}
 		this->m_data[this->m_size] = value_type(args...);
 		this->m_size++;
 	}
 
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr void BasicList<T, Allocator, ThreadSycronisationObject>::pop_back()
+	template<typename T, typename Allocator>
+	constexpr void List<T, Allocator>::pop_back()
 	{
 		this->m_size--;
 	}
 
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr void BasicList<T, Allocator, ThreadSycronisationObject>::resize(size_type count)
+	template<typename T, typename Allocator>
+	constexpr void List<T, Allocator>::resize(size_type count)
 	{
 		if(count < this->m_size)
 		{
@@ -615,8 +621,8 @@ namespace fsds
 			this->m_size = count;
 		}
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr void BasicList<T, Allocator, ThreadSycronisationObject>::resize(size_type count, const value_type& value)
+	template<typename T, typename Allocator>
+	constexpr void List<T, Allocator>::resize(size_type count, const value_type& value)
 	{
 		if(count < this->m_size)
 		{
@@ -634,17 +640,17 @@ namespace fsds
 		}
 	}
 
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr void BasicList<T, Allocator, ThreadSycronisationObject>::swap(BasicList& other) noexcept(std::allocator_traits<Allocator>::propagate_on_container_swap::value || std::allocator_traits<Allocator>::is_always_equal::value)
+	template<typename T, typename Allocator>
+	constexpr void List<T, Allocator>::swap(List& other) noexcept(std::allocator_traits<Allocator>::propagate_on_container_swap::value || std::allocator_traits<Allocator>::is_always_equal::value)
 	{
 		std::swap(this->m_data, other.m_data);
 		std::swap(this->m_size, other.m_size);
 		std::swap(this->m_capacity, other.m_capacity);
 	}
 
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
+	template<typename T, typename Allocator>
 	template<bool shouldShrink>
-	constexpr void BasicList<T, Allocator, ThreadSycronisationObject>::reallocate(const size_type& newCapacity)
+	constexpr void List<T, Allocator>::reallocate(const size_type& newCapacity)
 	{
 		Allocator alloc;
 		T* newDataLocation = alloc.allocate(newCapacity);
@@ -664,8 +670,8 @@ namespace fsds
 			alloc.deallocate(oldDataLocation, this->m_size);
 		}
 	}
-	template<typename T, typename Allocator, typename ThreadSycronisationObject>
-	constexpr void BasicList<T, Allocator, ThreadSycronisationObject>::allocate(const size_type& newCapacity)
+	template<typename T, typename Allocator>
+	constexpr void List<T, Allocator>::allocate(const size_type& newCapacity)
 	{
 		Allocator alloc;
 		if(this->m_data != nullptr)
@@ -675,39 +681,672 @@ namespace fsds
 		this->m_data = alloc.allocate(newCapacity);
 	}
 
-	template<typename T, typename Allocator = std::allocator<T>, typename ThreadSycronisationObject>
-	constexpr bool operator==(const BasicList<T, Allocator, ThreadSycronisationObject>& lhs, const BasicList<T, Allocator, ThreadSycronisationObject>& rhs)
+	template<typename T, typename Allocator = std::allocator<T>>
+	constexpr bool operator==(const List<T, Allocator>& lhs, const List<T, Allocator>& rhs)
 	{
-		return (lhs.m_data == rhs.m_data) && (lhs.m_size == rhs.m_size) && (lhs.m_capacity == rhs.m_capacity);
+		return (lhs.data() == rhs.data()) && (lhs.size() == rhs.size()) && (lhs.capacity() == rhs.capacity());
 	}
-	template<typename T, typename Allocator = std::allocator<T>, typename ThreadSycronisationObject>
-	bool operator!=(const BasicList<T, Allocator, ThreadSycronisationObject>& lhs, const BasicList<T, Allocator, ThreadSycronisationObject>& rhs)
+	template<typename T, typename Allocator = std::allocator<T>>
+	bool operator!=(const List<T, Allocator>& lhs, const List<T, Allocator>& rhs)
 	{
-		return !((lhs.m_data == rhs.m_data) && (lhs.m_size == rhs.m_size) && (lhs.m_capacity == rhs.m_capacity));
+		return !((lhs.data() == rhs.data()) && (lhs.size() == rhs.size()) && (lhs.capacity() == rhs.capacity()));
 	}
-	template<typename T, typename Allocator = std::allocator<T>, typename ThreadSycronisationObject>
-	bool operator<(const BasicList<T, Allocator, ThreadSycronisationObject>& lhs, const BasicList<T, Allocator, ThreadSycronisationObject>& rhs)
+	template<typename T, typename Allocator = std::allocator<T>>
+	bool operator<(const List<T, Allocator>& lhs, const List<T, Allocator>& rhs)
 	{
-		return lhs.m_size < rhs.m_size;
+		return lhs.size() < rhs.size();
 	}
-	template<typename T, typename Allocator = std::allocator<T>, typename ThreadSycronisationObject>
-	bool operator<=(const BasicList<T, Allocator, ThreadSycronisationObject>& lhs, const BasicList<T, Allocator, ThreadSycronisationObject>& rhs)
+	template<typename T, typename Allocator = std::allocator<T>>
+	bool operator<=(const List<T, Allocator>& lhs, const List<T, Allocator>& rhs)
 	{
-		return lhs.m_size <= rhs.m_size;
+		return lhs.size() <= rhs.size();
 	}
-	template<typename T, typename Allocator = std::allocator<T>, typename ThreadSycronisationObject>
-	bool operator>(const BasicList<T, Allocator, ThreadSycronisationObject>& lhs, const BasicList<T, Allocator, ThreadSycronisationObject>& rhs)
+	template<typename T, typename Allocator = std::allocator<T>>
+	bool operator>(const List<T, Allocator>& lhs, const List<T, Allocator>& rhs)
 	{
-		return lhs.m_size > rhs.m_size;
+		return lhs.size() > rhs.size();
 	}
-	template<typename T, typename Allocator = std::allocator<T>, typename ThreadSycronisationObject>
-	bool operator>=(const BasicList<T, Allocator, ThreadSycronisationObject>& lhs, const BasicList<T, Allocator, ThreadSycronisationObject>& rhs)
+	template<typename T, typename Allocator = std::allocator<T>>
+	bool operator>=(const List<T, Allocator>& lhs, const List<T, Allocator>& rhs)
 	{
-		return lhs.m_size >= rhs.m_size;
+		return lhs.size() >= rhs.size();
 	}
-	template<typename T, typename Allocator = std::allocator<T>, typename ThreadSycronisationObject>
-	constexpr auto operator<=>(const BasicList<T, Allocator, ThreadSycronisationObject>& lhs, const BasicList<T, Allocator, ThreadSycronisationObject>& rhs)
+	template<typename T, typename Allocator = std::allocator<T>>
+	constexpr auto operator<=>(const List<T, Allocator>& lhs, const List<T, Allocator>& rhs)
 	{
-		return lhs.m_size <=> rhs.m_size;
+		return lhs.size() <=> rhs.size();
+	}
+
+
+
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::TS_List() noexcept(noexcept(Allocator()))
+	: m_data(nullptr), m_size(0), m_capacity(0), m_lock()
+	{}
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::TS_List(const Allocator& alloc) noexcept
+	: m_data(nullptr), m_size(0), m_capacity(0), m_lock()
+	{}
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::TS_List(size_type count, const T& value, const Allocator& alloc)
+	: m_data(nullptr), m_size(count), m_capacity(count), m_lock()
+	{
+		this->m_data = alloc.allocate(count);
+		std::fill(this->m_data, this->m_data + this->m_size, value);
+	}
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::TS_List(size_type count, const Allocator& alloc)
+	: m_data(nullptr), m_size(count), m_capacity(count), m_lock()
+	{
+		this->m_data = alloc.allocate(count);
+		std::fill(this->m_data, this->m_data + this->m_size, value_type());
+	}
+	template<typename T, typename Allocator>
+	template<typename InputIt>
+	constexpr TS_List<T, Allocator>::TS_List(InputIt first, InputIt last, const Allocator& alloc)
+	{
+		auto size = std::distance(first, last);
+		this->m_data = alloc.allocate(size);
+		std::copy(first, last, this->m_data);
+		this->m_size = size;
+		this->m_capacity = size;
+		this->m_lock();
+	}
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::TS_List(const TS_List& other)
+	: m_data(nullptr), m_size(other.m_size), m_capacity(other.m_capacity), m_lock()
+	{
+		Allocator alloc;
+		this->m_data = alloc.allocate(other.m_size);
+		std::copy(other.m_data, other.m_data + other.m_size, this->m_data);
+	}
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::TS_List(const TS_List& other, const Allocator& alloc)
+	: m_data(nullptr), m_size(other.m_size), m_capacity(other.m_capacity), m_lock()
+	{
+		this->m_data = alloc.allocate(other.m_size);
+		std::copy(other.m_data, other.m_data + other.m_size, this->m_data);
+	}
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::TS_List(TS_List&& other) noexcept
+	: m_data(other.m_data), m_size(other.m_size), m_capacity(other.m_capacity), m_lock()
+	{
+		other.m_data = nullptr;
+		other.m_size = 0;
+		other.m_capacity = 0;
+	}
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::TS_List(TS_List&& other, const Allocator& alloc)
+	: m_data(other.m_data), m_size(other.m_size), m_capacity(other.m_capacity), m_lock()
+	{
+		other.m_data = nullptr;
+		other.m_size = 0;
+		other.m_capacity = 0;
+	}
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::TS_List(std::initializer_list<T> init, const Allocator& alloc)
+	: m_data(nullptr), m_size(init.size()), m_capacity(init.size()), m_lock()
+	{
+		this->m_data = alloc.allocate(init.size());
+		std::copy(init.begin(), init.end(), this->m_size);
+	}
+
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::~TS_List()
+	{
+		this->m_lock.writeLock();
+		this->m_lock.writeUnlock();
+
+		if(this->m_data != nullptr)
+		{
+			Allocator alloc;
+			alloc.deallocate(this->m_data, this->m_capacity);
+		}
+	}
+
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>& TS_List<T, Allocator>::operator=(const TS_List& other)
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		this->allocate(other.m_size);
+		std::copy(other.m_data, other.m_data + other.m_size, this->m_data);
+		this->m_size = other.m_size;
+		this->m_capacity = other.m_capacity;
+	}
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>& TS_List<T, Allocator>::operator=(TS_List&& other) noexcept(std::allocator_traits<Allocator>::propagate_on_container_move_assignment::value || std::allocator_traits<Allocator>::is_always_equal::value)
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		this->m_data = other.m_data;
+		this->m_size = other.m_size;
+		this->m_capacity = other.m_capacity;
+		other.m_data = nullptr;
+		other.m_size = 0;
+		other.m_capacity = 0;
+	}
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>& TS_List<T, Allocator>::operator=(std::initializer_list<T> ilist)
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		auto size = ilist.size();
+		this->allocate(size);
+		std::copy(ilist.begin(), ilist.end(), this->m_data);
+		this->m_size = size;
+		this->m_capacity = size;
+	}
+
+	template<typename T, typename Allocator>
+	constexpr void TS_List<T, Allocator>::assign(size_type count, const T& value)
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		this->allocate(count);
+		std::fill(this->m_data, this->m_data + count, value);
+		this->m_size = count;
+		this->m_capacity = count;
+	}
+	template<typename T, typename Allocator>
+	template<typename InputIt>
+	constexpr void TS_List<T, Allocator>::assign(InputIt first, InputIt last)
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		auto size = std::distance(first, last);
+		this->allocate(size);
+		std::copy(first, last, this->m_data);
+		this->m_size = size;
+		this->m_capacity = size;
+	}
+	template<typename T, typename Allocator>
+	constexpr void TS_List<T, Allocator>::assign(std::initializer_list<T> ilist)
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		auto size = ilist.size();
+		this->allocate(size);
+		std::copy(ilist.begin(), ilist.end(), this->m_data);
+		this->m_size = size;
+		this->m_capacity = size;
+	}
+
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::reference TS_List<T, Allocator>::at(size_type pos)
+	{
+		ReadLockGuard(&(this->m_lock));
+		
+		if(pos < m_size) [[likely]]
+		{
+			return this->m_data[pos];
+		}
+		else
+		{
+			throw std::out_of_range("fsds::TS_List index out of range");
+		}
+	}
+
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::reference TS_List<T, Allocator>::operator[](size_type pos)
+	{
+		ReadLockGuard(&(this->m_lock));
+		
+		if(pos < m_size) [[likely]]
+		{
+			return this->m_data[pos];
+		}
+		else
+		{
+			throw std::out_of_range("fsds::TS_List index out of range");
+		}
+	}
+
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::reference TS_List<T, Allocator>::front()
+	{
+		ReadLockGuard(&(this->m_lock));
+		
+		return this->m_data[0];
+	}
+	
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::reference TS_List<T, Allocator>::back()
+	{
+		ReadLockGuard(&(this->m_lock));
+		
+		return this->m_data[this->m_size-1];
+	}
+	
+	template<typename T, typename Allocator>
+	constexpr T* TS_List<T, Allocator>::data() noexcept
+	{
+		ReadLockGuard(&(this->m_lock));
+		
+		return this->m_data;
+	}
+	
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::iterator TS_List<T, Allocator>::begin() noexcept
+	{
+		ReadLockGuard(&(this->m_lock));
+		
+		return iterator(this->m_data);
+	}
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::const_iterator TS_List<T, Allocator>::cbegin() noexcept
+	{
+		ReadLockGuard(&(this->m_lock));
+		
+		return const_iterator(this->m_data);
+	}
+
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::iterator TS_List<T, Allocator>::end() noexcept
+	{
+		ReadLockGuard(&(this->m_lock));
+		
+		return iterator(this->m_data + this->m_size);
+	}
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::const_iterator TS_List<T, Allocator>::cend() noexcept
+	{
+		ReadLockGuard(&(this->m_lock));
+		
+		return const_iterator(this->m_data + this->m_size);
+	}
+
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::reverse_iterator TS_List<T, Allocator>::rbegin() noexcept
+	{
+		ReadLockGuard(&(this->m_lock));
+		
+		return reverse_iterator(this->m_data);
+	}
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::const_reverse_iterator TS_List<T, Allocator>::crbegin() noexcept
+	{
+		ReadLockGuard(&(this->m_lock));
+		
+		return const_reverse_iterator(this->m_data);
+	}
+
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::reverse_iterator TS_List<T, Allocator>::rend() noexcept
+	{
+		ReadLockGuard(&(this->m_lock));
+		
+		return reverse_iterator(this->m_data + this->m_size);
+	}
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::const_reverse_iterator TS_List<T, Allocator>::crend() noexcept
+	{
+		ReadLockGuard(&(this->m_lock));
+		
+		return const_reverse_iterator(this->m_data + this->m_size);
+	}
+
+
+	template<typename T, typename Allocator>
+	[[nodiscard]] constexpr bool TS_List<T, Allocator>::empty() noexcept
+	{
+		ReadLockGuard(&(this->m_lock));
+		
+		return (this->m_size == 0);
+	}
+	
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::size_type TS_List<T, Allocator>::size() noexcept
+	{
+		ReadLockGuard(&(this->m_lock));
+		
+		return this->m_size;
+	}
+	
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::size_type TS_List<T, Allocator>::max_size() noexcept
+	{
+		ReadLockGuard(&(this->m_lock));
+		
+		return std::numeric_limits<size_t>::max() / sizeof(T);
+	}
+	
+	template<typename T, typename Allocator>
+	constexpr void TS_List<T, Allocator>::reserve(size_type new_cap)
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		if(new_cap > this->max_size) [[likely]]
+		{
+			this->reallocate<false>(new_cap);
+		}
+	}
+	
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::size_type TS_List<T, Allocator>::capacity() noexcept
+	{
+		ReadLockGuard(&(this->m_lock));
+		
+		return this->m_capacity;
+	}
+	
+	template<typename T, typename Allocator>
+	constexpr void TS_List<T, Allocator>::shrink_to_fit()
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		this->reallocate<false>(this->m_size);
+	}
+
+
+
+	template<typename T, typename Allocator>
+	constexpr void TS_List<T, Allocator>::clear() noexcept
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		Allocator alloc;
+		alloc.deallocate(this->m_data, this->m_size);
+		this->m_data = nullptr;
+		this->m_size = 0;
+		this->m_capacity = 0;
+	}
+
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::iterator TS_List<T, Allocator>::insert(const_iterator pos, const T& value)
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		if(this->m_size >= this->m_capacity) [[unlikely]]
+		{
+			this->reallocate<false>(this->m_size * 2);
+		}
+		std::copy(this->m_data + pos, this->m_data + this->m_size, this->m_data + pos + 1);
+		this->m_data[pos] = value;
+		this->m_size++;
+	}
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::iterator TS_List<T, Allocator>::insert(const_iterator pos, T&& value)
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		if(this->m_size >= this->m_capacity) [[unlikely]]
+		{
+			this->reallocate<false>(this->m_size * 2);
+		}
+		std::copy(this->m_data + pos, this->m_data + this->m_size, this->m_data + pos + 1);
+		this->m_data[pos] = value;
+		this->m_size++;
+	}
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::iterator TS_List<T, Allocator>::insert(const_iterator pos, size_type count, const T& value)
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		if(this->m_size + count >= this->m_capacity) [[unlikely]]
+		{
+			if(count > this->size_t)
+			{
+				this->reallocate<false>(this->m_size + count);
+			}
+			else
+			{
+				this->reallocate<false>(this->m_size * 2);
+			}
+		}
+		std::copy(this->m_data + pos, this->m_data + this->m_size, this->m_data + pos + count);
+		std::fill(this->m_data + pos, this->m_data + pos + count, value);
+		this->m_size += count;
+	}
+	template<typename T, typename Allocator>
+	template<typename InputIt>
+	constexpr TS_List<T, Allocator>::iterator TS_List<T, Allocator>::insert(const_iterator pos, InputIt first, InputIt last)
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		size_t count = std::distance(first, last);
+
+		if(this->m_size + count >= this->m_capacity) [[unlikely]]
+		{
+			if(count > this->size_t)
+			{
+				this->reallocate<false>(this->m_size + count);
+			}
+			else
+			{
+				this->reallocate<false>(this->m_size * 2);
+			}
+		}
+		std::copy(this->m_data + pos, this->m_data + this->m_size, this->m_data + pos + count);
+		std::copy(first, last, this->m_data + pos);
+		this->m_size += count;
+	}
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::iterator TS_List<T, Allocator>::insert(const_iterator pos, std::initializer_list<T> ilist)
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		size_t count = ilist.size();
+
+		if(this->m_size + count >= this->m_capacity) [[unlikely]]
+		{
+			if(count > this->size_t)
+			{
+				this->reallocate<false>(this->m_size + count);
+			}
+			else
+			{
+				this->reallocate<false>(this->m_size * 2);
+			}
+		}
+		std::copy(this->m_data + pos, this->m_data + this->m_size, this->m_data + pos + count);
+		std::copy(ilist.begin(), ilist.end(), this->m_data + pos);
+		this->m_size += count;
+	}
+	
+	template<typename T, typename Allocator>
+	template<typename... Args>
+	constexpr TS_List<T, Allocator>::iterator TS_List<T, Allocator>::emplace(const_iterator pos, Args&&... args)
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		std::copy(this->m_data + pos, this->m_data + this->m_size, this->m_data + pos + 1);
+		*pos = T(args...);
+		return pos;
+	}
+
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::iterator TS_List<T, Allocator>::erase(const_iterator pos)
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		std::copy(this->m_data + pos + 1, this->m_data + this->m_size, this->m_data + pos);
+		this->m_size--;
+		return iterator(this->m_data + pos);
+	}
+	template<typename T, typename Allocator>
+	constexpr TS_List<T, Allocator>::iterator TS_List<T, Allocator>::erase(const_iterator first, const_iterator last)
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		size_t count = std::distance(first, last);
+		std::copy(this->m_data + last, this->m_data + this->m_size, first);
+		this->m_size -= count;
+		return first;
+	}
+	
+	template<typename T, typename Allocator>
+	constexpr void TS_List<T, Allocator>::push_back(const T& value)
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		if(this->m_size >= this->m_capacity) [[unlikely]]
+		{
+			this->reallocate<false>(this->m_size * 2);
+		}
+		this->m_data[this->m_size] = value;
+		this->m_size++;
+	}
+	template<typename T, typename Allocator>
+	constexpr void TS_List<T, Allocator>::push_back(T&& value)
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		if(this->m_size >= this->m_capacity) [[unlikely]]
+		{
+			this->reallocate<false>(this->m_size * 2);
+		}
+		this->m_data[this->m_size] = value;
+		this->m_size++;
+	}
+
+	template<typename T, typename Allocator>
+	template<typename... Args>
+	constexpr void TS_List<T, Allocator>::emplace_back(Args&&... args)
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		if(this->m_size == this->m_capacity) [[unlikely]]
+		{
+			this->reallocate<false>(this->m_size * 2);
+		}
+		this->m_data[this->m_size] = value_type(args...);
+		this->m_size++;
+	}
+
+	template<typename T, typename Allocator>
+	constexpr void TS_List<T, Allocator>::pop_back()
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		this->m_size--;
+	}
+
+	template<typename T, typename Allocator>
+	constexpr void TS_List<T, Allocator>::resize(size_type count)
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		if(count < this->m_size)
+		{
+			this->reallocate<true>(count);
+			this->m_size = count;
+		}
+		else
+		{
+			this->reallocate<false>(count);
+			for(size_t i = this->m_size; i < count; i++)
+			{
+				this->m_data[i] = value_type();
+			}
+
+			this->m_size = count;
+		}
+	}
+	template<typename T, typename Allocator>
+	constexpr void TS_List<T, Allocator>::resize(size_type count, const value_type& value)
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		if(count < this->m_size)
+		{
+			this->reallocate<true>(count);
+			this->m_size = count;
+		}
+		else
+		{
+			this->reallocate<false>(count);
+			for(size_t i = this->m_size; i < count; i++)
+			{
+				this->m_data[i] = value;
+			}
+			this->m_size = count;
+		}
+	}
+
+	template<typename T, typename Allocator>
+	constexpr void TS_List<T, Allocator>::swap(TS_List& other) noexcept(std::allocator_traits<Allocator>::propagate_on_container_swap::value || std::allocator_traits<Allocator>::is_always_equal::value)
+	{
+		WriteLockGuard(&(this->m_lock));
+		
+		std::swap(this->m_data, other.m_data);
+		std::swap(this->m_size, other.m_size);
+		std::swap(this->m_capacity, other.m_capacity);
+	}
+
+	template<typename T, typename Allocator>
+	constexpr void TS_List<T, Allocator>::flush()
+	{
+		this->m_lock.writeLock();
+		this->m_lock.writeUnlock();
+	}
+
+	template<typename T, typename Allocator>
+	template<bool shouldShrink>
+	constexpr void TS_List<T, Allocator>::reallocate(const size_type& newCapacity)
+	{
+		Allocator alloc;
+		T* newDataLocation = alloc.allocate(newCapacity);
+		T* oldDataLocation = this->m_data;
+		if constexpr(shouldShrink)
+		{
+			std::copy(oldDataLocation, oldDataLocation + newCapacity, newDataLocation);
+		}
+		else
+		{
+			std::copy(oldDataLocation, oldDataLocation + this->m_size, newDataLocation);
+		}
+		this->m_data = newDataLocation;
+		this->m_capacity = newCapacity;
+		if(oldDataLocation != nullptr) [[unlikely]]
+		{
+			alloc.deallocate(oldDataLocation, this->m_size);
+		}
+	}
+	template<typename T, typename Allocator>
+	constexpr void TS_List<T, Allocator>::allocate(const size_type& newCapacity)
+	{
+		Allocator alloc;
+		if(this->m_data != nullptr)
+		{
+			alloc.deallocate(this->m_data, this->m_size);
+		}
+		this->m_data = alloc.allocate(newCapacity);
+	}
+
+	template<typename T, typename Allocator = std::allocator<T>>
+	constexpr bool operator==(TS_List<T, Allocator>& lhs, TS_List<T, Allocator>& rhs)
+	{
+		return (lhs.data() == rhs.data()) && (lhs.size() == rhs.size()) && (lhs.capacity() == rhs.capacity());
+	}
+	template<typename T, typename Allocator = std::allocator<T>>
+	bool operator!=(TS_List<T, Allocator>& lhs, TS_List<T, Allocator>& rhs)
+	{
+		return !((lhs.data() == rhs.data()) && (lhs.size() == rhs.size()) && (lhs.capacity() == rhs.capacity()));
+	}
+	template<typename T, typename Allocator = std::allocator<T>>
+	bool operator<(TS_List<T, Allocator>& lhs, TS_List<T, Allocator>& rhs)
+	{
+		return lhs.size() < rhs.size();
+	}
+	template<typename T, typename Allocator = std::allocator<T>>
+	bool operator<=(TS_List<T, Allocator>& lhs, TS_List<T, Allocator>& rhs)
+	{
+		return lhs.size() <= rhs.size();
+	}
+	template<typename T, typename Allocator = std::allocator<T>>
+	bool operator>(TS_List<T, Allocator>& lhs, TS_List<T, Allocator>& rhs)
+	{
+		return lhs.size() > rhs.size();
+	}
+	template<typename T, typename Allocator = std::allocator<T>>
+	bool operator>=(TS_List<T, Allocator>& lhs, TS_List<T, Allocator>& rhs)
+	{
+		return lhs.size() >= rhs.size();
+	}
+	template<typename T, typename Allocator = std::allocator<T>>
+	constexpr auto operator<=>(TS_List<T, Allocator>& lhs, TS_List<T, Allocator>& rhs)
+	{
+		return lhs.size() <=> rhs.size();
 	}
 }
