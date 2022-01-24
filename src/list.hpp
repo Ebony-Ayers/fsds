@@ -8,429 +8,143 @@
 
 namespace fsds
 {
-	template<typename T>
-	struct ListIterator
-	{
-		public:
-			using iterator_catagory			= std::contiguous_iterator_tag;
-			using size_type					= size_t;
-			using difference_type			= std::ptrdiff_t;
-			using value_type				= T;
-			using pointer					= value_type*;
-			using reference					= value_type&;
-
-			ListIterator(pointer ptr);
-
-			reference operator*() const;
-			pointer operator->();
-			reference operator[](size_type pos) const;
-
-			ListIterator& operator++();
-			ListIterator& operator++(int);
-			ListIterator& operator--();
-			ListIterator& operator--(int);
-
-			ListIterator& operator+=(size_type value);
-			ListIterator& operator-=(size_type value);
-
-			pointer getPtr() const;
-
-		private:
-			pointer m_ptr;
-	};
-	template<typename T>
-	bool operator==(const ListIterator<T>& lhs, const ListIterator<T>& rhs);
-	template<typename T>
-	bool operator!=(const ListIterator<T>& lhs, const ListIterator<T>& rhs);
-	template<typename T>
-	bool operator<(const ListIterator<T>& lhs, const ListIterator<T>& rhs);
-	template<typename T>
-	bool operator<=(const ListIterator<T>& lhs, const ListIterator<T>& rhs);
-	template<typename T>
-	bool operator>(const ListIterator<T>& lhs, const ListIterator<T>& rhs);
-	template<typename T>
-	bool operator>=(const ListIterator<T>& lhs, const ListIterator<T>& rhs);
-
-	template<typename T>
-	ListIterator<T> operator+(const ListIterator<T>& lhs, const typename ListIterator<T>::size_type& rhs);
-	template<typename T>
-	ListIterator<T> operator+(const typename ListIterator<T>::size_type& lhs, const ListIterator<T>& rhs);
-	template<typename T>
-	ListIterator<T> operator-(const ListIterator<T>& lhs, const typename ListIterator<T>::size_type& rhs);
-	template<typename T>
-	ListIterator<T> operator-(const typename ListIterator<T>::size_type& lhs, const ListIterator<T>& rhs);
-	
 	template<typename T, typename Allocator = std::allocator<T>>
 	class List
 	{
 		public:
-			using value_type				= T;
-			using allocator_type			= Allocator;
-			using size_type					= size_t;
-			using difference_type			= std::ptrdiff_t;
-			using reference					= value_type&;
-			using const_reference			= const value_type& ;
-			using pointer					= std::allocator_traits<Allocator>::pointer;
-			using const_pointer				= std::allocator_traits<Allocator>::const_pointer;
-			
-			using iterator					= ListIterator<T>;
-			using reverse_iterator			= std::reverse_iterator<iterator>;
-			using const_iterator			= ListIterator<const T>;
-			using const_reverse_iterator	= std::reverse_iterator<const_iterator>;
-			
-
-			//constuctors
-
 			constexpr List() noexcept(noexcept(Allocator()));
-			constexpr explicit List(const Allocator& alloc) noexcept;
-			constexpr List(size_type count, const T& value, const Allocator& alloc = Allocator());
-			constexpr explicit List(size_type count, const Allocator& alloc = Allocator());
+			constexpr explicit List(const Allocator& alloc) noexcept = delete;
+			constexpr List(size_t count, const T& value, const Allocator& alloc = Allocator()) = delete;
+			constexpr explicit List(size_t count, const Allocator& alloc = Allocator()) = delete;
 			template<typename InputIt>
-			constexpr List(InputIt first, InputIt last, const Allocator& alloc = Allocator());
-			constexpr List(const List& other);
-			constexpr List(const List& other, const Allocator& alloc);
-			constexpr List(List&& other) noexcept;
-			constexpr List(List&& other, const Allocator& alloc);
+			constexpr List(InputIt first, InputIt last, const Allocator& alloc = Allocator()) = delete;
+			constexpr List(const List& other) = delete;
+			constexpr List(const List& other, const Allocator& alloc) = delete;
+			constexpr List(List&& other) noexcept = delete;
+			constexpr List(List&& other, const Allocator& alloc) = delete;
 			constexpr List(std::initializer_list<T> init, const Allocator& alloc = Allocator());
-
 			constexpr ~List();
 
-			constexpr List& operator=(const List& other);
-			constexpr List& operator=(List&& other) noexcept(std::allocator_traits<Allocator>::propagate_on_container_move_assignment::value || std::allocator_traits<Allocator>::is_always_equal::value);
-			constexpr List& operator=(std::initializer_list<T> ilist);
+			constexpr Allocator getAllocator() const noexcept;
 
-			constexpr void assign(size_type count, const T& value);
-			template<typename InputIt>
-			constexpr void assign(InputIt first, InputIt last);
-			constexpr void assign(std::initializer_list<T> ilist);
+			constexpr T* operator[](size_t pos);
+			constexpr const T* operator[](size_t pos) const;
 
-			constexpr allocator_type get_allocator() const noexcept;
+			constexpr T* front();
+			constexpr const T* front() const;
+			constexpr T* back();
+			constexpr const T* back() const;
+
+			constexpr T* data();
+			constexpr const T* data() const;
+
+			[[nodiscard]] constexpr bool isEmpty() const noexcept;
+			constexpr size_t size() const noexcept;
+			constexpr size_t maxSize() const noexcept;
+			constexpr size_t capacity() const noexcept;
+
+			constexpr void reserve(size_t newCap);
+			constexpr void clear();
 			
-			//element access
-
-			constexpr reference at(size_type pos);
-			constexpr const_reference at(size_type pos) const;
-
-			constexpr reference operator[](size_type pos);
-			constexpr const_reference operator[](size_type pos) const;
-
-			constexpr reference front();
-			constexpr const_reference front() const;
-
-			constexpr reference back();
-			constexpr const_reference back() const;
-
-			constexpr T* data() noexcept;
-			constexpr const T* data() const noexcept;
-
-			//iterators
-
-			constexpr iterator begin() noexcept;
-			constexpr const_iterator begin() const noexcept;
-			constexpr const_iterator cbegin() const noexcept;
-
-			constexpr iterator end() noexcept;
-			constexpr const_iterator end() const noexcept;
-			constexpr const_iterator cend() const noexcept;
-
-			constexpr reverse_iterator rbegin() noexcept;
-			constexpr const_reverse_iterator rbegin() const noexcept;
-			constexpr const_reverse_iterator crbegin() const noexcept;
-
-			constexpr reverse_iterator rend() noexcept;
-			constexpr const_reverse_iterator rend() const noexcept;
-			constexpr const_reverse_iterator crend() const noexcept;
-
-			//capacity
-
-			[[nodiscard]] constexpr bool empty() const noexcept;
-			
-			constexpr size_type size() const noexcept;
-			
-			constexpr size_type max_size() const noexcept;
-			
-			constexpr void reserve(size_type new_cap);
-			
-			constexpr size_type capacity() const noexcept;
-			
-			constexpr void shrink_to_fit();
-
-			//modifiers
-
-			constexpr void clear() noexcept;
-			
-			constexpr iterator insert(const_iterator pos, const T& value);
-			constexpr iterator insert(const_iterator pos, T&& value);
-			constexpr iterator insert(const_iterator pos, size_type count, const T& value);
-			template<typename InputIt>
-			constexpr iterator insert(const_iterator pos, InputIt first, InputIt last);
-			constexpr iterator insert(const_iterator pos, std::initializer_list<T> ilist);
-
+			constexpr void append(const T& value);
 			template<typename... Args>
-			constexpr iterator emplace(const_iterator pos, Args&&... args);
-
-			constexpr iterator erase(const_iterator pos);
-			constexpr iterator erase(const_iterator first, const_iterator last);
-			
-			constexpr void push_back(const T& value);
-			constexpr void push_back(T&& value);
-
+			constexpr void appendConstruct(Args&&... args);
+			constexpr void prepend(const T& value);
 			template<typename... Args>
-			constexpr void emplace_back(Args&&... args);
+			constexpr void prependConstruct(Args&&... args);
+			constexpr void insert(size_t pos, const T& value);
+			template<typename... Args>
+			constexpr void insertConstruct(size_t pos, Args&&... args);
 
-			constexpr void pop_back();
-
-			constexpr void resize(size_type count);
-			constexpr void resize(size_type count, const value_type& value);
-
-			constexpr void swap(List& other) noexcept(std::allocator_traits<Allocator>::propagate_on_container_swap::value || std::allocator_traits<Allocator>::is_always_equal::value);
-			
+			constexpr void remove(size_t pos);
+			constexpr void removeBack();
+			constexpr void removeFront();
 		
 		private:
-			template<bool shouldShrink = false>
-			constexpr void reallocate(const size_type& newCapacity);
-			constexpr void allocate(const size_type& newCapacity);
-
-			constexpr fts::ReadWriteLock* getLockPointer();
+			void reallocate(size_t newSize);
 
 			T* m_data;
-			size_type m_size;
-			size_type m_capacity;
+			size_t m_size;
+			size_t m_capacity;
 	};
-	
-	template<typename T, typename Allocator = std::allocator<T>>
-	constexpr bool operator==(const List<T, Allocator>& lhs, const List<T, Allocator>& rhs);
-	template<typename T, typename Allocator = std::allocator<T>>
-	bool operator!=(const List<T, Allocator>& lhs, const List<T, Allocator>& rhs);
-	template<typename T, typename Allocator = std::allocator<T>>
-	bool operator<(const List<T, Allocator>& lhs, const List<T, Allocator>& rhs);
-	template<typename T, typename Allocator = std::allocator<T>>
-	bool operator<=(const List<T, Allocator>& lhs, const List<T, Allocator>& rhs);
-	template<typename T, typename Allocator = std::allocator<T>>
-	bool operator>(const List<T, Allocator>& lhs, const List<T, Allocator>& rhs);
-	template<typename T, typename Allocator = std::allocator<T>>
-	bool operator>=(const List<T, Allocator>& lhs, const List<T, Allocator>& rhs);
-	template<typename T, typename Allocator = std::allocator<T>>
-	constexpr auto operator<=>(const List<T, Allocator>& lhs, const List<T, Allocator>& rhs);
 
-
-
-
-
-
-	template<typename T>
-	struct TS_ListIterator
+	class ts_ListReadLockGuard
 	{
 		public:
-			using iterator_catagory			= std::contiguous_iterator_tag;
-			using size_type					= size_t;
-			using difference_type			= std::ptrdiff_t;
-			using value_type				= T;
-			using pointer					= value_type*;
-			using reference					= value_type&;
-
-			TS_ListIterator(pointer ptr, fts::ReadWriteLock* lockPtr);
-
-			reference operator*();
-			pointer operator->();
-			reference operator[](size_type pos);
-
-			TS_ListIterator& operator++();
-			TS_ListIterator& operator++(int);
-			TS_ListIterator& operator--();
-			TS_ListIterator& operator--(int);
-
-			TS_ListIterator& operator+=(size_type value);
-			TS_ListIterator& operator-=(size_type value);
-
-			pointer getPtr();
-
-		private:
-			pointer m_ptr;
-			fts::ReadWriteLock* m_lockPtr;
-	};
-	template<typename T>
-	bool operator==(const TS_ListIterator<T>& lhs, const TS_ListIterator<T>& rhs);
-	template<typename T>
-	bool operator!=(const TS_ListIterator<T>& lhs, const TS_ListIterator<T>& rhs);
-	template<typename T>
-	bool operator<(const TS_ListIterator<T>& lhs, const TS_ListIterator<T>& rhs);
-	template<typename T>
-	bool operator<=(const TS_ListIterator<T>& lhs, const TS_ListIterator<T>& rhs);
-	template<typename T>
-	bool operator>(const TS_ListIterator<T>& lhs, const TS_ListIterator<T>& rhs);
-	template<typename T>
-	bool operator>=(const TS_ListIterator<T>& lhs, const TS_ListIterator<T>& rhs);
-
-	template<typename T>
-	TS_ListIterator<T> operator+(const TS_ListIterator<T>& lhs, const typename TS_ListIterator<T>::size_type& rhs);
-	template<typename T>
-	TS_ListIterator<T> operator+(const typename TS_ListIterator<T>::size_type& lhs, const TS_ListIterator<T>& rhs);
-	template<typename T>
-	TS_ListIterator<T> operator-(const TS_ListIterator<T>& lhs, const typename TS_ListIterator<T>::size_type& rhs);
-	template<typename T>
-	TS_ListIterator<T> operator-(const typename TS_ListIterator<T>::size_type& lhs, const TS_ListIterator<T>& rhs);
-
-	
-	struct ReadLockGuard
-	{
-		fts::ReadWriteLock* pLock;
-		ReadLockGuard(fts::ReadWriteLock* lock) : pLock(lock) { this->pLock->readLock(); }
-		~ReadLockGuard() { this->pLock->readUnlock(); }
-	};
-	struct WriteLockGuard
-	{
-		fts::ReadWriteLock* pLock;
-		WriteLockGuard(fts::ReadWriteLock* lock) : pLock(lock) { this->pLock->writeLock(); }
-		~WriteLockGuard() { this->pLock->writeUnlock(); }
-	};
-
-	template<typename T, typename Allocator = std::allocator<T>>
-	class TS_List
-	{
-		public:
-			using value_type				= T;
-			using allocator_type			= Allocator;
-			using size_type					= size_t;
-			using difference_type			= std::ptrdiff_t;
-			using reference					= value_type&;
-			using const_reference			= const value_type& ;
-			using pointer					= std::allocator_traits<Allocator>::pointer;
-			using const_pointer				= std::allocator_traits<Allocator>::const_pointer;
-			
-			using iterator					= TS_ListIterator<T>;
-			using reverse_iterator			= std::reverse_iterator<iterator>;
-			using const_iterator			= TS_ListIterator<const T>;
-			using const_reverse_iterator	= std::reverse_iterator<const_iterator>;
-			
-
-			//constuctors
-
-			constexpr TS_List() noexcept(noexcept(Allocator()));
-			constexpr explicit TS_List(const Allocator& alloc) noexcept;
-			constexpr TS_List(size_type count, const T& value, const Allocator& alloc = Allocator());
-			constexpr explicit TS_List(size_type count, const Allocator& alloc = Allocator());
-			template<typename InputIt>
-			constexpr TS_List(InputIt first, InputIt last, const Allocator& alloc = Allocator());
-			constexpr TS_List(const TS_List& other);
-			constexpr TS_List(const TS_List& other, const Allocator& alloc);
-			constexpr TS_List(TS_List&& other) noexcept;
-			constexpr TS_List(TS_List&& other, const Allocator& alloc);
-			constexpr TS_List(std::initializer_list<T> init, const Allocator& alloc = Allocator());
-
-			constexpr ~TS_List();
-
-			constexpr TS_List& operator=(const TS_List& other);
-			constexpr TS_List& operator=(TS_List&& other) noexcept(std::allocator_traits<Allocator>::propagate_on_container_move_assignment::value || std::allocator_traits<Allocator>::is_always_equal::value);
-			constexpr TS_List& operator=(std::initializer_list<T> iTS_List);
-
-			constexpr void assign(size_type count, const T& value);
-			template<typename InputIt>
-			constexpr void assign(InputIt first, InputIt last);
-			constexpr void assign(std::initializer_list<T> iTS_List);
-
-			constexpr allocator_type get_allocator() noexcept;
-			
-			//element access
-
-			constexpr reference at(size_type pos);
-
-			constexpr reference operator[](size_type pos);
-
-			constexpr reference front();
-
-			constexpr reference back();
-
-			constexpr T* data() noexcept;
-
-			//iterators
-
-			constexpr iterator begin() noexcept;
-			constexpr const_iterator cbegin() noexcept;
-
-			constexpr iterator end() noexcept;
-			constexpr const_iterator cend() noexcept;
-
-			constexpr reverse_iterator rbegin() noexcept;
-			constexpr const_reverse_iterator crbegin() noexcept;
-
-			constexpr reverse_iterator rend() noexcept;
-			constexpr const_reverse_iterator crend() noexcept;
-
-			//capacity
-
-			[[nodiscard]] constexpr bool empty() noexcept;
-			
-			constexpr size_type size() noexcept;
-			
-			constexpr size_type max_size() noexcept;
-			
-			constexpr void reserve(size_type new_cap);
-			
-			constexpr size_type capacity() noexcept;
-			
-			constexpr void shrink_to_fit();
-
-			//modifiers
-
-			constexpr void clear() noexcept;
-			
-			constexpr iterator insert(const_iterator pos, const T& value);
-			constexpr iterator insert(const_iterator pos, T&& value);
-			constexpr iterator insert(const_iterator pos, size_type count, const T& value);
-			template<typename InputIt>
-			constexpr iterator insert(const_iterator pos, InputIt first, InputIt last);
-			constexpr iterator insert(const_iterator pos, std::initializer_list<T> iTS_List);
-
-			template<typename... Args>
-			constexpr iterator emplace(const_iterator pos, Args&&... args);
-
-			constexpr iterator erase(const_iterator pos);
-			constexpr iterator erase(const_iterator first, const_iterator last);
-			
-			constexpr void push_back(const T& value);
-			constexpr void push_back(T&& value);
-
-			template<typename... Args>
-			constexpr void emplace_back(Args&&... args);
-
-			constexpr void pop_back();
-
-			constexpr void resize(size_type count);
-			constexpr void resize(size_type count, const value_type& value);
-
-			constexpr void swap(TS_List& other) noexcept(std::allocator_traits<Allocator>::propagate_on_container_swap::value || std::allocator_traits<Allocator>::is_always_equal::value);
-			
-			constexpr void flush();
+			ts_ListReadLockGuard(fts::ReadWriteLock* lock) : m_lock(lock) { m_lock->readLock(); }
+			~ts_ListReadLockGuard() { m_lock->readUnlock(); }
 		
 		private:
-			template<bool shouldShrink = false>
-			constexpr void reallocate(const size_type& newCapacity);
-			constexpr void allocate(const size_type& newCapacity);
+			fts::ReadWriteLock* m_lock;
+	};
+	class ts_ListWriteLockGuard
+	{
+		public:
+			ts_ListWriteLockGuard(fts::ReadWriteLock* lock) : m_lock(lock) { m_lock->writeLock(); }
+			~ts_ListWriteLockGuard() { m_lock->writeUnlock(); }
+		
+		private:
+			fts::ReadWriteLock* m_lock;
+	};
 
-			constexpr fts::ReadWriteLock* getLockPointer();
+	template<typename T, typename Allocator = std::allocator<T>>
+	class ts_List
+	{
+		public:
+			constexpr ts_List() noexcept(noexcept(Allocator()));
+			constexpr explicit ts_List(const Allocator& alloc) noexcept = delete;
+			constexpr ts_List(size_t count, const T& value, const Allocator& alloc = Allocator()) = delete;
+			constexpr explicit ts_List(size_t count, const Allocator& alloc = Allocator()) = delete;
+			template<typename InputIt>
+			constexpr ts_List(InputIt first, InputIt last, const Allocator& alloc = Allocator()) = delete;
+			constexpr ts_List(const ts_List& other) = delete;
+			constexpr ts_List(const ts_List& other, const Allocator& alloc) = delete;
+			constexpr ts_List(ts_List&& other) noexcept = delete;
+			constexpr ts_List(ts_List&& other, const Allocator& alloc) = delete;
+			constexpr ts_List(std::initializer_list<T> init, const Allocator& alloc = Allocator());
+			constexpr ~ts_List();
+
+			constexpr Allocator getAllocator() const noexcept;
+
+			constexpr T* operator[](size_t pos);
+			constexpr const T* operator[](size_t pos) const;
+
+			constexpr T* front();
+			constexpr T* back();
+
+			constexpr T* data();
+
+			[[nodiscard]] constexpr bool isEmpty() noexcept;
+			constexpr size_t size() noexcept;
+			constexpr size_t maxSize() noexcept;
+			constexpr size_t capacity() noexcept;
+
+			constexpr void reserve(size_t newCap);
+			constexpr void clear();
+			
+			constexpr void append(const T& value);
+			template<typename... Args>
+			constexpr void appendConstruct(Args&&... args);
+			constexpr void prepend(const T& value);
+			template<typename... Args>
+			constexpr void prependConstruct(Args&&... args);
+			constexpr void insert(size_t pos, const T& value);
+			template<typename... Args>
+			constexpr void insertConstruct(size_t pos, Args&&... args);
+
+			constexpr void remove(size_t pos);
+			constexpr void removeBack();
+			constexpr void removeFront();
+		
+		private:
+			void reallocate(size_t newSize);
 
 			T* m_data;
-			size_type m_size;
-			size_type m_capacity;
-
+			size_t m_size;
+			size_t m_capacity;
 			fts::ReadWriteLock m_lock;
 	};
-
-	template<typename T, typename Allocator = std::allocator<T>>
-	constexpr bool operator==(TS_List<T, Allocator>& lhs, TS_List<T, Allocator>& rhs);
-	template<typename T, typename Allocator = std::allocator<T>>
-	bool operator!=(TS_List<T, Allocator>& lhs, TS_List<T, Allocator>& rhs);
-	template<typename T, typename Allocator = std::allocator<T>>
-	bool operator<(TS_List<T, Allocator>& lhs, TS_List<T, Allocator>& rhs);
-	template<typename T, typename Allocator = std::allocator<T>>
-	bool operator<=(TS_List<T, Allocator>& lhs, TS_List<T, Allocator>& rhs);
-	template<typename T, typename Allocator = std::allocator<T>>
-	bool operator>(TS_List<T, Allocator>& lhs, TS_List<T, Allocator>& rhs);
-	template<typename T, typename Allocator = std::allocator<T>>
-	bool operator>=(TS_List<T, Allocator>& lhs, TS_List<T, Allocator>& rhs);
-	template<typename T, typename Allocator = std::allocator<T>>
-	constexpr auto operator<=>(TS_List<T, Allocator>& lhs, TS_List<T, Allocator>& rhs);
 }
 
 #include "list.inl"
+#include "ts_list.inl"
