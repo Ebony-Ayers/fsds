@@ -59,6 +59,9 @@ namespace fsds
 			constexpr void remove(size_t pos);
 			constexpr void removeBack();
 			constexpr void removeFront();
+
+			constexpr bool dataReferenceEquality(const List<T, Allocator>& other);
+			constexpr bool valueEquality(const List<T, Allocator>& other);
 		
 		private:
 			void reallocate(size_t newSize);
@@ -67,6 +70,11 @@ namespace fsds
 			size_t m_size;
 			size_t m_capacity;
 	};
+
+	template<typename T, typename Allocator = std::allocator<T>>
+	constexpr bool operator==(const List<T, Allocator>& lhs, const List<T, Allocator>& rhs);
+	template<typename T, typename Allocator = std::allocator<T>>
+	constexpr bool operator!=(const List<T, Allocator>& lhs, const List<T, Allocator>& rhs);
 
 	class ts_ListReadLockGuard
 	{
@@ -135,6 +143,9 @@ namespace fsds
 			constexpr void remove(size_t pos);
 			constexpr void removeBack();
 			constexpr void removeFront();
+
+			constexpr bool dataReferenceEquality(const ts_List<T, Allocator>& other);
+			constexpr bool valueEquality(const ts_List<T, Allocator>& other);
 		
 		private:
 			void reallocate(size_t newSize);
@@ -144,6 +155,11 @@ namespace fsds
 			size_t m_capacity;
 			fts::ReadWriteLock m_lock;
 	};
+
+	template<typename T, typename Allocator = std::allocator<T>>
+	constexpr bool operator==(const ts_List<T, Allocator>& lhs, const ts_List<T, Allocator>& rhs);
+	template<typename T, typename Allocator = std::allocator<T>>
+	constexpr bool operator!=(const ts_List<T, Allocator>& lhs, const ts_List<T, Allocator>& rhs);
 }
 
 #include "list.inl"

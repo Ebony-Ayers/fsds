@@ -5,3 +5,5 @@
 #include "fsdsOptions.hpp"
 
 #include "list.hpp"
+#include "linked_list.hpp"
+#include "spsc_queue.hpp"

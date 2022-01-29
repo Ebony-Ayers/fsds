@@ -9,15 +9,26 @@
 
 int main(int /*argc*/, const char** /*argv*/)
 {	
-	fsds::ts_List<int> l;
+	fsds::SPSCQueue<int> q;
 
-	l.append(1);
-	l.append(2);
-	l.append(3);
-
-	for(size_t i = 0; i < l.size(); i++)
+	for(int i = 0; i < 6; i++)
 	{
-		std::cout << (*l[i]) << std::endl;
+		q.enqueue(i);
+	}
+	for(int i = 0; i < 4; i++)
+	{
+		q.dequeue();
+	}
+	for(int i = 6; i < 20; i++)
+	{
+		q.enqueue(i);
+	}
+
+	std::cout << "finished adding" << std::endl;
+
+	for(int i = 0; i < 24; i++)
+	{
+		std::cout << q.dequeue() << std::endl;
 	}
 	
 	return 0;

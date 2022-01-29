@@ -224,6 +224,40 @@ namespace fsds
 	}
 
 	template<typename T, typename Allocator>
+	constexpr bool ts_List<T, Allocator>::dataReferenceEquality(const ts_List<T, Allocator>& other)
+	{
+		return (this->m_data == other.m_data) && (this->m_size == other.m_size) && (this->m_capacity == other.m_capacity);
+	}
+	template<typename T, typename Allocator>
+	constexpr bool ts_List<T, Allocator>::valueEquality(const ts_List<T, Allocator>& other)
+	{
+		//reference equality is a super set of value equality and much cheaper to calculate so dheck first
+		if(this->dataReferenceEquality(other))
+		{
+			return true;
+		}
+		else
+		{
+			//O(n) value equality linear search
+			if(this->m_size == other.m_size)
+			{
+				for(size_t i = 0; i < this->m_size; i++)
+				{
+					if(this->m_data[i] != other.m_data[i])
+					{
+						return false;
+					}
+				}
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
+
+	template<typename T, typename Allocator>
 	void ts_List<T, Allocator>::reallocate(size_t newSize)
 	{
 		Allocator alloc;
@@ -234,4 +268,14 @@ namespace fsds
 		this->m_capacity = newSize;
 	}
 
+	template<typename T, typename Allocator = std::allocator<T>>
+	constexpr bool operator==(const ts_List<T, Allocator>& lhs, const ts_List<T, Allocator>& rhs)
+	{
+		return lhs.dataReferenceEquality(rhs);
+	}
+	template<typename T, typename Allocator = std::allocator<T>>
+	constexpr bool operator!=(const ts_List<T, Allocator>& lhs, const ts_List<T, Allocator>& rhs)
+	{
+		return !(lhs == rhs);
+	}
 }
