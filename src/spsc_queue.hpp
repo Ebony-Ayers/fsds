@@ -7,9 +7,9 @@ namespace fsds
 	{
 		public:
 			constexpr SPSCQueue() noexcept(noexcept(Allocator()));
+			constexpr explicit SPSCQueue(size_t defaultSize, const Allocator& alloc = Allocator());
 			constexpr explicit SPSCQueue(const Allocator& alloc) noexcept = delete;
 			constexpr SPSCQueue(size_t count, const T& value, const Allocator& alloc = Allocator()) = delete;
-			constexpr explicit SPSCQueue(size_t count, const Allocator& alloc = Allocator()) = delete;
 			template<typename InputIt>
 			constexpr SPSCQueue(InputIt first, InputIt last, const Allocator& alloc = Allocator()) = delete;
 			constexpr SPSCQueue(const SPSCQueue& other) = delete;

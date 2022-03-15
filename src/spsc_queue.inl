@@ -8,6 +8,12 @@ namespace fsds
 		this->m_data = alloc.allocate(SPSCQueue<T, Allocator>::sm_baseAllocation);
 	}
 	template<typename T, typename Allocator>
+	constexpr SPSCQueue<T, Allocator>::SPSCQueue(size_t defaultSize, const Allocator& alloc)
+	: m_data(nullptr), m_frontOffset(0), m_backOffset(0), m_size(0), m_capacity(defaultSize)
+	{
+		this->m_data = alloc.allocate(defaultSize);
+	}
+	template<typename T, typename Allocator>
 	constexpr SPSCQueue<T, Allocator>::~SPSCQueue()
 	{
 		if(this->m_data != nullptr)

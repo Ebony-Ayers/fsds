@@ -68,7 +68,7 @@ add_subdirectory(lib/fast-thread-syncronization)
 target_link_libraries(${primary_target_name} PUBLIC fts)
 
 #Speeds up compilation
-option(ENABLE_UNITY "Enable Unity builds of projects" ON)
+option(ENABLE_UNITY "Enable Unity builds of projects" OFF)
 if(ENABLE_UNITY)
   # Add for any project you want to apply unity builds for
   set_target_properties(${primary_target_name} PROPERTIES UNITY_BUILD ON)
