@@ -16,14 +16,16 @@ set(project_source_files
   spmc_queue.hpp
   spmc_queue.inl
 
-  static_string.hpp
-  static_string.inl
+  #static_string.hpp
+  static_string.cpp
+  #static_string.inl
 
-  dynamic_string.hpp
-  dynamic_string.inl
+  #dynamic_string.hpp
+  dynamic_string.cpp
+  #dynamic_string.inl
 
-  composite_string.hpp
-  composite_string.inl
+  #composite_string.hpp
+  #composite_string.inl
 )
 
 add_library(${primary_target_name} ${project_source_files})

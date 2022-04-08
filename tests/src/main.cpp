@@ -8,7 +8,7 @@
 
 int main(int /*argc*/, const char** /*argv*/)
 {	
-	
+	/*
 	fsds::SPMCQueue<int> q;
 
 	for(int i = 0; i < 20; i++)
@@ -58,42 +58,34 @@ int main(int /*argc*/, const char** /*argv*/)
 	p.clear();
 
 	std::cout << "equality: " << (q == p) << std::endl;
-
-	/*
-	for(int i = 0; i < 6; i++)
-	{
-		q.enqueue(i);
-	}
-	for(int i = 0; i < 4; i++)
-	{
-		q.dequeue();
-	}
-	for(int i = 6; i < 20; i++)
-	{
-		q.enqueue(i);
-	}
-
-	std::cout << "finished adding" << std::endl;
-
-	for(int i = 0; i < 24; i++)
-	{
-		std::cout << q.dequeue() << std::endl;
-	}
 	*/
 
-	/*
 	const char* baseStr = "哈的是 энергия буран поезд поезда";
 	const char* subStr = "поезда";
+	const char* letterW = "w";
+	const char* testCStr = "поезда";
+	const char* startCStr = "哈的是";
 
-	fsds::StaticString str = fsds::StaticString(reinterpret_cast<const fsds::StaticString::CharT*>(baseStr), 30);
-	fsds::StaticString smallStr = fsds::StaticString(reinterpret_cast<const fsds::StaticString::CharT*>(subStr), 6);
-	
-	
-	std::cout << smallStr.numCodePointsInFirstCharacter() << std::endl;
+	fsds::DynamicString str = fsds::DynamicString(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStr), 30);
+	fsds::DynamicString smallStr = fsds::DynamicString(reinterpret_cast<const fsds::DynamicString::CharT*>(subStr), 6);
+	fsds::DynamicString singleCharacter = fsds::DynamicString(reinterpret_cast<const fsds::DynamicString::CharT*>(letterW), 1);
+	fsds::DynamicString testStr = fsds::DynamicString(reinterpret_cast<const fsds::DynamicString::CharT*>(testCStr), 6);
+	fsds::DynamicString startStr = fsds::DynamicString(reinterpret_cast<const fsds::DynamicString::CharT*>(startCStr), 3);
 
+	/*
+	str.set(10, singleCharacter);
+	str.append(singleCharacter);
+	str.append(smallStr);
+	str.append(singleCharacter);
+	str.replace(1,2,smallStr);
+	str.insert(3, smallStr);
+	std::cout << "before replace: " << str << std::endl;
+	str.replace(smallStr, singleCharacter);
+	std::cout << "after replace: " << str << std::endl;
+	*/
+
+	std::cout << "equ " << (smallStr == testStr) << std::endl;
 	//return 0;
-
-	std::cout << smallStr << std::endl;
 
 	std::cout << "full string: " << str << std::endl;
 	
@@ -109,7 +101,11 @@ int main(int /*argc*/, const char** /*argv*/)
 	std::cout << "find: " << str.find(smallStr) << std::endl;
 
 	std::cout << "compare: " << str.compare(smallStr) << std::endl;
-	*/
+
+	std::cout << "starts with: " << str.startsWith(startStr) << std::endl;
+	std::cout << "starts with: " << str.startsWith(smallStr) << std::endl;
+	std::cout << "ends with: " << str.endsWith(startStr) << std::endl;
+	std::cout << "ends with: " << str.endsWith(smallStr) << std::endl;
 
 	return 0;
 }
