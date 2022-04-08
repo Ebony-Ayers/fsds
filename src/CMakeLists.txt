@@ -9,20 +9,10 @@ set(project_source_files
   linked_list.hpp
   linked_list.inl
   
-  spsc_queue.hpp
-  spsc_queue.inl
-  
-  queue_block.hpp
-  spmc_queue.hpp
-  spmc_queue.inl
+  #spmc_queue.cpp
 
-  #static_string.hpp
   static_string.cpp
-  #static_string.inl
-
-  #dynamic_string.hpp
   dynamic_string.cpp
-  #dynamic_string.inl
 
   #composite_string.hpp
   #composite_string.inl

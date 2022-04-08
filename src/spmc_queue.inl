@@ -1,7 +1,7 @@
 namespace fsds
 {
 	template<typename T, size_t blockSize, typename Allocator>
-	constexpr SPMCQueue<T, blockSize, Allocator>::SPMCQueue() noexcept(noexcept(Allocator()))
+	SPMCQueue<T, blockSize, Allocator>::SPMCQueue() noexcept(noexcept(Allocator()))
 	: m_data(nullptr), m_frontBlockOffset(0), m_firstBlock(0), m_lastBlock(0), m_size(0), m_numBlocks(1), m_capacity(SPMCQueue<T, blockSize, Allocator>::sm_baseAllocation), m_dataAccessLock(0), m_controlBlockLock()
 	{
 		Allocator alloc;
@@ -10,7 +10,7 @@ namespace fsds
 		this->m_data[0] = allocBlock.allocate(1);
 	}
 	template<typename T, size_t blockSize, typename Allocator>
-	constexpr SPMCQueue<T, blockSize, Allocator>::SPMCQueue(size_t defaultSize, const Allocator& alloc)
+	SPMCQueue<T, blockSize, Allocator>::SPMCQueue(size_t defaultSize, const Allocator& alloc)
 	: m_data(nullptr), m_frontBlockOffset(0), m_firstBlock(0), m_lastBlock(0), m_size(0), m_numBlocks(1), m_capacity((defaultSize / blockSize) + 1), m_dataAccessLock(0), m_controlBlockLock()
 	{
 		this->m_data = alloc.allocate((defaultSize / blockSize) + 1);
@@ -18,7 +18,7 @@ namespace fsds
 		this->m_data[0] = allocBlock.allocate(1);
 	}
 	template<typename T, size_t blockSize, typename Allocator>
-	constexpr SPMCQueue<T, blockSize, Allocator>::~SPMCQueue()
+	SPMCQueue<T, blockSize, Allocator>::~SPMCQueue()
 	{
 		if(this->m_data != nullptr)
 		{
@@ -33,7 +33,7 @@ namespace fsds
 	}
 
 	template<typename T, size_t blockSize, typename Allocator>
-	constexpr void SPMCQueue<T, blockSize, Allocator>::enqueue(const T& value)
+	void SPMCQueue<T, blockSize, Allocator>::enqueue(const T& value)
 	{
 		fts::GenericLockGuard lockGuard(this->m_controlBlockLock);
 		
@@ -54,7 +54,7 @@ namespace fsds
 		this->m_size++;
 	}
 	template<typename T, size_t blockSize, typename Allocator>
-	constexpr void SPMCQueue<T, blockSize, Allocator>::enqueueBlock(Block* block)
+	void SPMCQueue<T, blockSize, Allocator>::enqueueBlock(Block* block)
 	{
 		fts::GenericLockGuard lockGuard(this->m_controlBlockLock);
 		
@@ -66,7 +66,7 @@ namespace fsds
 		this->m_data[this->m_lastBlock] = block;
 	}
 	template<typename T, size_t blockSize, typename Allocator>
-	constexpr T SPMCQueue<T, blockSize, Allocator>::dequeue()
+	T SPMCQueue<T, blockSize, Allocator>::dequeue()
 	{
 		size_t firstBlock;
 		size_t frontBlockOffset;
@@ -121,7 +121,7 @@ namespace fsds
 		return this->m_data[firstBlock]->data[frontBlockOffset];
 	}
 	template<typename T, size_t blockSize, typename Allocator>
-	constexpr bool SPMCQueue<T, blockSize, Allocator>::tryDequeue(T* dest)
+	bool SPMCQueue<T, blockSize, Allocator>::tryDequeue(T* dest)
 	{
 		size_t firstBlock;
 		size_t frontBlockOffset;
@@ -177,7 +177,7 @@ namespace fsds
 		return false;
 	}
 	template<typename T, size_t blockSize, typename Allocator>
-	[[nodiscard]] constexpr T& SPMCQueue<T, blockSize, Allocator>::front()
+	[[nodiscard]] T& SPMCQueue<T, blockSize, Allocator>::front()
 	{
 		fts::GenericLockGuard lockGuard(this->m_controlBlockLock);
 		
@@ -201,7 +201,7 @@ namespace fsds
 	}
 
 	template<typename T, size_t blockSize, typename Allocator>
-	constexpr T& SPMCQueue<T, blockSize, Allocator>::operator[](size_t pos)
+	T& SPMCQueue<T, blockSize, Allocator>::operator[](size_t pos)
 	{
 		fts::GenericLockGuard lockGuard(this->m_controlBlockLock);
 		
@@ -238,7 +238,7 @@ namespace fsds
 	}
 
 	template<typename T, size_t blockSize, typename Allocator>
-	constexpr void SPMCQueue<T, blockSize, Allocator>::reserve(size_t newCap)
+	void SPMCQueue<T, blockSize, Allocator>::reserve(size_t newCap)
 	{
 		fts::GenericLockGuard lockGuard(this->m_controlBlockLock);
 		
@@ -248,7 +248,7 @@ namespace fsds
 		}
 	}
 	template<typename T, size_t blockSize, typename Allocator>
-	constexpr void SPMCQueue<T, blockSize, Allocator>::clear()
+	void SPMCQueue<T, blockSize, Allocator>::clear()
 	{
 		fts::GenericLockGuard lockGuard(this->m_controlBlockLock);
 		
@@ -273,7 +273,7 @@ namespace fsds
 	}
 
 	template<typename T, size_t blockSize, typename Allocator>
-	[[nodiscard]] constexpr bool SPMCQueue<T, blockSize, Allocator>::dataReferenceEquality(SPMCQueue<T, blockSize, Allocator>& other)
+	[[nodiscard]] bool SPMCQueue<T, blockSize, Allocator>::dataReferenceEquality(SPMCQueue<T, blockSize, Allocator>& other)
 	{
 		fts::GenericLockGuard lockGuard(this->m_controlBlockLock);
 		fts::GenericLockGuard lockGuardOther(other.getLock());
@@ -281,7 +281,7 @@ namespace fsds
 		return (this->m_data == other.m_data) && (this->m_frontBlockOffset == other.m_frontBlockOffset) && (this->m_firstBlock == other.m_firstBlock) && (this->m_lastBlock == other.m_lastBlock) && (this->m_size == other.m_size);
 	}
 	template<typename T, size_t blockSize, typename Allocator>
-	[[nodiscard]] constexpr bool SPMCQueue<T, blockSize, Allocator>::valueEquality(SPMCQueue<T, blockSize, Allocator>& other)
+	[[nodiscard]] bool SPMCQueue<T, blockSize, Allocator>::valueEquality(SPMCQueue<T, blockSize, Allocator>& other)
 	{
 		fts::GenericLockGuard lockGuardThis(this->m_controlBlockLock);
 		fts::GenericLockGuard lockGuardOther(other.getLock());
@@ -356,12 +356,12 @@ namespace fsds
 
 
 	template<typename T, size_t blockSize = 16, typename Allocator = std::allocator<QueueBlock<T, blockSize>>>
-	constexpr bool operator==(SPMCQueue<T, blockSize, Allocator>& lhs, SPMCQueue<T, blockSize, Allocator>& rhs)
+	bool operator==(SPMCQueue<T, blockSize, Allocator>& lhs, SPMCQueue<T, blockSize, Allocator>& rhs)
 	{
 		return lhs.valueEquality(rhs);
 	}
 	template<typename T, size_t blockSize = 16, typename Allocator = std::allocator<QueueBlock<T, blockSize>>>
-	constexpr bool operator!=(SPMCQueue<T, blockSize, Allocator>& lhs, SPMCQueue<T, blockSize, Allocator>& rhs)
+	bool operator!=(SPMCQueue<T, blockSize, Allocator>& lhs, SPMCQueue<T, blockSize, Allocator>& rhs)
 	{
 		return !lhs.valueEquality(rhs);
 	}

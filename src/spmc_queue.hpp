@@ -8,11 +8,10 @@ namespace fsds
 	class SPMCQueue
 	{
 		public:
-			//constexpr static size_t blockSize = 16;
 			using Block = QueueBlock<T, blockSize>; 
 
-			constexpr SPMCQueue() noexcept(noexcept(Allocator()));
-			constexpr explicit SPMCQueue(size_t defaultSize, const Allocator& alloc = Allocator());
+			SPMCQueue() noexcept(noexcept(Allocator()));
+			SPMCQueue(size_t defaultSize, const Allocator& alloc = Allocator());
 			constexpr explicit SPMCQueue(const Allocator& alloc) noexcept = delete;
 			constexpr SPMCQueue(size_t count, const T& value, const Allocator& alloc = Allocator()) = delete;
 			template<typename InputIt>
@@ -21,26 +20,26 @@ namespace fsds
 			constexpr SPMCQueue(const SPMCQueue& other, const Allocator& alloc) = delete;
 			constexpr SPMCQueue(SPMCQueue&& other) noexcept = delete;
 			constexpr SPMCQueue(SPMCQueue&& other, const Allocator& alloc) = delete;
-			constexpr SPMCQueue(std::initializer_list<T> init, const Allocator& alloc = Allocator()) = delete;
-			constexpr ~SPMCQueue();
+			SPMCQueue(std::initializer_list<T> init, const Allocator& alloc = Allocator()) = delete;
+			~SPMCQueue();
 
-			constexpr void enqueue(const T& value);
-			constexpr void enqueueBlock(Block* block);
-			constexpr T dequeue();
-			constexpr bool tryDequeue(T* dest);
-			[[nodiscard]] constexpr T& front();
+			void enqueue(const T& value);
+			void enqueueBlock(Block* block);
+			T dequeue();
+			bool tryDequeue(T* dest);
+			[[nodiscard]] T& front();
 
-			constexpr T& operator[](size_t pos);
+			T& operator[](size_t pos);
 
 			[[nodiscard]] constexpr bool isEmpty() noexcept;
 			[[nodiscard]] constexpr size_t size() noexcept;
 			[[nodiscard]] constexpr size_t capacity() noexcept;
 
-			constexpr void reserve(size_t newCap);
-			constexpr void clear();
+			void reserve(size_t newCap);
+			void clear();
 
-			[[nodiscard]] constexpr bool dataReferenceEquality(SPMCQueue<T, blockSize, Allocator>& other);
-			[[nodiscard]] constexpr bool valueEquality(SPMCQueue<T, blockSize, Allocator>& other);
+			[[nodiscard]] bool dataReferenceEquality(SPMCQueue<T, blockSize, Allocator>& other);
+			[[nodiscard]] bool valueEquality(SPMCQueue<T, blockSize, Allocator>& other);
 
 		private:
 			constexpr static size_t sm_baseAllocation = 16;
@@ -66,9 +65,9 @@ namespace fsds
 	};
 
 	template<typename T, size_t blockSize = 16, typename Allocator = std::allocator<QueueBlock<T, blockSize>>>
-	constexpr bool operator==(SPMCQueue<T, blockSize, Allocator>& lhs, SPMCQueue<T, blockSize, Allocator>& rhs);
+	bool operator==(SPMCQueue<T, blockSize, Allocator>& lhs, SPMCQueue<T, blockSize, Allocator>& rhs);
 	template<typename T, size_t blockSize = 16, typename Allocator = std::allocator<QueueBlock<T, blockSize>>>
-	constexpr bool operator!=(SPMCQueue<T, blockSize, Allocator>& lhs, SPMCQueue<T, blockSize, Allocator>& rhs);
+	bool operator!=(SPMCQueue<T, blockSize, Allocator>& lhs, SPMCQueue<T, blockSize, Allocator>& rhs);
 }
 
 #include "spmc_queue.inl"

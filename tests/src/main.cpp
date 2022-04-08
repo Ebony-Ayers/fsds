@@ -8,7 +8,6 @@
 
 int main(int /*argc*/, const char** /*argv*/)
 {	
-	/*
 	fsds::SPMCQueue<int> q;
 
 	for(int i = 0; i < 20; i++)
@@ -58,8 +57,8 @@ int main(int /*argc*/, const char** /*argv*/)
 	p.clear();
 
 	std::cout << "equality: " << (q == p) << std::endl;
-	*/
 
+	/*
 	const char* baseStr = "哈的是 энергия буран поезд поезда";
 	const char* subStr = "поезда";
 	const char* letterW = "w";
@@ -72,7 +71,7 @@ int main(int /*argc*/, const char** /*argv*/)
 	fsds::DynamicString testStr = fsds::DynamicString(reinterpret_cast<const fsds::DynamicString::CharT*>(testCStr), 6);
 	fsds::DynamicString startStr = fsds::DynamicString(reinterpret_cast<const fsds::DynamicString::CharT*>(startCStr), 3);
 
-	/*
+	
 	str.set(10, singleCharacter);
 	str.append(singleCharacter);
 	str.append(smallStr);
@@ -82,7 +81,7 @@ int main(int /*argc*/, const char** /*argv*/)
 	std::cout << "before replace: " << str << std::endl;
 	str.replace(smallStr, singleCharacter);
 	std::cout << "after replace: " << str << std::endl;
-	*/
+	
 
 	std::cout << "equ " << (smallStr == testStr) << std::endl;
 	//return 0;
@@ -106,6 +105,7 @@ int main(int /*argc*/, const char** /*argv*/)
 	std::cout << "starts with: " << str.startsWith(smallStr) << std::endl;
 	std::cout << "ends with: " << str.endsWith(startStr) << std::endl;
 	std::cout << "ends with: " << str.endsWith(smallStr) << std::endl;
+	*/
 
 	return 0;
 }
