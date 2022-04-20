@@ -1,4 +1,5 @@
 #pragma once
+#include "fsds_options.hpp"
 
 #include "queue_block.hpp"
 

@@ -8,6 +8,7 @@
 #include "linked_list.hpp"
 #include "spsc_queue.hpp"
 #include "spmc_queue.hpp"
+#include "mpsc_queue.hpp"
 
 #include "static_string.hpp"
 #include "dynamic_string.hpp"

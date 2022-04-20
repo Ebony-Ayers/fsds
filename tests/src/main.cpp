@@ -7,7 +7,8 @@
 #include "../../src/fsds.hpp"
 
 int main(int /*argc*/, const char** /*argv*/)
-{	
+{
+	
 	fsds::SPMCQueue<int> q;
 
 	for(int i = 0; i < 20; i++)
@@ -57,6 +58,7 @@ int main(int /*argc*/, const char** /*argv*/)
 	p.clear();
 
 	std::cout << "equality: " << (q == p) << std::endl;
+	
 
 	/*
 	const char* baseStr = "哈的是 энергия буран поезд поезда";
@@ -65,11 +67,11 @@ int main(int /*argc*/, const char** /*argv*/)
 	const char* testCStr = "поезда";
 	const char* startCStr = "哈的是";
 
-	fsds::DynamicString str = fsds::DynamicString(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStr), 30);
-	fsds::DynamicString smallStr = fsds::DynamicString(reinterpret_cast<const fsds::DynamicString::CharT*>(subStr), 6);
-	fsds::DynamicString singleCharacter = fsds::DynamicString(reinterpret_cast<const fsds::DynamicString::CharT*>(letterW), 1);
-	fsds::DynamicString testStr = fsds::DynamicString(reinterpret_cast<const fsds::DynamicString::CharT*>(testCStr), 6);
-	fsds::DynamicString startStr = fsds::DynamicString(reinterpret_cast<const fsds::DynamicString::CharT*>(startCStr), 3);
+	fsds::CompositeString str = fsds::CompositeString(reinterpret_cast<const fsds::CompositeString::CharT*>(baseStr), 30);
+	fsds::CompositeString smallStr = fsds::CompositeString(reinterpret_cast<const fsds::CompositeString::CharT*>(subStr), 6);
+	fsds::CompositeString singleCharacter = fsds::CompositeString(reinterpret_cast<const fsds::CompositeString::CharT*>(letterW), 1);
+	fsds::CompositeString testStr = fsds::CompositeString(reinterpret_cast<const fsds::CompositeString::CharT*>(testCStr), 6);
+	fsds::CompositeString startStr = fsds::CompositeString(reinterpret_cast<const fsds::CompositeString::CharT*>(startCStr), 3);
 
 	
 	str.set(10, singleCharacter);
