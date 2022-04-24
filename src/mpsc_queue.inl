@@ -119,13 +119,14 @@ namespace fsds
 		//check if there are 1, 2 or 3+ blocks
 		if(this->m_numBlocks == 0) [[unlikely]]
 		{
-			dataNotAvailable = true
+			dataNotAvailable = true;
 		}
 		else if(this->m_numBlocks == 1) [[unlikely]]
 		{
 			//if there is only one block and it is completely full
 			if(this->m_size == blockSize)
 			{
+				std::allocator<MPSCQueue<T, blockSize, Allocator>::Block> allocBlock;
 				*dest = this->m_data[this->m_firstBlock];
 				this->m_frontBlockOffset = 0;
 				this->m_firstBlock = 0;
@@ -136,7 +137,7 @@ namespace fsds
 			}
 			else
 			{
-				dataNotAvailable = true
+				dataNotAvailable = true;
 			}
 		}
 		else if(this->m_numBlocks == 2) [[unlikely]]
@@ -154,7 +155,7 @@ namespace fsds
 					this->m_numBlocks -= 1;
 				}
 				//if the second block is full and the rest is in the first block
-				else if(size - (blockSize - offset) == blockSize) [[unlikely]]
+				else if(this->m_size - (blockSize - this->m_frontBlockOffset) == blockSize) [[unlikely]]
 				{
 					*dest = this->m_data[this->m_firstBlock + 1];
 					this->m_lastBlock--;
