@@ -8,9 +8,10 @@ namespace fsds
 		this->m_data = alloc.allocate(SPSCQueue<T, Allocator>::sm_baseAllocation);
 	}
 	template<typename T, typename Allocator>
-	constexpr SPSCQueue<T, Allocator>::SPSCQueue(size_t defaultSize, const Allocator& alloc)
+	constexpr SPSCQueue<T, Allocator>::SPSCQueue(size_t defaultSize)
 	: m_data(nullptr), m_frontOffset(0), m_backOffset(0), m_size(0), m_capacity(defaultSize)
 	{
+		Allocator alloc;
 		this->m_data = alloc.allocate(defaultSize);
 	}
 	template<typename T, typename Allocator>
@@ -39,6 +40,12 @@ namespace fsds
 	template<typename T, typename Allocator>
 	constexpr T SPSCQueue<T, Allocator>::dequeue()
 	{
+		#ifdef FSDS_DEBUG
+			if(this->m_size == 0) [[unlikely]]
+			{
+				throw std::out_of_range("SPSCQeueue::dequeue called with no available data in the queue");
+			}
+		#endif
 		T* elem = this->m_data + this->m_frontOffset;
 		this->m_frontOffset = (this->m_frontOffset + 1) % this->m_capacity;
 		this->m_size--;
@@ -47,18 +54,36 @@ namespace fsds
 	template<typename T, typename Allocator>
 	constexpr T& SPSCQueue<T, Allocator>::front()
 	{
+		#ifdef FSDS_DEBUG
+			if(this->m_size == 0) [[unlikely]]
+			{
+				throw std::out_of_range("SPSCQeueue::front called with no available data in the queue");
+			}
+		#endif
 		return this->m_data[this->m_frontOffset];
 	}
 
 	template<typename T, typename Allocator>
-	constexpr T* SPSCQueue<T, Allocator>::operator[](size_t pos)
+	constexpr T& SPSCQueue<T, Allocator>::operator[](size_t pos)
 	{
-		return this->m_data + this->m_frontOffset + pos;
+		#ifdef FSDS_DEBUG
+			if(pos >= this->m_size) [[unlikely]]
+			{
+				throw std::out_of_range("SPSCQeueue::operator[] out of range");
+			}
+		#endif
+		return this->m_data[this->m_frontOffset + pos];
 	}
 	template<typename T, typename Allocator>
-	constexpr const T* SPSCQueue<T, Allocator>::operator[](size_t pos) const
+	constexpr const T& SPSCQueue<T, Allocator>::operator[](size_t pos) const
 	{
-		return this->m_data + this->m_frontOffset + pos;
+		#ifdef FSDS_DEBUG
+			if(pos >= this->m_size) [[unlikely]]
+			{
+				throw std::out_of_range("SPSCQeueue::operator[] out of range");
+			}
+		#endif
+		return this->m_data[this->m_frontOffset + pos];
 	}
 
 	template<typename T, typename Allocator>
@@ -78,9 +103,9 @@ namespace fsds
 	}
 
 	template<typename T, typename Allocator>
-	constexpr void SPSCQueue<T, Allocator>::reserve(size_t newCap)
+	constexpr void SPSCQueue<T, Allocator>::reserve(const size_t& newCap)
 	{
-		if(newCap > this->m_capacity)
+		if(newCap > this->m_size)
 		{
 			this->reallocate(newCap);
 		}
@@ -91,47 +116,36 @@ namespace fsds
 		Allocator alloc;
 		alloc.deallocate(this->m_data, this->m_capacity);
 		this->m_data = alloc.allocate(SPSCQueue<T, Allocator>::sm_baseAllocation);
-		this->m_size = SPSCQueue<T, Allocator>::sm_baseAllocation;
+		this->m_frontOffset = 0;
+		this->m_backOffset = 0;
+		this->m_size = 0;
 		this->m_capacity = SPSCQueue<T, Allocator>::sm_baseAllocation;
 	}
 
 
 	template<typename T, typename Allocator>
-	constexpr bool SPSCQueue<T, Allocator>::dataReferenceEquality(const SPSCQueue<T, Allocator>& other)
+	constexpr bool SPSCQueue<T, Allocator>::valueEquality(const SPSCQueue<T, Allocator>& other) const
 	{
-		return (this->m_data == other.m_data) && (this->m_frontOffset == other.m_frontOffset) && (this->m_backOffset == other.m_backOffset) && (this->m_size == other.m_size);
-	}
-	template<typename T, typename Allocator>
-	constexpr bool SPSCQueue<T, Allocator>::valueEquality(const SPSCQueue<T, Allocator>& other)
-	{
-		//reference equality is a super set of value equality and much cheaper to calculate so dheck first
-		if(this->dataReferenceEquality(other))
+		//O(n) value equality linear search
+		if(this->m_size == other.m_size)
 		{
+			for(size_t i = 0; i < this->m_size; i++)
+			{
+				if((*this)[i] != other[i])
+				{
+					return false;
+				}
+			}
 			return true;
 		}
 		else
 		{
-			//O(n) value equality linear search
-			if(this->m_size == other.m_size)
-			{
-				for(size_t i = 0; i < this->m_size; i++)
-				{
-					if((*this)[i] != other[i])
-					{
-						return false;
-					}
-				}
-				return true;
-			}
-			else
-			{
-				return false;
-			}
+			return false;
 		}
 	}
 
 	template<typename T, typename Allocator>
-	constexpr void SPSCQueue<T, Allocator>::reallocate(size_t newSize)
+	constexpr void SPSCQueue<T, Allocator>::reallocate(const size_t& newSize)
 	{
 		Allocator alloc;
 		T* oldData = this->m_data;
@@ -153,12 +167,12 @@ namespace fsds
 		this->m_backOffset = this->m_size;
 	}
 
-	template<typename T, typename Allocator = std::allocator<T>>
+	template<typename T, typename Allocator>
 	constexpr bool operator==(const SPSCQueue<T, Allocator>& lhs, const SPSCQueue<T, Allocator>& rhs)
 	{
-		return lhs.dataReferenceEquality(rhs);
+		return lhs.valueEquality(rhs);
 	}
-	template<typename T, typename Allocator = std::allocator<T>>
+	template<typename T, typename Allocator>
 	constexpr bool operator!=(const SPSCQueue<T, Allocator>& lhs, const SPSCQueue<T, Allocator>& rhs)
 	{
 		return !(lhs == rhs);
