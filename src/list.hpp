@@ -13,28 +13,31 @@ namespace fsds
 	class List
 	{
 		public:
-			constexpr List() noexcept(noexcept(Allocator()));
+			constexpr List() noexcept(noexcept(Allocator()));	//default constructor
+			constexpr explicit List(const size_t& count);		//constructor specifying initial capacity
+			constexpr List(const List& other);					//copy constructor
+			constexpr List(List&& other) noexcept;				//move constructor
+			constexpr List(std::initializer_list<T> init, const Allocator& alloc = Allocator());	//initializer list
 			constexpr explicit List(const Allocator& alloc) noexcept = delete;
 			constexpr List(size_t count, const T& value, const Allocator& alloc = Allocator()) = delete;
-			constexpr explicit List(size_t count, const Allocator& alloc = Allocator()) = delete;
 			template<typename InputIt>
 			constexpr List(InputIt first, InputIt last, const Allocator& alloc = Allocator()) = delete;
-			constexpr List(const List& other) = delete;
 			constexpr List(const List& other, const Allocator& alloc) = delete;
-			constexpr List(List&& other) noexcept = delete;
 			constexpr List(List&& other, const Allocator& alloc) = delete;
-			constexpr List(std::initializer_list<T> init, const Allocator& alloc = Allocator());
 			constexpr ~List();
+
+			constexpr List& operator=(const List& other);
+			constexpr List& operator=(List&& other) noexcept;
 
 			constexpr Allocator getAllocator() const noexcept;
 
-			constexpr T* operator[](size_t pos);
-			constexpr const T* operator[](size_t pos) const;
+			constexpr T& operator[](size_t pos);
+			constexpr const T& operator[](size_t pos) const;
 
-			constexpr T* front();
-			constexpr const T* front() const;
-			constexpr T* back();
-			constexpr const T* back() const;
+			constexpr T& front();
+			constexpr const T& front() const;
+			constexpr T& back();
+			constexpr const T& back() const;
 
 			constexpr T* data();
 			constexpr const T* data() const;
@@ -61,10 +64,13 @@ namespace fsds
 			constexpr void removeBack();
 			constexpr void removeFront();
 
-			constexpr bool dataReferenceEquality(const List<T, Allocator>& other);
-			constexpr bool valueEquality(const List<T, Allocator>& other);
+			constexpr bool valueEquality(const List<T, Allocator>& other) const;
+
+			constexpr void deepCopy(List<T, Allocator>& dest) const;
 		
 		private:
+			constexpr static size_t sm_baseAllocation = 16;
+			
 			void reallocate(size_t newSize);
 
 			T* m_data;

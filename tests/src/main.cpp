@@ -4,9 +4,41 @@
 #include <chrono>
 #include <thread>
 #include <vector>
+#include <source_location>
 
 #define FSDS_DEBUG
 #include "../../src/fsds.hpp"
+
+//#define DEBUG_ALLOCATE_LOG
+template<typename T>
+class DebugAllocator
+{
+	public:
+		constexpr DebugAllocator() noexcept
+		: m_alloc(std::allocator<T>())
+		{}
+
+		[[nodiscard]] constexpr T* allocate(size_t n, const std::source_location location = std::source_location::current())
+		{
+			T* p = m_alloc.allocate(n);
+			#ifdef DEBUG_ALLOCATE_LOG
+				std::cout << "** allocated\t p=0x" << std::hex << reinterpret_cast<uint64_t>(p) << std::dec << "\tn=" << n;
+				std::cout << "\t" << location.file_name() << ":" << location.line() << ":" << location.column() << ": " << location.function_name() << std::endl;
+			#endif
+			return p;
+		}
+		constexpr void deallocate(T* p, size_t n, const std::source_location location = std::source_location::current())
+		{
+			#ifdef DEBUG_ALLOCATE_LOG
+				std::cout << "** deallocated\t p=0x" << std::hex << reinterpret_cast<uint64_t>(p) << std::dec << "\tn=" << n;
+				std::cout << "\t" << location.file_name() << ":" << location.line() << ":" << location.column() << ": " << location.function_name() << std::endl;
+			#endif
+			m_alloc.deallocate(p, n);
+		}
+	
+	private:
+		std::allocator<T> m_alloc;
+};
 
 void testFinitePQueue()
 {
@@ -215,62 +247,233 @@ void testSPSCQueue()
 	}
 }
 
+void testList()
+{
+	std::vector<size_t> testsFailed;
+
+	size_t testSize = 100;
+	fsds::List<size_t, DebugAllocator<size_t>> list;
+
+	//test 1: append()
+	for(size_t i = 0; i < testSize; i++)
+	{
+		list.append(i);
+	}
+	for(size_t i = 0; i < testSize; i++)
+	{
+		if(list.data()[i] != i)
+		{
+			testsFailed.push_back(1);
+			break;
+		}
+	}
+
+	//test 2: front() and back()
+	if((list.front() != 0) || (list.back() != 99))
+	{
+		testsFailed.push_back(2);
+	}
+
+	//test 3: operator[]
+	for(size_t i = 0; i < testSize; i++)
+	{
+		if(list[i] != i)
+		{
+			testsFailed.push_back(3);
+			break;
+		}
+	}
+
+	//test 4: size(), capacity(), and isEmpty()
+	if((list.size() != 100) || (list.capacity() != 128) || (list.isEmpty() == true))
+	{
+		testsFailed.push_back(4);
+	}
+
+	//test 5: clear()
+	list.clear();
+	if((list.size() != 0) || (list.capacity() != 16) || (list.isEmpty() == false))
+	{
+		testsFailed.push_back(5);
+	}
+
+	//test 6: reserve()
+	list.reserve(32);
+	if(list.capacity() != 32)
+	{
+		testsFailed.push_back(6);
+	}
+
+	//test 7: prepend()
+	for(size_t i = 0; i < testSize; i++)
+	{
+		list.prepend(i);
+	}
+	for(size_t i = 0; i < testSize; i++)
+	{
+		if(list[i] != testSize - i - 1)
+		{
+			testsFailed.push_back(7);
+			break;
+		}
+	}
+
+	//test 8: insert()
+	for(size_t i = 0; i < testSize; i++)
+	{
+		list.insert(testSize/2, i);
+	}
+	for(size_t i = 0; i < testSize / 2; i++)
+	{
+		if(list[i] != testSize - i - 1)
+		{
+			testsFailed.push_back(8);
+			break;
+		}
+	}
+	for(size_t i = 0; i < testSize; i++)
+	{
+		if(list[i + (testSize / 2)] != testSize - i - 1)
+		{
+			testsFailed.push_back(8);
+			break;
+		}
+	}
+	for(size_t i = 0; i < testSize / 2; i++)
+	{
+		if(list[i + testSize + (testSize / 2)] != (testSize / 2) - i - 1)
+		{
+			testsFailed.push_back(8);
+			break;
+		}
+	}
+
+	//test 9: insert() at back and front
+	list.insert(0, 999);
+	list.insert(list.size(), 999);
+	if((list[0] != 999) || (list[list.size()-1] != 999))
+	{
+		testsFailed.push_back(9);
+	}
+
+	//test 10: removeFront() and removeBack()
+	list.removeFront();
+	list.removeBack();
+	if((list[0] != testSize-1) || (list[list.size()-1] != 0))
+	{
+		testsFailed.push_back(10);
+	}
+
+	//test 11: remove()
+	for(size_t i = 0; i < testSize; i++)
+	{
+		list.remove(testSize/2);
+	}
+	for(size_t i = 0; i < testSize; i++)
+	{
+		if(list[i] != testSize - i - 1)
+		{
+			testsFailed.push_back(11);
+			break;
+		}
+	}
+
+	//test 12: appendConstruct() prependConstruct() and insert construct()
+	class placeHolderClass
+	{
+		public:
+			placeHolderClass(size_t x)
+			{
+				this->m_x = x;
+			}
+
+			size_t m_x;
+	};
+	fsds::List<placeHolderClass> list2;
+	list2.appendConstruct(static_cast<size_t>(0));
+	if(list2[0].m_x != 0)
+	{
+		testsFailed.push_back(12);
+	}
+	list2.prependConstruct(static_cast<size_t>(1));
+	if(list2[0].m_x != 1)
+	{
+		testsFailed.push_back(12);
+	}
+	list2.insertConstruct(1, static_cast<size_t>(2));
+	if(list2[1].m_x != 2)
+	{
+		testsFailed.push_back(3);
+	}
+
+	//test 13: operator==
+	fsds::List<size_t, DebugAllocator<size_t>> list3;
+	fsds::List<size_t, DebugAllocator<size_t>> list4;
+	for(size_t i = 0; i < testSize; i++)
+	{
+		list3.append(i);
+		list4.append(i);
+	}
+	if(!(list3 == list4))
+	{
+		testsFailed.push_back(13);
+	}
+
+	//test 14: operator=
+	list = list4;
+	if(!(list == list3))
+	{
+		testsFailed.push_back(14);
+	}
+
+	//test 15: copy constructor
+	fsds::List<size_t, DebugAllocator<size_t>> list5 = list;
+	if(list5 != list)
+	{
+		testsFailed.push_back(15);
+	}
+
+	//test 16: move operator=
+	list5 = std::move(list3);
+	if((list5 != list4) || (list3.data() != nullptr))
+	{
+		testsFailed.push_back(16);
+	}
+
+	//test 17 move constructor
+	fsds::List<size_t, DebugAllocator<size_t>> list6 = std::move(list5);
+	if((list6 != list4) || (list5.data() != nullptr))
+	{
+		testsFailed.push_back(17);
+	}
+
+	if(testsFailed.size() == 0)
+	{
+		std::cout << "List passed all tests" << std::endl;
+	}
+	else
+	{
+		if(testsFailed.size() == 1)
+		{
+			std::cout << "List failed test " << testsFailed[0] << std::endl;
+		}
+		else
+		{
+			std::cout << "List failed tests ";
+			for(size_t i = 0; i < testsFailed.size() - 1; i++)
+			{
+				std::cout << testsFailed[i] << ", ";
+			}
+			std::cout << "and " << testsFailed[testsFailed.size()-1] << std::endl;
+		}
+	}
+}
+
 int main(int /*argc*/, const char** /*argv*/)
 {
-	/*
-	fsds::SPMCQueue<int> q(5);
-
-	for(int i = 0; i < 20; i++)
-	{
-		q.enqueue(i);
-	}
-	std::cout << "front: " << q.front() << std::endl;
-	for(int i = 0; i < 4; i++)
-	{
-		std::cout << q.dequeue() << std::endl;
-	}
-	for(int i = 0; i < 4; i++)
-	{
-		q.enqueue(i + 20);
-	}
-	for(int i = 0; i < 20; i++)
-	{
-		int dest;
-		q.tryDequeue(&dest);
-		std::cout << dest << std::endl;
-	}
-	for(int i = 0; i < 4; i++)
-	{
-		q.enqueue(i + 24);
-	}
-	for(size_t i = 0; i < 4; i++)
-	{
-		std::cout << q[i] << std::endl;
-	}
-	for(int i = 0; i < 4; i++)
-	{
-		std::cout << q.dequeue() << std::endl;
-	}
-	std::cout << "is empty " << q.isEmpty() << std::endl;
-
-	fsds::SPMCQueue<int> p;
-	for(int i = 0; i < 4; i++)
-	{
-		p.enqueue(i);
-	}
-	
-	std::cout << "equality: " << (q == p) << std::endl;
-
-	std::cout << "size " << q.size() << std::endl;
-	std::cout << "capacity " << q.capacity() << std::endl;
-	q.reserve(2);
-	p.clear();
-
-	std::cout << "equality: " << (q == p) << std::endl;
-	*/
-	
 	//testFinitePQueue();
 	testSPSCQueue();
+	testList();
 
 	/*
 	const char* baseStr = "哈的是 энергия буран поезд поезда";
