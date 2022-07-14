@@ -224,6 +224,59 @@ void testSPSCQueue()
 		testsFailed.push_back(10);
 	}
 
+	//test 11: deepCopy
+	queue.deepCopy(queue2);
+	if(queue != queue2)
+	{
+		testsFailed.push_back(11);
+	}
+
+	//test 12: tryDequeue
+	for(size_t i = 0; i < testSize; i++)
+	{
+		size_t res;
+		bool success = queue.tryDequeue(&res);
+		if((res != i) || (success != true))
+		{
+			testsFailed.push_back(12);
+			break;
+		}
+	}
+	{
+		size_t res;
+		if(queue.tryDequeue(&res) != false)
+		{
+			testsFailed.push_back(12);
+		}
+	}
+
+	//test 13: operator=
+	queue = queue2;
+	if(queue != queue2)
+	{
+		testsFailed.push_back(13);
+	}
+
+	//test 14: copy constructor
+	fsds::SPSCQueue<size_t> queue3(queue2);
+	if(queue3 != queue2)
+	{
+		testsFailed.push_back(14);
+	}
+
+	//test 15: move operator=
+	queue = std::move(queue3);
+	if(queue != queue2)
+	{
+		testsFailed.push_back(15);
+	}
+
+	//test 16: move constructor
+	fsds::SPSCQueue<size_t> queue4(std::move(queue2));
+	if(queue4 != queue)
+	{
+		testsFailed.push_back(16);
+	}
 
 	if(testsFailed.size() == 0)
 	{

@@ -15,6 +15,27 @@ namespace fsds
 		this->m_data = alloc.allocate(defaultSize);
 	}
 	template<typename T, typename Allocator>
+	constexpr SPSCQueue<T, Allocator>::SPSCQueue(const SPSCQueue& other)
+	{
+		this->m_data = nullptr;
+		other.deepCopy(*this);
+	}
+	template<typename T, typename Allocator>
+	constexpr SPSCQueue<T, Allocator>::SPSCQueue(SPSCQueue&& other) noexcept
+	{
+		this->m_data = other.m_data;
+		this->m_frontOffset = other.m_frontOffset;
+		this->m_backOffset = other.m_backOffset;
+		this->m_size = other.m_size;
+		this->m_capacity = other.m_capacity;
+
+		other.m_data = nullptr;
+		other.m_frontOffset = 0;
+		other.m_backOffset = 0;
+		other.m_size = 0;
+		other.m_capacity = 0;
+	}
+	template<typename T, typename Allocator>
 	constexpr SPSCQueue<T, Allocator>::~SPSCQueue()
 	{
 		if(this->m_data != nullptr)
@@ -22,6 +43,30 @@ namespace fsds
 			Allocator alloc;
 			alloc.deallocate(this->m_data, this->m_capacity);
 		}
+	}
+
+	template<typename T, typename Allocator>
+	constexpr SPSCQueue<T, Allocator>& SPSCQueue<T, Allocator>::operator=(const SPSCQueue& other)
+	{
+		other.deepCopy(*this);
+		return *this;
+	}
+	template<typename T, typename Allocator>
+	constexpr SPSCQueue<T, Allocator>& SPSCQueue<T, Allocator>::operator=(SPSCQueue&& other) noexcept
+	{
+		this->m_data = other.m_data;
+		this->m_frontOffset = other.m_frontOffset;
+		this->m_backOffset = other.m_backOffset;
+		this->m_size = other.m_size;
+		this->m_capacity = other.m_capacity;
+
+		other.m_data = nullptr;
+		other.m_frontOffset = 0;
+		other.m_backOffset = 0;
+		other.m_size = 0;
+		other.m_capacity = 0;
+
+		return *this;
 	}
 
 	template<typename T, typename Allocator>
@@ -50,6 +95,27 @@ namespace fsds
 		this->m_frontOffset = (this->m_frontOffset + 1) % this->m_capacity;
 		this->m_size--;
 		return *elem;
+	}
+	template<typename T, typename Allocator>
+	constexpr bool SPSCQueue<T, Allocator>::tryDequeue(T* dest)
+	{
+		#ifdef FSDS_DEBUG
+			if(dest == nullptr) [[unlikely]]
+			{
+				throw std::invalid_argument("SPSCQeueue::tryDequeue called with nullptr");
+			}
+		#endif
+		if(this->m_size > 0)
+		{
+			*dest = this->m_data[this->m_frontOffset];
+			this->m_frontOffset = (this->m_frontOffset + 1) % this->m_capacity;
+			this->m_size--;
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	}
 	template<typename T, typename Allocator>
 	constexpr T& SPSCQueue<T, Allocator>::front()
@@ -142,6 +208,30 @@ namespace fsds
 		{
 			return false;
 		}
+	}
+
+	template<typename T, typename Allocator>
+	constexpr void SPSCQueue<T, Allocator>::deepCopy(SPSCQueue<T, Allocator>& dest) const
+	{
+		Allocator alloc;
+		if(dest.m_data != nullptr)
+		{
+			alloc.deallocate(dest.m_data, dest.m_capacity);
+		}
+		dest.m_data = alloc.allocate(this->m_size);
+		if(this->m_backOffset > this->m_frontOffset)
+		{
+			std::copy(this->m_data + this->m_frontOffset, this->m_data + this->m_backOffset, dest.m_data);
+		}
+		else
+		{
+			std::copy(this->m_data + this->m_frontOffset, this->m_data + this->m_capacity, dest.m_data);
+			std::copy(this->m_data, this->m_data + this->m_backOffset, dest.m_data + (this->m_capacity - this->m_frontOffset));
+		}
+		dest.m_size = this->m_size;
+		dest.m_capacity = this->m_size;
+		dest.m_frontOffset = 0;
+		dest.m_backOffset = this->m_size;
 	}
 
 	template<typename T, typename Allocator>

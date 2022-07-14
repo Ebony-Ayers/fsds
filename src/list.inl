@@ -78,11 +78,23 @@ namespace fsds
 	template<typename T, typename Allocator>
 	constexpr T& List<T, Allocator>::operator[](size_t pos)
 	{
+		#ifdef FSDS_DEBUG
+			if(this->m_size == 0) [[unlikely]]
+			{
+				throw std::out_of_range("List::operator[] out of range");
+			}
+		#endif
 		return this->m_data[pos];
 	}
 	template<typename T, typename Allocator>
 	constexpr const T& List<T, Allocator>::operator[](size_t pos) const
 	{
+		#ifdef FSDS_DEBUG
+			if(this->m_size == 0) [[unlikely]]
+			{
+				throw std::out_of_range("List::operator[] out of range");
+			}
+		#endif
 		return this->m_data[pos];
 	}
 
@@ -204,6 +216,12 @@ namespace fsds
 	template<typename T, typename Allocator>
 	constexpr void List<T, Allocator>::insert(size_t pos, const T& value)
 	{
+		#ifdef FSDS_DEBUG
+			if(pos > this->m_size) [[unlikely]]
+			{
+				throw std::out_of_range("List::insert pos out of range");
+			}
+		#endif
 		if(this->m_size >= this->m_capacity)
 		{
 			this->reallocate(this->m_capacity * 2);
@@ -216,6 +234,12 @@ namespace fsds
 	template<typename... Args>
 	constexpr void List<T, Allocator>::insertConstruct(size_t pos, Args&&... args)
 	{
+		#ifdef FSDS_DEBUG
+			if(pos > this->m_size) [[unlikely]]
+			{
+				throw std::out_of_range("List::insertConstruct pos out of range");
+			}
+		#endif
 		if(this->m_size >= this->m_capacity)
 		{
 			this->reallocate(this->m_capacity * 2);
@@ -228,6 +252,12 @@ namespace fsds
 	template<typename T, typename Allocator>
 	constexpr void List<T, Allocator>::remove(size_t pos)
 	{
+		#ifdef FSDS_DEBUG
+			if(pos >= this->m_size) [[unlikely]]
+			{
+				throw std::out_of_range("List::remove pos out of range");
+			}
+		#endif
 		this->m_data[pos].~T();
 		std::copy(this->m_data + pos + 1, this->m_data + this->m_size, this->m_data + pos);
 		this->m_size--;
@@ -278,7 +308,7 @@ namespace fsds
 		dest.m_data = alloc.allocate(this->m_size);
 		std::copy(this->m_data, this->m_data + this->m_size, dest.m_data);
 		dest.m_size = this->m_size;
-		dest.m_capacity = this->m_capacity;
+		dest.m_capacity = this->m_size;
 	}
 
 	template<typename T, typename Allocator>
