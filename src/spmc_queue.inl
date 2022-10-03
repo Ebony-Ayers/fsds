@@ -355,12 +355,12 @@ namespace fsds
 
 
 
-	template<typename T, size_t blockSize = 16, typename Allocator = std::allocator<QueueBlock<T, blockSize>>>
+	template<typename T, size_t blockSize, typename Allocator>
 	bool operator==(SPMCQueue<T, blockSize, Allocator>& lhs, SPMCQueue<T, blockSize, Allocator>& rhs)
 	{
 		return lhs.valueEquality(rhs);
 	}
-	template<typename T, size_t blockSize = 16, typename Allocator = std::allocator<QueueBlock<T, blockSize>>>
+	template<typename T, size_t blockSize, typename Allocator>
 	bool operator!=(SPMCQueue<T, blockSize, Allocator>& lhs, SPMCQueue<T, blockSize, Allocator>& rhs)
 	{
 		return !lhs.valueEquality(rhs);

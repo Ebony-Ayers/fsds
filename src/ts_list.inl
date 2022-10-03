@@ -268,12 +268,12 @@ namespace fsds
 		this->m_capacity = newSize;
 	}
 
-	template<typename T, typename Allocator = std::allocator<T>>
+	template<typename T, typename Allocator>
 	constexpr bool operator==(const ts_List<T, Allocator>& lhs, const ts_List<T, Allocator>& rhs)
 	{
 		return lhs.dataReferenceEquality(rhs);
 	}
-	template<typename T, typename Allocator = std::allocator<T>>
+	template<typename T, typename Allocator>
 	constexpr bool operator!=(const ts_List<T, Allocator>& lhs, const ts_List<T, Allocator>& rhs)
 	{
 		return !(lhs == rhs);

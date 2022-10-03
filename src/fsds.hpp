@@ -9,6 +9,9 @@
 #include "spsc_queue.hpp"
 #include "spmc_queue.hpp"
 #include "mpsc_queue.hpp"
+#include "finite_pqueue.hpp"
+
+#include "fast_insert_list.hpp"
 
 #include "static_string.hpp"
 #include "dynamic_string.hpp"

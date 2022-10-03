@@ -5,10 +5,12 @@
 #include <thread>
 #include <vector>
 #include <source_location>
+#include <algorithm>
 
 #define FSDS_DEBUG
 #include "../../src/fsds.hpp"
 
+/*
 //#define DEBUG_ALLOCATE_LOG
 template<typename T>
 class DebugAllocator
@@ -39,10 +41,11 @@ class DebugAllocator
 	private:
 		std::allocator<T> m_alloc;
 };
+*/
 
 void testFinitePQueue()
 {
-	size_t testsFailed = 0;
+	std::vector<size_t> testsFailed;
 
 	size_t testSize = 100;
 	size_t numPriorities = 6;
@@ -53,16 +56,12 @@ void testFinitePQueue()
 	{
 		pqueue.enqueue(i, 5);
 	}
-	//for(size_t i = 0; i < 100; i++)
-	//{
-	//	pqueue.makeNewBlock();
-	//}
 	for(size_t i = 0; i < testSize; i++)
 	{
 		auto result = pqueue.dequeue(5);
 		if(result != i)
 		{
-			testsFailed++;
+			testsFailed.push_back(1);
 			break;
 		}
 	}
@@ -71,22 +70,20 @@ void testFinitePQueue()
 	//test 2: check that after enqueuing and dequeuing the same number of elements from an empty queue the size of the queue is 0
 	if(pqueue.size() != 0)
 	{
-		testsFailed++;
+		testsFailed.push_back(2);
 	}
 
-	/*
 	//test 3: check enough blocks have been allocated
-	if(pqueue.capacity() != 1008)
+	if(pqueue.capacity() != 144)
 	{
-		testsFailed++;
+		testsFailed.push_back(3);
 	}
-	*/
 
 	//test 4: check the queue has been reset
 	pqueue.clear();
 	if((pqueue.capacity() != 48) && (pqueue.size() == 0))
 	{
-		testsFailed++;
+		testsFailed.push_back(4);
 	}
 	
 	//test 5: enqueue and dequeue on all priorities
@@ -100,18 +97,66 @@ void testFinitePQueue()
 		auto result = pqueue.dequeue(i % numPriorities);
 		if(result != i)
 		{
-			testsFailed++;
+			testsFailed.push_back(5);
 			break;
 		}
 	}
+
+	//test 6: tryDequeue()
+	pqueue.enqueue(100, 0);
+	{
+		size_t dest;
+		if(pqueue.tryDequeue(&dest, 1) != false)
+		{
+			testsFailed.push_back(6);
+		}
+		if(pqueue.tryDequeue(&dest, 0) != true)
+		{
+			testsFailed.push_back(6);
+		}
+		if(dest != 100)
+		{
+			testsFailed.push_back(6);
+		}
+	}
+
+	//test 7: front()
+	pqueue.enqueue(100, 0);
+	if(pqueue.front(0) != 100)
+	{
+		testsFailed.push_back(7);
+	}
+
+	//test 8: isEmpty()
+	if(pqueue.isEmpty() != false)
+	{
+		testsFailed.push_back(8);
+	}
+	pqueue.dequeue(0);
+	if(pqueue.isEmpty() != false)
+	{
+		testsFailed.push_back(8);
+	}
 	
-	if(testsFailed == 0)
+	if(testsFailed.size() == 0)
 	{
 		std::cout << "FinitePQueue passed all tests" << std::endl;
 	}
 	else
 	{
-		std::cout << "FinitePQeueue failed " << testsFailed << " tests" << std::endl;
+		if(testsFailed.size() == 1)
+		{
+			std::cout << "FinitePQueue failed test " << testsFailed[0] << std::endl;
+		}
+		else
+		{
+			std::cout << "FinitePQueue failed tests ";
+			for(size_t i = 0; i < testsFailed.size() - 1; i++)
+			{
+				std::cout << testsFailed[i] << ", ";
+			}
+			std::cout << "and " << testsFailed[testsFailed.size()-1] << std::endl;
+		}
 	}
 	
 }
@@ -305,7 +350,7 @@ void testList()
 	std::vector<size_t> testsFailed;
 
 	size_t testSize = 100;
-	fsds::List<size_t, DebugAllocator<size_t>> list;
+	fsds::List<size_t> list;
 
 	//test 1: append()
 	for(size_t i = 0; i < testSize; i++)
@@ -460,8 +505,8 @@ void testList()
 	}
 
 	//test 13: operator==
-	fsds::List<size_t, DebugAllocator<size_t>> list3;
-	fsds::List<size_t, DebugAllocator<size_t>> list4;
+	fsds::List<size_t> list3;
+	fsds::List<size_t> list4;
 	for(size_t i = 0; i < testSize; i++)
 	{
 		list3.append(i);
@@ -480,7 +525,7 @@ void testList()
 	}
 
 	//test 15: copy constructor
-	fsds::List<size_t, DebugAllocator<size_t>> list5 = list;
+	fsds::List<size_t> list5 = list;
 	if(list5 != list)
 	{
 		testsFailed.push_back(15);
@@ -494,7 +539,7 @@ void testList()
 	}
 
 	//test 17 move constructor
-	fsds::List<size_t, DebugAllocator<size_t>> list6 = std::move(list5);
+	fsds::List<size_t> list6 = std::move(list5);
 	if((list6 != list4) || (list5.data() != nullptr))
 	{
 		testsFailed.push_back(17);
@@ -522,11 +567,455 @@ void testList()
 	}
 }
 
+void fastInsertListRunSubTest(fsds::FastInsertList<size_t>& l, std::vector<size_t> initiallyRemoved, const size_t& toRemove, std::vector<size_t>& testsFailed, const size_t& testNum)
+{
+	//remove all the initially removed elements
+	for(size_t i = 0; i < initiallyRemoved.size(); i++)
+	{
+		l.remove(initiallyRemoved[i]);
+	}
+	//remove the lement
+	l.remove(toRemove);
+
+	//add the element to be removed to initially removed to get the list of all removed elements then sort it to get the list in order of how they should be returned the add method
+	initiallyRemoved.push_back(toRemove);
+	std::sort(initiallyRemoved.begin(), initiallyRemoved.end());
+
+	//add back all the removed elements and check they are in order
+	//it is important to add each element back even after an error has been detected to return the fList to the original state it was in. If this isn't done the test program may hang on subsequence subtests.
+	bool hasFailed = false;
+	for(size_t i = 0; i < initiallyRemoved.size(); i++)
+	{
+		size_t location = l.add(i);
+		if(location != initiallyRemoved[i])
+		{
+			hasFailed = true;
+		}
+	}
+	if(hasFailed)
+	{
+		testsFailed.push_back(testNum);
+		return;
+	}
+
+	//check that the data we added is what is expected
+	for(size_t i = 0; i < initiallyRemoved.size(); i++)
+	{
+		if(l[initiallyRemoved[i]] != i)
+		{
+			testsFailed.push_back(testNum);
+			return;
+		}
+	}
+}
+
+void testFastInsertList()
+{
+	std::vector<size_t> testsFailed;
+
+	size_t testSize = 100;
+	fsds::FastInsertList<size_t> fList;
+
+	//test 1: add
+	for(size_t i = 0; i < testSize; i++)
+	{
+		fList.add(i);
+	}
+
+	for(size_t i = 0; i < testSize; i++)
+	{
+		if(fList[i] != i)
+		{
+			testsFailed.push_back(i);
+			break;
+		}
+	}
+
+	//test 2: remove then add a single element
+	size_t location;
+	fList.remove(1);
+	location = fList.add(10);
+	if((fList[1] != 10) || (location != 1))
+	{
+		testsFailed.push_back(2);
+	}
+
+	//test 3: removing then adding elements contiguously in the order a,b
+	fList.remove(1);
+	fList.remove(2);
+	location = fList.add(11);
+	if((location != 1) || (fList[1] != 11))
+	{
+		testsFailed.push_back(3);
+		fList.add(0);
+	}
+	else
+	{
+		location = fList.add(12);
+		if((location != 2) || (fList[2] != 12))
+		{
+			testsFailed.push_back(3);
+		}
+	}
+
+	//test 4: removing then adding elements contiguously in the order b,a
+	fList.remove(2);
+	fList.remove(1);
+	location = fList.add(11);
+	if((location != 1) || (fList[1] != 11))
+	{
+		testsFailed.push_back(4);
+		fList.add(0);
+	}
+	else
+	{
+		location = fList.add(12);
+		if((location != 2) || (fList[2] != 12))
+		{
+			testsFailed.push_back(4);
+		}
+	}
+
+	//test 5: removing then adding elements with a gap in the order a,b
+	fList.remove(1);
+	fList.remove(3);
+	location = fList.add(13);
+	if((location != 1) || (fList[1] != 13))
+	{
+		testsFailed.push_back(5);
+		fList.add(0);
+	}
+	else
+	{
+		location = fList.add(13);
+		if((location != 3) || (fList[3] != 13))
+		{
+			testsFailed.push_back(5);
+		}
+	}
+
+	//test 6: removing then adding elements with a gap in the order b,a
+	fList.remove(3);
+	fList.remove(1);
+	location = fList.add(14);
+	if((location != 1) || (fList[1] != 14))
+	{
+		testsFailed.push_back(6);
+		fList.add(0);
+	}
+	else
+	{
+		location = fList.add(14);
+		if((location != 3) || (fList[3] != 14))
+		{
+			testsFailed.push_back(6);
+		}
+	}
+
+	
+	//see src/fast_insert_list.inl fsds::FastInsertList<T>::remove for notation
+	std::vector<size_t> initiallyRemoved;
+
+	//(---p)
+	initiallyRemoved = {1, 2};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 3, testsFailed, 7);
+	//(p---)
+	initiallyRemoved = {2, 3};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 1, testsFailed, 8);
+	//(---*p)
+	initiallyRemoved = {1, 2};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 4, testsFailed, 9);
+	//(p*---)
+	initiallyRemoved = {3, 4};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 1, testsFailed, 10);
+	//(-*-p)
+	initiallyRemoved = {1, 3};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 4, testsFailed, 11);
+	//(-*-*p)
+	initiallyRemoved = {1, 3};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 5, testsFailed, 12);
+	//(p-*-)
+	initiallyRemoved = {2, 4};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 1, testsFailed, 13);
+	//(p*-*-)
+	initiallyRemoved = {3, 5};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 1, testsFailed, 14);
+	//(-p-)
+	initiallyRemoved = {1, 3};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 2, testsFailed, 15);
+	//(-*p*-)
+	initiallyRemoved = {1, 5};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 3, testsFailed, 16);
+	//(-*p-)
+	initiallyRemoved = {1, 4};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 3, testsFailed, 17);
+	//(-p*-)
+	initiallyRemoved = {1, 4};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 2, testsFailed, 18);
+	
+
+	//(---*-p)
+	initiallyRemoved = {1, 2, 4};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 5, testsFailed, 19);
+	//(---*p-)
+	initiallyRemoved = {1, 2, 5};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 4, testsFailed, 20);
+	
+	//(-p*---)
+	initiallyRemoved = {1, 4, 5};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 2, testsFailed, 21);
+	//(p-*---)
+	initiallyRemoved = {2, 4, 5};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 1, testsFailed, 22);
+	//(---*---p)
+	initiallyRemoved = {1, 2, 4, 5};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 6, testsFailed, 23);
+	//(---*p---)
+	initiallyRemoved = {1, 2, 5, 6};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 4, testsFailed, 24);
+	//(---p*---)
+	initiallyRemoved = {1, 2, 5, 6};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 3, testsFailed, 25);
+	//(p---*---)
+	initiallyRemoved = {2, 3, 5, 6};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 1, testsFailed, 26);
+	//(---p---)
+	initiallyRemoved = {1, 2, 4, 5};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 3, testsFailed, 27);
+	//(-p---)
+	initiallyRemoved = {1, 3, 4};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 2, testsFailed, 28);
+	//(---p-)
+	initiallyRemoved = {1, 2, 4};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 3, testsFailed, 29);
+	//(---*p---)
+	initiallyRemoved = {1, 2, 5, 6};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 4, testsFailed, 30);
+	//(---p*---)
+	initiallyRemoved = {1, 2, 5, 6};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 3, testsFailed, 31);
+	//(-*p---)
+	initiallyRemoved = {1, 4, 5};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 3, testsFailed, 32);
+	//(---p*-)
+	initiallyRemoved = {1, 2, 5};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 3, testsFailed, 33);
+	//(---*p*---)
+	initiallyRemoved = {1, 2, 6, 7};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 5, testsFailed, 34);
+	//(-*p*---)
+	initiallyRemoved = {1, 5, 6};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 3, testsFailed, 35);
+	//(---*p*-)
+	initiallyRemoved = {1, 2, 6};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 4, testsFailed, 36);
+	//(--*--p--)
+	initiallyRemoved = {1, 2, 4, 5, 7, 8};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 6, testsFailed, 37);
+	//(--*-p--)
+	initiallyRemoved = {1, 2, 4, 6, 7};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 5, testsFailed, 38);
+	//(--*--p-)
+	initiallyRemoved = {1, 2, 4, 5, 7};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 6, testsFailed, 39);
+	//(-*--p--)
+	initiallyRemoved = {1, 3, 4, 6, 7};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 5, testsFailed, 40);
+	//(-*-p--)
+	initiallyRemoved = {1, 3, 5, 6};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 4, testsFailed, 41);
+	//(-*--p-)
+	initiallyRemoved = {1, 3, 4, 6};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 5, testsFailed, 42);
+	//(--p--*--)
+	initiallyRemoved = {1, 2, 4, 5, 7, 8};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 3, testsFailed, 43);
+	//(--p-*--)
+	initiallyRemoved = {1, 2, 4, 6, 7};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 3, testsFailed, 44);
+	//(--p--*-)
+	initiallyRemoved = {1, 2, 4, 5, 7};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 3, testsFailed, 45);
+	//(-p--*--)
+	initiallyRemoved = {1, 3, 4, 6, 7};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 2, testsFailed, 46);
+	//(-p-*--)
+	initiallyRemoved = {1, 3, 5, 6};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 2, testsFailed, 47);
+	//(-p--*-)
+	initiallyRemoved = {1, 3, 4, 6};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 2, testsFailed, 48);
+	//(--*--*--p)
+	initiallyRemoved = {1, 2, 4, 5, 7, 8};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 9, testsFailed, 49);
+	//(--*--*--*p)
+	initiallyRemoved = {1, 2, 4, 5, 7, 8};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 10, testsFailed, 50);
+	//(p--*--*--)
+	initiallyRemoved = {2, 3, 5, 6, 8, 9};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 1, testsFailed, 51);
+	//(p*--*--*--)
+	initiallyRemoved = {3, 4, 6, 7, 9, 10};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 1, testsFailed, 52);
+	//(--*--*--p--)
+	initiallyRemoved = {1, 2, 4, 5, 7, 8, 10, 11};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 9, testsFailed, 53);
+	//(--*--p--*--)
+	initiallyRemoved = {1, 2, 4, 5, 7, 8, 10, 11};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 6, testsFailed, 53);
+	//(--p--*--*--)
+	initiallyRemoved = {1, 2, 4, 5, 7, 8, 10, 11};
+	fastInsertListRunSubTest(fList, initiallyRemoved, 3, testsFailed, 53);
+
+	//test 54: overwriting data
+	for(size_t i = 0; i < testSize; i++)
+	{
+		fList[i] = i + 200;
+	}
+	for(size_t i = 0; i < testSize; i++)
+	{
+		if(fList[i] != i + 200)
+		{
+			testsFailed.push_back(54);
+			break;
+		}
+	}
+
+	//test 55, 56 and 57: iterator with removed data
+	{
+		std::vector<size_t> removed = {5, 6, 9, 11, 13, 14, 18, 19, 20, 22, 24, 26, 28, 30, 33, 36, 39, 42, 43, 44, 46, 47, 48, 50, 52, 54};
+		for(size_t i = 0; i < removed.size(); i++)
+		{
+			fList.remove(removed[i]);
+		}
+
+		//test 55
+		auto it1 = fList.getIterator();
+		size_t i = 0;
+		for(;it1.notDone(); it1.next(fList))
+		{
+			if(it1.get(fList) != i + 200)
+			{
+				testsFailed.push_back(55);
+				break;
+			}
+			i++;
+		}
+
+		//test 56
+		if(it1.shouldGetDiscontigousIterator(fList) != true)
+		{
+			testsFailed.push_back(56);
+		}
+
+		//test 57
+		auto it2 = it1.getDiscontigousIterator(fList);
+		i = 7;
+		for(; it2.notDone(fList); it2.next(fList))
+		{
+			//if i in removed skip it
+			while(true)
+			{
+				bool iInRemoved = false;
+				for(size_t j = 0; j < removed.size(); j++)
+				{
+					if(removed[j] == i)
+					{
+						iInRemoved = true;
+						break;
+					}
+					if(removed[j] > i)
+					{
+						break;
+					}
+				}
+				if(iInRemoved)
+				{
+					i++;
+				}
+				else
+				{
+					break;
+				}
+			}
+
+			if(it2.get(fList) != i + 200)
+			{
+				testsFailed.push_back(57);
+				break;
+			}
+			i++;
+		}
+
+		for(size_t j = 0; j < removed.size(); j++)
+		{
+			fList.add(removed[j] + 200);
+		}
+	}
+
+	//test 58 and 59: iterator with no removed data
+	{
+		//test 58
+		auto it1 = fList.getIterator();
+		size_t i = 0;
+		for(;it1.notDone(); it1.next(fList))
+		{
+			std::cout << it1.get(fList) << std::endl;
+			if(it1.get(fList) != i + 200)
+			{
+				testsFailed.push_back(58);
+				break;
+			}
+			i++;
+		}
+
+		//test 59
+		if(it1.shouldGetDiscontigousIterator(fList) != false)
+		{
+			testsFailed.push_back(59);
+		}
+	}
+
+	//test 60: case 4,5,8 (p---)
+
+	//test 61: case 4,5,9 (p**---)
+
+	//test 62: case 4,10,11 (-**p-)
+
+	//test 63: case 4,10,12 (-**p**)
+
+	//test 64: case 4,10,11,13 (-p-)
+
+	//test 65: case 4,10,12,13 (-p**)
+
+	if(testsFailed.size() == 0)
+	{
+		std::cout << "FastInsertList passed all tests" << std::endl;
+	}
+	else
+	{
+		if(testsFailed.size() == 1)
+		{
+			std::cout << "FastInsertList failed test " << testsFailed[0] << std::endl;
+		}
+		else
+		{
+			std::cout << "FastInsertList failed tests ";
+			for(size_t i = 0; i < testsFailed.size() - 1; i++)
+			{
+				std::cout << testsFailed[i] << ", ";
+			}
+			std::cout << "and " << testsFailed[testsFailed.size()-1] << std::endl;
+		}
+	}
+}
+
 int main(int /*argc*/, const char** /*argv*/)
 {
-	//testFinitePQueue();
+	testFinitePQueue();
 	testSPSCQueue();
 	testList();
+	testFastInsertList();
 
 	/*
 	const char* baseStr = "哈的是 энергия буран поезд поезда";
