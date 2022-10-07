@@ -89,7 +89,6 @@ void testFinitePQueue()
 	//test 5: enqueue and dequeue on all priorities
 	for(size_t i = 0; i < testSize; i++)
 	{
-		//std::cout << ">> " << i << std::endl;
 		pqueue.enqueue(i, i % numPriorities);
 	}
 	for(size_t i = 0; i < testSize; i++)
@@ -132,8 +131,8 @@ void testFinitePQueue()
 	{
 		testsFailed.push_back(8);
 	}
-	pqueue.dequeue(0);
-	if(pqueue.isEmpty() != false)
+	pqueue.clear();
+	if(pqueue.isEmpty() != true)
 	{
 		testsFailed.push_back(8);
 	}

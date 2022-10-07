@@ -15,13 +15,6 @@ namespace fsds
 		}
 	}
 	template<typename T, size_t numPriorities, size_t blockSize>
-	FinitePQueue<T, numPriorities, blockSize>::FinitePQueue(size_t defaultSize)
-	: m_queueHeads(), m_queueTails(), m_queueSizes(), m_availableNodes(), m_rawNodeStorage(defaultSize), m_totalSize(0)
-	{
-		//
-		throw;
-	}
-	template<typename T, size_t numPriorities, size_t blockSize>
 	FinitePQueue<T, numPriorities, blockSize>::~FinitePQueue()
 	{
 		std::allocator<Node> allocNode;
@@ -176,11 +169,6 @@ namespace fsds
 		return this->m_rawNodeStorage.size() * blockSize;
 	}
 
-	template<typename T, size_t numPriorities, size_t blockSize>
-	void FinitePQueue<T, numPriorities, blockSize>::reserve(size_t newCap)
-	{
-		//
-	}
 	template<typename T, size_t numPriorities, size_t blockSize>
 	void FinitePQueue<T, numPriorities, blockSize>::clear()
 	{

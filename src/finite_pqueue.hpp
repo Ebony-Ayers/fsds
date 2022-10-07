@@ -13,7 +13,6 @@ namespace fsds
 	{
 		public:
 			FinitePQueue();
-			FinitePQueue(size_t defaultSize);
 			constexpr FinitePQueue(size_t count, const T& value) = delete;
 			template<typename InputIt>
 			constexpr FinitePQueue(InputIt first, InputIt last) = delete;
@@ -31,7 +30,6 @@ namespace fsds
 			[[nodiscard]] constexpr size_t size() const noexcept;
 			[[nodiscard]] constexpr size_t capacity() const noexcept;
 
-			void reserve(size_t newCap);
 			void clear();
 
 			[[nodiscard]] bool valueEquality(FinitePQueue<T, numPriorities, blockSize>& other);
