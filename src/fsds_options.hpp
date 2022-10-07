@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FSDS_OPTIONS_HPP_HEADER_GUARD
+#define FSDS_OPTIONS_HPP_HEADER_GUARD
 
 #if defined(__clang__)
 	#define FSDS_COMPILER_CLANG
@@ -19,3 +20,5 @@
 #else
 	#define FSDS_PLATFORM_UNKNOWN
 #endif
+
+#endif //#ifndef FSDS_OPTIONS_HPP_HEADER_GUARD

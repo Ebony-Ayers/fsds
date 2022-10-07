@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FAST_INSERT_LIST_HPP_HEADER_GUARD
+#define FAST_INSERT_LIST_HPP_HEADER_GUARD
 #include "fsds_options.hpp"
 
 #include "list.hpp"
@@ -138,3 +139,5 @@ namespace fsds
 
 
 #include "fast_insert_list.inl"
+
+#endif //#ifndef FAST_INSERT_LIST_HPP_HEADER_GUARD

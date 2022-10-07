@@ -1,4 +1,5 @@
-#pragma once
+#ifndef DYNAMIC_STRING_HPP_HEADER_GUARD
+#define DYNAMIC_STRING_HPP_HEADER_GUARD
 #include "fsds_options.hpp"
 
 #include <iostream>
@@ -103,3 +104,5 @@ namespace fsds
 
 
 #include "dynamic_string.inl"
+
+#endif //#ifndef DYNAMIC_STRING_HPP_HEADER_GUARD

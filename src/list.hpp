@@ -1,4 +1,5 @@
-#pragma once
+#ifndef LIST_HPP_HEADER_GUARD
+#define LIST_HPP_HEADER_GUARD
 #include "fsds_options.hpp"
 
 #include <iterator>
@@ -171,3 +172,5 @@ namespace fsds
 
 #include "list.inl"
 #include "ts_list.inl"
+
+#endif //#ifndef LIST_HPP_HEADER_GUARD

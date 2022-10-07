@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MPSC_QUEUE_HPP_HEADER_GUARD
+#define MPSC_QUEUE_HPP_HEADER_GUARD
 #include "fsds_options.hpp"
 
 #include "queue_block.hpp"
@@ -78,3 +79,5 @@ namespace fsds
 }
 
 #include "mpsc_queue.inl"
+
+#endif //#ifndef MPSC_QUEUE_HPP_HEADER_GUARD

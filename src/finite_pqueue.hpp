@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FINITE_PQUEUE_HPP_HEADER_GUARD
+#define FINITE_PQUEUE_HPP_HEADER_GUARD
 #include "fsds_options.hpp"
 
 #include <array>
@@ -64,3 +65,5 @@ namespace fsds
 }
 
 #include "finite_pqueue.inl"
+
+#endif //#ifndef FINITE_PQUEUE_HPP_HEADER_GUARD

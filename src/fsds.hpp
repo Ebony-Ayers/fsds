@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FSDS_HPP_HEADER_GUARD
+#define FSDS_HPP_HEADER_GUARD
 
 #include "../lib/fast-thread-syncronization/src/fts.hpp"
 
@@ -16,3 +17,5 @@
 #include "static_string.hpp"
 #include "dynamic_string.hpp"
 #include "composite_string.hpp"
+
+#endif //#ifndef FSDS_HPP_HEADER_GUARD

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef STATIC_STRING_HPP_HEADER_GUARD
+#define STATIC_STRING_HPP_HEADER_GUARD
 #include "fsds_options.hpp"
 
 #include <iostream>
@@ -88,3 +89,5 @@ namespace fsds
 }
 
 #include "static_string.inl"
+
+#endif //#ifndef STATIC_STRING_HPP_HEADER_GUARD

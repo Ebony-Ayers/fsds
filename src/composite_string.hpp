@@ -1,4 +1,5 @@
-#pragma once
+#ifndef COMPOSITE_STRING_HPP_HEADER_GUARD
+#define COMPOSITE_STRING_HPP_HEADER_GUARD
 #include "fsds_options.hpp"
 
 #include <iostream>
@@ -110,3 +111,5 @@ namespace fsds
 }
 
 #include "composite_string.inl"
+
+#endif //#ifndef COMPOSITE_STRING_HPP_HEADER_GUARD
