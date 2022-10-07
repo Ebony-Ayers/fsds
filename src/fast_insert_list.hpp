@@ -77,6 +77,7 @@ namespace fsds
 			[[nodiscard]] constexpr const T& getConst(const FastInsertList<T>& l) const;
 			
 			constexpr T& next(FastInsertList<T>& l);
+			constexpr const T& nextConst(const FastInsertList<T>& l);
 
 			[[nodiscard]] constexpr bool notDone(const FastInsertList<T>& l) const;
 		
@@ -109,6 +110,7 @@ namespace fsds
 			[[nodiscard]] constexpr const T& getConst(const FastInsertList<T>& l) const;
 			
 			constexpr T& next(FastInsertList<T>& l);
+			constexpr const T& nextConst(const FastInsertList<T>& l);
 
 			[[nodiscard]] constexpr bool notDone() const;
 			[[nodiscard]] constexpr FastInsertListDiscontiguousIterator<T> getDiscontigousIterator(const FastInsertList<T>& l) const;
