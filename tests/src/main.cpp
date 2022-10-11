@@ -58,14 +58,13 @@ void testFinitePQueue()
 	}
 	for(size_t i = 0; i < testSize; i++)
 	{
-		auto result = pqueue.dequeue(5);
+		auto result = pqueue.dequeue();
 		if(result != i)
 		{
 			testsFailed.push_back(1);
 			break;
 		}
 	}
-
 	
 	//test 2: check that after enqueuing and dequeuing the same number of elements from an empty queue the size of the queue is 0
 	if(pqueue.size() != 0)
@@ -78,7 +77,7 @@ void testFinitePQueue()
 	{
 		testsFailed.push_back(3);
 	}
-
+	
 	//test 4: check the queue has been reset
 	pqueue.clear();
 	if((pqueue.capacity() != 48) && (pqueue.size() == 0))
@@ -89,52 +88,68 @@ void testFinitePQueue()
 	//test 5: enqueue and dequeue on all priorities
 	for(size_t i = 0; i < testSize; i++)
 	{
-		pqueue.enqueue(i, i % numPriorities);
+		pqueue.enqueue(i, i / ((testSize / numPriorities) + 1));
 	}
 	for(size_t i = 0; i < testSize; i++)
 	{
-		auto result = pqueue.dequeue(i % numPriorities);
+		auto result = pqueue.dequeue();
 		if(result != i)
 		{
+			std::cout << "hi " << result << " " << i << std::endl;
 			testsFailed.push_back(5);
 			break;
 		}
 	}
-
-	//test 6: tryDequeue()
+	std::cout << "============================" << std::endl;
+	//test 6: enqueue and dequeuePriority on all priorities
+	for(size_t i = 0; i < testSize; i++)
+	{
+		pqueue.enqueue(i, i % numPriorities);
+	}
+	for(size_t i = 0; i < testSize; i++)
+	{
+		auto result = pqueue.dequeuePriority(i % numPriorities);
+		if(result != i)
+		{
+			testsFailed.push_back(6);
+			break;
+		}
+	}
+	std::cout << "============================" << std::endl;
+	//test 7: tryDequeue()
 	pqueue.enqueue(100, 0);
 	{
 		size_t dest;
 		if(pqueue.tryDequeue(&dest, 1) != false)
 		{
-			testsFailed.push_back(6);
+			testsFailed.push_back(7);
 		}
 		if(pqueue.tryDequeue(&dest, 0) != true)
 		{
-			testsFailed.push_back(6);
+			testsFailed.push_back(7);
 		}
 		if(dest != 100)
 		{
-			testsFailed.push_back(6);
+			testsFailed.push_back(7);
 		}
 	}
 
-	//test 7: front()
+	//test 8: front()
 	pqueue.enqueue(100, 0);
 	if(pqueue.front(0) != 100)
 	{
-		testsFailed.push_back(7);
+		testsFailed.push_back(8);
 	}
 
-	//test 8: isEmpty()
+	//test 9: isEmpty()
 	if(pqueue.isEmpty() != false)
 	{
-		testsFailed.push_back(8);
+		testsFailed.push_back(9);
 	}
 	pqueue.clear();
 	if(pqueue.isEmpty() != true)
 	{
-		testsFailed.push_back(8);
+		testsFailed.push_back(9);
 	}
 	
 	if(testsFailed.size() == 0)

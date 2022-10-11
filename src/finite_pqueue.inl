@@ -38,9 +38,18 @@ namespace fsds
 		if(this->m_availableNodes.size() == 0) [[unlikely]]
 		{
 			this->makeNewBlock();
+			std::cout << "make new block" << std::endl;
 		}
+		else
+		{
+			std::cout << "start  " << std::hex << reinterpret_cast<uint64_t>(this->m_availableNodes.front()) << std::dec << std::endl;
+		}
+		std::cout << "middle " << std::hex << reinterpret_cast<uint64_t>(this->m_availableNodes.front()) << std::dec << std::endl;
 		Node* node = this->m_availableNodes.dequeue();
-		
+		if(this->m_availableNodes.size() != 0)
+		{
+			std::cout << "end    " << std::hex << reinterpret_cast<uint64_t>(this->m_availableNodes.front()) << std::dec << std::endl;
+		}
 		//set the values of the node
 		node->data = value;
 		node->previous = this->m_queueTails[priority];
@@ -73,12 +82,51 @@ namespace fsds
 		this->m_totalSize++;
 	}
 	template<typename T, size_t numPriorities, size_t blockSize>
-	T FinitePQueue<T, numPriorities, blockSize>::dequeue(size_t priority)
+	T FinitePQueue<T, numPriorities, blockSize>::dequeue()
 	{
+		size_t priority;
+		for(size_t i = 0; i < numPriorities; i++)
+		{
+			if(this->m_queueSizes[i] > 0)
+			{
+				priority = i;
+				break;
+			}
+		}
 		#ifdef FSDS_DEBUG
 			if(this->m_queueSizes[priority] == 0) [[unlikely]]
 			{
 				throw std::out_of_range("FinitePQeueue::dequeue tried to dequeue data that didn't exist");
+			}
+		#endif
+		std::cout << "dequeue priorirty " << priority << std::endl;
+		
+		//get the node in question
+		Node node = *(this->m_queueHeads[priority]);
+
+		std::cout << "*node = " << std::hex << reinterpret_cast<uint64_t>(this->m_queueHeads[priority]) << std::dec << std::endl;
+
+		//update the heads
+		//if this is the last node in this priority's queue then it's next will be null therefore making the entire queue null signifying it is empty
+		this->m_queueHeads[priority] = this->m_queueHeads[priority]->next;
+
+		//return the memory to m_availableNodes
+		this->m_availableNodes.enqueue(this->m_queueHeads[priority]);
+
+		//misc
+		this->m_queueSizes[priority]--;
+		this->m_totalSize--;
+
+		//return the value
+		return node.data;
+	}
+	template<typename T, size_t numPriorities, size_t blockSize>
+	T FinitePQueue<T, numPriorities, blockSize>::dequeuePriority(size_t priority)
+	{
+		#ifdef FSDS_DEBUG
+			if(this->m_queueSizes[priority] == 0) [[unlikely]]
+			{
+				throw std::out_of_range("FinitePQeueue::dequeuePriority tried to dequeue data that didn't exist");
 			}
 		#endif
 		
