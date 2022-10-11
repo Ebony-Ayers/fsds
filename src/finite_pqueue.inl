@@ -38,18 +38,9 @@ namespace fsds
 		if(this->m_availableNodes.size() == 0) [[unlikely]]
 		{
 			this->makeNewBlock();
-			std::cout << "make new block" << std::endl;
 		}
-		else
-		{
-			std::cout << "start  " << std::hex << reinterpret_cast<uint64_t>(this->m_availableNodes.front()) << std::dec << std::endl;
-		}
-		std::cout << "middle " << std::hex << reinterpret_cast<uint64_t>(this->m_availableNodes.front()) << std::dec << std::endl;
 		Node* node = this->m_availableNodes.dequeue();
-		if(this->m_availableNodes.size() != 0)
-		{
-			std::cout << "end    " << std::hex << reinterpret_cast<uint64_t>(this->m_availableNodes.front()) << std::dec << std::endl;
-		}
+		
 		//set the values of the node
 		node->data = value;
 		node->previous = this->m_queueTails[priority];
@@ -99,19 +90,17 @@ namespace fsds
 				throw std::out_of_range("FinitePQeueue::dequeue tried to dequeue data that didn't exist");
 			}
 		#endif
-		std::cout << "dequeue priorirty " << priority << std::endl;
 		
 		//get the node in question
 		Node node = *(this->m_queueHeads[priority]);
 
-		std::cout << "*node = " << std::hex << reinterpret_cast<uint64_t>(this->m_queueHeads[priority]) << std::dec << std::endl;
+		//return the memory to m_availableNodes
+		//given no memory is modifyed by doing this it can be done before updating the queue heads
+		this->m_availableNodes.enqueue(this->m_queueHeads[priority]);
 
 		//update the heads
 		//if this is the last node in this priority's queue then it's next will be null therefore making the entire queue null signifying it is empty
 		this->m_queueHeads[priority] = this->m_queueHeads[priority]->next;
-
-		//return the memory to m_availableNodes
-		this->m_availableNodes.enqueue(this->m_queueHeads[priority]);
 
 		//misc
 		this->m_queueSizes[priority]--;
@@ -133,12 +122,13 @@ namespace fsds
 		//get the node in question
 		Node node = *(this->m_queueHeads[priority]);
 
+		//return the memory to m_availableNodes
+		//given no memory is modifyed by doing this it can be done before updating the queue heads
+		this->m_availableNodes.enqueue(this->m_queueHeads[priority]);
+
 		//update the heads
 		//if this is the last node in this priority's queue then it's next will be null therefore making the entire queue null signifying it is empty
 		this->m_queueHeads[priority] = this->m_queueHeads[priority]->next;
-
-		//return the memory to m_availableNodes
-		this->m_availableNodes.enqueue(this->m_queueHeads[priority]);
 
 		//misc
 		this->m_queueSizes[priority]--;
@@ -163,12 +153,13 @@ namespace fsds
 			//get the node in question
 			Node node = *(this->m_queueHeads[priority]);
 
+			//return the memory to m_availableNodes
+			//given no memory is modifyed by doing this it can be done before updating the queue heads
+			this->m_availableNodes.enqueue(this->m_queueHeads[priority]);
+
 			//update the heads
 			//if this is the last node in this priority's queue then it's next will be null therefore making the entire queue null signifying it is empty
 			this->m_queueHeads[priority] = this->m_queueHeads[priority]->next;
-
-			//return the memory to m_availableNodes
-			this->m_availableNodes.enqueue(this->m_queueHeads[priority]);
 
 			//misc
 			this->m_queueSizes[priority]--;

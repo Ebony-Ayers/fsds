@@ -95,12 +95,11 @@ void testFinitePQueue()
 		auto result = pqueue.dequeue();
 		if(result != i)
 		{
-			std::cout << "hi " << result << " " << i << std::endl;
 			testsFailed.push_back(5);
 			break;
 		}
 	}
-	std::cout << "============================" << std::endl;
+	
 	//test 6: enqueue and dequeuePriority on all priorities
 	for(size_t i = 0; i < testSize; i++)
 	{
@@ -115,7 +114,7 @@ void testFinitePQueue()
 			break;
 		}
 	}
-	std::cout << "============================" << std::endl;
+	
 	//test 7: tryDequeue()
 	pqueue.enqueue(100, 0);
 	{
@@ -306,6 +305,31 @@ void testSPSCQueue()
 		if(queue.tryDequeue(&res) != false)
 		{
 			testsFailed.push_back(12);
+		}
+	}
+	
+	//test 13: bulk queue dequeue
+	for(size_t i = 0; i < 6; i++)
+	{
+		bool failed = false;
+		for(size_t j = 0; j < testSize; j++)
+		{
+			queue.enqueue(j);
+		}
+		for(size_t j = 0; j < testSize; j++)
+		{
+			if(queue.dequeue() != j)
+			{
+				testsFailed.push_back(13);
+				failed = true;
+				break;
+			}
+		}
+		if(failed) { break; }
+		else if(queue.capacity() != 128)
+		{
+			testsFailed.push_back(13);
+			break;
 		}
 	}
 
@@ -1205,8 +1229,8 @@ void testFastInsertList()
 
 int main(int /*argc*/, const char** /*argv*/)
 {
-	testFinitePQueue();
 	testSPSCQueue();
+	testFinitePQueue();
 	testList();
 	testFastInsertList();
 

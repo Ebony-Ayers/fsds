@@ -44,7 +44,7 @@ namespace fsds
 
 			constexpr void deepCopy(SPSCQueue<T, Allocator>& dest) const;
 
-		private:
+		//private:
 			constexpr static size_t sm_baseAllocation = 16;
 			constexpr void reallocate(const size_t& newSize);
 
