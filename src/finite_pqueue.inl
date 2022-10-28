@@ -56,8 +56,6 @@ namespace fsds
 		else
 		{
 			this->m_queueTails[priority]->next = node;
-			//std::cout << "final " << (this->m_queueTails[priority]->data);
-			//std::cout << " -> " << (this->m_queueTails[priority]->next->data) << std::endl;
 			this->m_queueTails[priority] = node;
 		}
 		//update the heads
@@ -67,6 +65,52 @@ namespace fsds
 			this->m_queueHeads[priority] = node;
 		}
 		//if there is already data in this priority's queue then there is no need to modify the head
+
+		//misc
+		this->m_queueSizes[priority]++;
+		this->m_totalSize++;
+	}
+	template<typename T, size_t numPriorities, size_t blockSize>
+	void FinitePQueue<T, numPriorities, blockSize>::enqueueFront(const T& value, size_t priority)
+	{
+		#ifdef FSDS_DEBUG
+			if(priority >= numPriorities) [[unlikely]]
+			{
+				throw std::out_of_range("FinitePQeueue::enqueue called with priority greater than allowed");
+			}
+		#endif
+		
+		//get the next available piece of memory
+		if(this->m_availableNodes.size() == 0) [[unlikely]]
+		{
+			this->makeNewBlock();
+		}
+		Node* node = this->m_availableNodes.dequeue();
+		
+		//set the values of the node
+		node->data = value;
+		node->previous = nullptr;
+		node->next = this->m_queueHeads[priority];
+
+		//update the heads
+		//if this priority's queue is empty this node becomes the head of the queue
+		if(this->m_queueHeads[priority] == nullptr)
+		{
+			this->m_queueHeads[priority] = node;
+		}
+		//if there is already data in this priority's queue then set the next node of the current head to this node and make this node the head
+		else
+		{
+			this->m_queueHeads[priority]->previous = node;
+			this->m_queueHeads[priority] = node;
+		}
+		//update the tails
+		//if the priority's queue is empty then this node becomes the tail of the queue
+		if(this->m_queueTails[priority] == nullptr)
+		{
+			this->m_queueTails[priority] = node;
+		}
+		//if there is already data in this priority's queue then there is no need to modify the tail
 
 		//misc
 		this->m_queueSizes[priority]++;
@@ -176,8 +220,17 @@ namespace fsds
 	}
 
 	template<typename T, size_t numPriorities, size_t blockSize>
-	[[nodiscard]] T& FinitePQueue<T, numPriorities, blockSize>::front(size_t priority) const
+	[[nodiscard]] T& FinitePQueue<T, numPriorities, blockSize>::front() const
 	{
+		size_t priority = numPriorities;
+		for(size_t i = 0; i < numPriorities; i++)
+		{
+			if(this->m_queueSizes[i] > 0)
+			{
+				priority = i;
+			}
+		}
+
 		#ifdef FSDS_DEBUG
 			if(priority >= numPriorities) [[unlikely]]
 			{
@@ -186,6 +239,22 @@ namespace fsds
 			if(this->m_queueSizes[priority] == 0) [[unlikely]]
 			{
 				throw std::out_of_range("FinitePQeueue::front tried to access data that didn't exist");
+			}
+		#endif
+		
+		return this->m_queueHeads[priority]->data;
+	}
+	template<typename T, size_t numPriorities, size_t blockSize>
+	[[nodiscard]] T& FinitePQueue<T, numPriorities, blockSize>::frontPriority(size_t priority) const
+	{
+		#ifdef FSDS_DEBUG
+			if(priority >= numPriorities) [[unlikely]]
+			{
+				throw std::out_of_range("FinitePQeueue::frontPriority called with priority greater than allowed");
+			}
+			if(this->m_queueSizes[priority] == 0) [[unlikely]]
+			{
+				throw std::out_of_range("FinitePQeueue::frontPriority tried to access data that didn't exist");
 			}
 		#endif
 		

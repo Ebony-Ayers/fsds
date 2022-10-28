@@ -23,10 +23,12 @@ namespace fsds
 			~FinitePQueue();
 
 			void enqueue(const T& value, size_t priority);
+			void enqueueFront(const T& value, size_t priority);
 			T dequeue();
 			T dequeuePriority(size_t priority);
 			bool tryDequeue(T* dest, size_t priority);
-			[[nodiscard]] T& front(size_t priority) const;
+			[[nodiscard]] T& front() const;
+			[[nodiscard]] T& frontPriority(size_t priority) const;
 
 			[[nodiscard]] constexpr bool isEmpty() const noexcept;
 			[[nodiscard]] constexpr size_t size() const noexcept;

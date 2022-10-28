@@ -133,9 +133,9 @@ void testFinitePQueue()
 		}
 	}
 
-	//test 8: front()
+	//test 8: frontPriority()
 	pqueue.enqueue(100, 0);
-	if(pqueue.front(0) != 100)
+	if(pqueue.frontPriority(0) != 100)
 	{
 		testsFailed.push_back(8);
 	}
@@ -149,6 +149,27 @@ void testFinitePQueue()
 	if(pqueue.isEmpty() != true)
 	{
 		testsFailed.push_back(9);
+	}
+
+	//test 10: enqueueFront
+	for(size_t i = 0; i < testSize; i++)
+	{
+		pqueue.enqueueFront(i, 0);
+	}
+	for(size_t i = testSize; i > 0; i--)
+	{
+		if(pqueue.dequeue() != i - 1)
+		{
+			testsFailed.push_back(10);
+			break;
+		}
+	}
+
+	//test 11: front
+	pqueue.enqueue(10, 2);
+	if(pqueue.front() != 10)
+	{
+		testsFailed.push_back(11);
 	}
 	
 	if(testsFailed.size() == 0)
