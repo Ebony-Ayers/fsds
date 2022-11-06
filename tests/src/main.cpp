@@ -165,11 +165,17 @@ void testFinitePQueue()
 		}
 	}
 
-	//test 11: front
+	//test 11: front()
 	pqueue.enqueue(10, 2);
 	if(pqueue.front() != 10)
 	{
 		testsFailed.push_back(11);
+	}
+
+	//test 12: getCurrentHighestPriority()
+	if(pqueue.getCurrentHighestPriority() != 2)
+	{
+		testsFailed.push_back(12);
 	}
 	
 	if(testsFailed.size() == 0)

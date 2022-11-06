@@ -260,6 +260,18 @@ namespace fsds
 		
 		return this->m_queueHeads[priority]->data;
 	}
+	template<typename T, size_t numPriorities, size_t blockSize>
+	[[nodiscard]] size_t FinitePQueue<T, numPriorities, blockSize>::getCurrentHighestPriority() const
+	{
+		for(size_t i = 0; i < numPriorities; i++)
+		{
+			if(this->m_queueSizes[i] > 0)
+			{
+				return i;
+			}
+		}
+		return numPriorities;
+	}
 
 	template<typename T, size_t numPriorities, size_t blockSize>
 	[[nodiscard]] constexpr bool FinitePQueue<T, numPriorities, blockSize>::isEmpty() const noexcept

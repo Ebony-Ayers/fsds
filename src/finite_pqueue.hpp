@@ -29,6 +29,7 @@ namespace fsds
 			bool tryDequeue(T* dest, size_t priority);
 			[[nodiscard]] T& front() const;
 			[[nodiscard]] T& frontPriority(size_t priority) const;
+			[[nodiscard]] size_t getCurrentHighestPriority() const;
 
 			[[nodiscard]] constexpr bool isEmpty() const noexcept;
 			[[nodiscard]] constexpr size_t size() const noexcept;
