@@ -84,46 +84,26 @@ namespace fsds
 	template<typename T, typename Allocator = std::allocator<T>>
 	constexpr bool operator!=(const List<T, Allocator>& lhs, const List<T, Allocator>& rhs);
 
-	class ts_ListReadLockGuard
-	{
-		public:
-			ts_ListReadLockGuard(fts::ReadWriteLock* lock) : m_lock(lock) { m_lock->readLock(); }
-			~ts_ListReadLockGuard() { m_lock->readUnlock(); }
-		
-		private:
-			fts::ReadWriteLock* m_lock;
-	};
-	class ts_ListWriteLockGuard
-	{
-		public:
-			ts_ListWriteLockGuard(fts::ReadWriteLock* lock) : m_lock(lock) { m_lock->writeLock(); }
-			~ts_ListWriteLockGuard() { m_lock->writeUnlock(); }
-		
-		private:
-			fts::ReadWriteLock* m_lock;
-	};
-
 	template<typename T, typename Allocator = std::allocator<T>>
 	class ts_List
 	{
 		public:
-			constexpr ts_List() noexcept(noexcept(Allocator()));
+			constexpr ts_List() noexcept(noexcept(Allocator()));	//default constructor
+			constexpr explicit ts_List(const size_t& count);		//constructor specifying initial capacity
+			constexpr ts_List(const ts_List& other);					//copy constructor
+			constexpr ts_List(ts_List&& other) noexcept;				//move constructor
+			constexpr ts_List(std::initializer_list<T> init, const Allocator& alloc = Allocator());	//initializer list
 			constexpr explicit ts_List(const Allocator& alloc) noexcept = delete;
 			constexpr ts_List(size_t count, const T& value, const Allocator& alloc = Allocator()) = delete;
-			constexpr explicit ts_List(size_t count, const Allocator& alloc = Allocator()) = delete;
 			template<typename InputIt>
 			constexpr ts_List(InputIt first, InputIt last, const Allocator& alloc = Allocator()) = delete;
-			constexpr ts_List(const ts_List& other) = delete;
 			constexpr ts_List(const ts_List& other, const Allocator& alloc) = delete;
-			constexpr ts_List(ts_List&& other) noexcept = delete;
 			constexpr ts_List(ts_List&& other, const Allocator& alloc) = delete;
-			constexpr ts_List(std::initializer_list<T> init, const Allocator& alloc = Allocator());
 			constexpr ~ts_List();
 
 			constexpr Allocator getAllocator() const noexcept;
 
 			constexpr T* operator[](size_t pos);
-			constexpr const T* operator[](size_t pos) const;
 
 			constexpr T* front();
 			constexpr T* back();
@@ -152,15 +132,10 @@ namespace fsds
 			constexpr void removeBack();
 			constexpr void removeFront();
 
-			constexpr bool dataReferenceEquality(const ts_List<T, Allocator>& other);
 			constexpr bool valueEquality(const ts_List<T, Allocator>& other);
 		
 		private:
-			void reallocate(size_t newSize);
-
-			T* m_data;
-			size_t m_size;
-			size_t m_capacity;
+			fsds::List<T,Allocator> m_list;
 			fts::ReadWriteLock m_lock;
 	};
 

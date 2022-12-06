@@ -1,3 +1,4 @@
+#pragma once
 #ifndef FSDS_HPP_HEADER_GUARD
 #define FSDS_HPP_HEADER_GUARD
 

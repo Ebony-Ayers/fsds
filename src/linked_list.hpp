@@ -1,3 +1,4 @@
+#pragma once
 #ifndef LINKED_LIST_HPP_HEADER_GUARD
 #define LINKED_LIST_HPP_HEADER_GUARD
 

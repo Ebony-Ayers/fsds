@@ -83,20 +83,6 @@ namespace fsds
 			[[nodiscard]] constexpr bool notDone(const FastInsertList<T>& l) const;
 		
 		private:
-			/*
-			union ListElement;
-			struct LinkedListNode
-			{
-				size_t nextData;
-				ListElement* nextAvailable;
-			};
-			union ListElement
-			{
-				T data;
-				LinkedListNode next;
-			};
-			*/
-
 			size_t m_index;
 			FastInsertList<T>::ListElement* m_nextAvailable;
 	};
@@ -118,20 +104,6 @@ namespace fsds
 			[[nodiscard]] constexpr bool shouldGetDiscontigousIterator(const FastInsertList<T>& l) const;
 
 		private:
-			/*
-			union ListElement;
-			struct LinkedListNode
-			{
-				size_t nextData;
-				ListElement* nextAvailable;
-			};
-			union ListElement
-			{
-				T data;
-				LinkedListNode next;
-			};
-			*/
-
 			size_t m_index;
 			size_t m_finish;
 	};
