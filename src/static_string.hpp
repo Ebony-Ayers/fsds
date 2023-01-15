@@ -3,6 +3,7 @@
 #include "fsds_options.hpp"
 
 #include <iostream>
+#include "utf-8.hpp"
 #include "dynamic_string.hpp"
 
 namespace fsds
@@ -25,39 +26,56 @@ namespace fsds
 			const StaticString operator[](size_t pos) const;
 
 			constexpr size_t size() const;
+			constexpr size_t numCodePointsInString() const;
 			constexpr bool isEmpty() const;
 			
 			constexpr const CharT* data() const;
 			const char* cstr() const;
 
 			bool valueEquality(const StaticString& other) const;
-			bool referenceEquality(const StaticString& other) const;
 			bool valueEquality(const DynamicString& other) const;
-			bool referenceEquality(const DynamicString& other) const;
-
+			
 			//string methods
 			StaticString substr(const size_t& pos, const size_t& len) const;
+			DynamicString mutableSubstr(const size_t& pos, const size_t& len) const;
+
+			DynamicString concatenate(const StaticString& str) const;
+			DynamicString concatenate(const DynamicString& str) const;
+			DynamicString concatenateFront(const StaticString& str) const;
+			DynamicString concatenateFront(const DynamicString& str) const;
+			DynamicString insert(size_t pos, const StaticString& str);
+			DynamicString insert(size_t pos, const DynamicString& str);
+			DynamicString replace(size_t start, size_t end, const StaticString& str);
+			DynamicString replace(size_t start, size_t end, const DynamicString& str);
+			DynamicString replace(const StaticString& oldStr, const StaticString& newStr);
+			DynamicString replace(const StaticString& oldStr, const DynamicString& newStr);
+			DynamicString replace(const DynamicString& oldStr, const StaticString& newStr);
+			DynamicString replace(const DynamicString& oldStr, const DynamicString& newStr);
 			
-			int compare(const StaticString& other);
-			bool contains(const StaticString& str);
+			int compare(const StaticString& other) const;
+			bool contains(const StaticString& str) const;
 
 			size_t find(const StaticString& str) const;
 			StaticStringItterator findItterator(const StaticString& str) const;
-			size_t findFirstCharacter(const StaticString& str) const;
-			StaticStringItterator findFirstCharacterItterator(const StaticString& str) const;
+			size_t findAnyCharacter(const StaticString& str) const;
+			StaticStringItterator findAnyCharacterItterator(const StaticString& str) const;
+			size_t findNotAnyCharacter(const StaticString& str) const;
+			StaticStringItterator findNotAnyCharacterItterator(const StaticString& str) const;
 
 			bool startsWith(const StaticString& str) const;
 			bool endsWith(const StaticString& str) const;
 
-			size_t numCodePointsInFirstCharacter(size_t codePointOffset = 0) const;
+			constexpr size_t numCodePointsInFirstCharacter(size_t codePointOffset = 0) const;
 		
 		private:
-			bool firstCharacterEquality(const StaticString& str) const;
+			//constexpr bool firstCharacterEquality(const StaticString& str) const;
 			struct firstCharacterEqualityWithLengthReturnType { bool result; size_t numCodePoints; };
-			StaticString::firstCharacterEqualityWithLengthReturnType firstCharacterEqualityWithLength(const StaticString& str) const;
+			constexpr StaticString::firstCharacterEqualityWithLengthReturnType firstCharacterEqualityWithLength(const StaticString& str, size_t codePointOffset = 0) const;
 
 			const CharT* m_str;
 			const size_t m_size;
+
+			friend class DynamicString;
 	};
 
 	bool operator==(const StaticString& lhs, const StaticString& rhs);
@@ -78,6 +96,10 @@ namespace fsds
 
 			bool next();
 			bool previous();
+
+			constexpr const StaticString* str();
+			constexpr size_t currentPosition();
+			constexpr size_t currentCodePointOffset(); 
 
 			constexpr bool isNPos() const;
 		

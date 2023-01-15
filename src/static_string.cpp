@@ -15,19 +15,7 @@ namespace fsds
 
 	const StaticString StaticString::operator[](size_t pos) const
 	{
-		if(pos > this->m_size) [[unlikely]]
-		{
-			throw std::out_of_range("Index out of range");
-		}
-		else
-		{
-			size_t codePointOffset = 0;
-			for(size_t i = 0; i < pos; i++)
-			{
-				codePointOffset += this->numCodePointsInFirstCharacter(codePointOffset);
-			}
-			return StaticString(this->m_str + codePointOffset, 1);
-		}
+		return StaticString(this->m_str + fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(this->m_str, this->m_size, pos), 1);
 	}
 
 	const char* StaticString::cstr() const
@@ -37,183 +25,83 @@ namespace fsds
 
 	bool StaticString::valueEquality(const StaticString& other) const
 	{
-		if(this->referenceEquality(other) == true)
-		{
-			return true;
-		}
-		else
-		{
-			size_t codePointOffset = 0;
-			for(size_t i = 0; i < this->m_size; i++)
-			{
-				size_t numCodePoints1 = this->numCodePointsInFirstCharacter(codePointOffset);
-				size_t numCodePoints2 = other.numCodePointsInFirstCharacter(codePointOffset);
-
-				if(numCodePoints1 != numCodePoints2)
-				{
-					return false;
-				}
-				
-				for(size_t j = 0; j < numCodePoints1; j++)
-				{
-					if(this->m_str[codePointOffset + j] != other.data()[codePointOffset + j])
-					{
-						return false;
-					}
-				}
-
-				codePointOffset += numCodePoints1;
-			}
-			return true;
-		}
-	}
-	bool StaticString::referenceEquality(const StaticString& other) const
-	{
-		return ((this->m_str == other.data()) && (this->m_size == other.size()));
+		return fsds::utf8HelperFunctions::equality(this->m_str, this->m_size, other.data(), other.size());
 	}
 	bool StaticString::valueEquality(const DynamicString& other) const
 	{
-		if(this->referenceEquality(other) == true)
-		{
-			return true;
-		}
-		else
-		{
-			size_t codePointOffset = 0;
-			for(size_t i = 0; i < this->m_size; i++)
-			{
-				size_t numCodePoints1 = this->numCodePointsInFirstCharacter(codePointOffset);
-				size_t numCodePoints2 = other.numCodePointsInFirstCharacter(codePointOffset);
-
-				if(numCodePoints1 != numCodePoints2)
-				{
-					return false;
-				}
-				
-				for(size_t j = 0; j < numCodePoints1; j++)
-				{
-					if(this->m_str[codePointOffset + j] != other.data()[codePointOffset + j])
-					{
-						return false;
-					}
-				}
-
-				codePointOffset += numCodePoints1;
-			}
-			return true;
-		}
+		return fsds::utf8HelperFunctions::equality(this->m_str, this->m_size, other.data(), other.size());
 	}
-	bool StaticString::referenceEquality(const DynamicString& other) const
-	{
-		return ((this->m_str == other.data()) && (this->m_size == other.size()));
-	}
-
+	
 	StaticString StaticString::substr(const size_t& pos, const size_t& len) const
 	{
-		size_t codePointOffset = 0;
-		for(size_t i = 0; i < pos; i++)
-		{
-			codePointOffset += this->numCodePointsInFirstCharacter(codePointOffset);
-		}
-		return StaticString(this->m_str + codePointOffset, len);
+		return StaticString(this->m_str + fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(this->m_str, this->m_size, pos), len);
 	}
-
-	int StaticString::compare(const StaticString& other)
+	DynamicString StaticString::mutableSubstr(const size_t& pos, const size_t& len) const
 	{
-		size_t codePointOffset1 = 0;
-		size_t codePointOffset2 = 0;
-		for(size_t i = 0; i < this->m_size; i++)
-		{
-			if(i >= other.size())
-			{
-				return -1;
-			}
-			
-			size_t numCodePoints1 = this->numCodePointsInFirstCharacter(codePointOffset1);
-			size_t numCodePoints2 = other.numCodePointsInFirstCharacter(codePointOffset2);
-			
-			uint64_t unicodeValue1 = 0;
-			uint64_t unicodeValue2 = 0;
-			
-			if(numCodePoints1 == 1)
-			{
-				unicodeValue1 = static_cast<uint64_t>(this->m_str[codePointOffset1]);
-			}
-			else
-			{
-				//copy the data bits (last 6) of the continute character code points
-				size_t shiftOffset = 0;
-				for(size_t j = 0; j < numCodePoints1 - 1; j++)
-				{
-					unicodeValue1 += (static_cast<uint64_t>(this->m_str[codePointOffset1 + numCodePoints1 - j - 1]) & 0b00111111) << shiftOffset;
-					shiftOffset += 6;
-				}
-				
-				//copy the data bits of the start character code point
-				uint64_t mask;
-				if     (numCodePoints1 == 2) { mask = 0b00011111; }
-				else if(numCodePoints1 == 3) { mask = 0b00001111; }
-				else if(numCodePoints1 == 4) { mask = 0b00000111; }
-				else if(numCodePoints1 == 5) { mask = 0b00000011; }
-				else if(numCodePoints1 == 6) { mask = 0b00000001; }
-				else                         { mask = 0b00000000; }
-				unicodeValue1 += (static_cast<uint64_t>(this->m_str[codePointOffset1]) & mask) << shiftOffset;
-			}
-
-			if(numCodePoints2 == 1)
-			{
-				unicodeValue2 = static_cast<uint64_t>(other.data()[codePointOffset2]);
-			}
-			else
-			{
-				//copy the data bits (last 6) of the continute character code points
-				size_t shiftOffset = 0;
-				for(size_t j = 0; j < numCodePoints2- 1; j++)
-				{
-					unicodeValue2 += (static_cast<uint64_t>(other.data()[codePointOffset2 + numCodePoints2 - j - 1]) & 0b00111111) << shiftOffset;
-					shiftOffset += 6;
-				}
-				
-				//copy the data bits of the start character code point
-				uint64_t mask;
-				if     (numCodePoints2 == 2) { mask = 0b00011111; }
-				else if(numCodePoints2 == 3) { mask = 0b00001111; }
-				else if(numCodePoints2 == 4) { mask = 0b00000111; }
-				else if(numCodePoints2 == 5) { mask = 0b00000011; }
-				else if(numCodePoints2 == 6) { mask = 0b00000001; }
-				else                         { mask = 0b00000000; }
-				unicodeValue2 += (static_cast<uint64_t>(other.data()[codePointOffset2]) & mask) << shiftOffset;
-			}
-
-			if(unicodeValue1 != unicodeValue2)
-			{
-				int64_t comparison = static_cast<int64_t>(unicodeValue1) - static_cast<int64_t>(unicodeValue2);
-				if(comparison < 0)
-				{
-					return 1;
-				}else if(comparison == 0)
-				{
-					return 0;
-				}
-				else
-				{
-					return -1;
-				}
-			}
-			
-			codePointOffset1 += numCodePoints1;
-			codePointOffset2 += numCodePoints2;
-		}
-		if(other.size() > this->m_size)
-		{
-			return 1;
-		}
-		else
-		{
-			return 0;
-		}
+		size_t codePointOffsetStart = fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(this->m_str, this->m_size, pos);
+		size_t codePointOffsetEnd = fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(this->m_str, this->m_size, pos, codePointOffsetStart);
+		DynamicString result = DynamicString(len, codePointOffsetEnd - codePointOffsetStart);
+		std::copy(this->m_str + codePointOffsetStart, this->m_str + codePointOffsetEnd, result.data());
+		return result;
 	}
-	bool StaticString::contains(const StaticString& str)
+
+	DynamicString StaticString::concatenate(const StaticString& str) const
+	{
+		auto numCodePointsInThis = this->numCodePointsInString();
+		auto numCodePointsInStr = str.numCodePointsInString();
+		DynamicString result = DynamicString(this->m_size + str.size(), numCodePointsInThis + numCodePointsInStr);
+		fsds::utf8HelperFunctions::concatenate(this->m_str, numCodePointsInThis, str.data(), numCodePointsInStr, result.data());
+		return result;
+	}
+	DynamicString StaticString::concatenate(const DynamicString& str) const
+	{
+		auto numCodePointsInThis = this->numCodePointsInString();
+		DynamicString result = DynamicString(this->m_size + str.size(), numCodePointsInThis + str.numCodePointsInString());
+		fsds::utf8HelperFunctions::concatenate(this->m_str, numCodePointsInThis, str.data(), str.numCodePointsInString(), result.data());
+		return result;
+	}
+	DynamicString StaticString::concatenateFront(const StaticString& str) const
+	{
+		auto numCodePointsInThis = this->numCodePointsInString();
+		auto numCodePointsInStr = str.numCodePointsInString();
+		DynamicString result = DynamicString(this->m_size + str.size(), numCodePointsInThis + numCodePointsInStr);
+		fsds::utf8HelperFunctions::concatenate(str.data(), numCodePointsInStr, this->m_str, numCodePointsInThis, result.data());
+		return result;
+	}
+	DynamicString StaticString::concatenateFront(const DynamicString& str) const
+	{
+		auto numCodePointsInThis = this->numCodePointsInString();
+		DynamicString result = DynamicString(this->m_size + str.size(), numCodePointsInThis + str.numCodePointsInString());
+		fsds::utf8HelperFunctions::concatenate(str.data(), str.numCodePointsInString(), this->m_str, numCodePointsInThis, result.data());
+		return result;
+	}
+	DynamicString StaticString::insert(size_t pos, const StaticString& str)
+	{
+		auto numCodePointsInThis = this->numCodePointsInString();
+		auto numCodePointsInStr = str.numCodePointsInString();
+		DynamicString result = DynamicString(this->m_size + str.size(), numCodePointsInThis + numCodePointsInStr);
+		fsds::utf8HelperFunctions::insert(this->m_str, fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(this->m_str, this->m_size, pos), numCodePointsInThis, str.data(), numCodePointsInStr, result.data());
+		return result;
+	}
+	DynamicString StaticString::insert(size_t pos, const DynamicString& str)
+	{
+		auto numCodePointsInThis = this->numCodePointsInString();
+		DynamicString result = DynamicString(this->m_size + str.size(), numCodePointsInThis + str.numCodePointsInString());
+		fsds::utf8HelperFunctions::insert(this->m_str, fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(this->m_str, this->m_size, pos), numCodePointsInThis, str.data(), str.numCodePointsInString(), result.data());
+		return result;
+	}
+	//DynamicString StaticString::replace(size_t start, size_t end, const StaticString& str);
+	//DynamicString StaticString::replace(size_t start, size_t end, const DynamicString& str);
+	//DynamicString StaticString::replace(const StaticString& oldStr, const StaticString& newStr);
+	//DynamicString StaticString::replace(const StaticString& oldStr, const DynamicString& newStr);
+	//DynamicString StaticString::replace(const DynamicString& oldStr, const StaticString& newStr);
+	//DynamicString StaticString::replace(const DynamicString& oldStr, const DynamicString& newStr);
+
+	int StaticString::compare(const StaticString& other) const
+	{
+		return fsds::utf8HelperFunctions::compare(this->m_str, this->m_size, other.data(), other.size());
+	}
+	bool StaticString::contains(const StaticString& str) const
 	{
 		return find(str) != StaticString::npos;
 	}
@@ -226,58 +114,7 @@ namespace fsds
 		}
 		else
 		{
-			size_t codePointOffsetI = 0;
-			for(size_t i = 0; i < this->m_size; i++)
-			{
-				if(str.size() + i <= this->m_size)
-				{
-					bool foundMatch = true;
-					
-					size_t codePointOffsetJ1 = 0;
-					size_t codePointOffsetJ2 = codePointOffsetI;
-					for(size_t j = 0; j < str.size(); j++)
-					{
-						size_t numCodePoints1 = str.numCodePointsInFirstCharacter(codePointOffsetJ1);
-						size_t numCodePoints2 = this->numCodePointsInFirstCharacter(codePointOffsetJ2);
-
-						if(numCodePoints1 == numCodePoints2)
-						{
-							for(size_t k = 0; k < numCodePoints1; k++)
-							{
-								if(this->m_str[codePointOffsetJ2 + k] != str.data()[codePointOffsetJ1 + k])
-								{
-									foundMatch = false;
-									break;
-								}
-								if(foundMatch == false)
-								{
-									break;
-								}
-							}
-						}
-						else
-						{
-							foundMatch = false;
-							break;
-						}
-						
-						codePointOffsetJ1 += numCodePoints1;
-						codePointOffsetJ2 += numCodePoints2;
-					}
-
-					if(foundMatch)
-					{
-						return i;
-					}
-				}
-				else
-				{
-					break;
-				}
-				
-				codePointOffsetI += this->numCodePointsInFirstCharacter(codePointOffsetI);
-			}
-			return StaticString::npos;
+			return fsds::utf8HelperFunctions::find(this->m_str, this->m_size, str.data(), str.size()).index;
 		}
 	}
 	StaticStringItterator StaticString::findItterator(const StaticString& str) const
@@ -288,260 +125,61 @@ namespace fsds
 		}
 		else
 		{
-			size_t codePointOffsetI = 0;
-			for(size_t i = 0; i < this->m_size; i++)
+			auto result = fsds::utf8HelperFunctions::find(this->m_str, this->m_size, str.data(), str.size(), StaticString::npos);
+			
+			if(result.index == StaticString::npos)
 			{
-				if(str.size() + i <= this->m_size)
-				{
-					bool foundMatch = true;
-					
-					size_t codePointOffsetJ1 = 0;
-					size_t codePointOffsetJ2 = codePointOffsetI;
-					for(size_t j = 0; j < str.size(); j++)
-					{
-						size_t numCodePoints1 = str.numCodePointsInFirstCharacter(codePointOffsetJ1);
-						size_t numCodePoints2 = this->numCodePointsInFirstCharacter(codePointOffsetJ2);
-
-						if(numCodePoints1 == numCodePoints2)
-						{
-							for(size_t k = 0; k < numCodePoints1; k++)
-							{
-								if(this->m_str[codePointOffsetJ2 + k] != str.data()[codePointOffsetJ1 + k])
-								{
-									foundMatch = false;
-									break;
-								}
-								if(foundMatch == false)
-								{
-									break;
-								}
-							}
-						}
-						else
-						{
-							foundMatch = false;
-							break;
-						}
-						
-						codePointOffsetJ1 += numCodePoints1;
-						codePointOffsetJ2 += numCodePoints2;
-					}
-
-					if(foundMatch)
-					{
-						return StaticStringItterator(this, i, codePointOffsetI);
-					}
-				}
-				else
-				{
-					break;
-				}
-				
-				codePointOffsetI += this->numCodePointsInFirstCharacter(codePointOffsetI);
+				return StaticStringItterator(this, true);
 			}
+			else
+			{
+				return StaticStringItterator(this, result.index, result.codePointOffset);
+			}
+		}
+	}
+						
+
+	size_t StaticString::findAnyCharacter(const StaticString& str) const
+	{
+		if(str.size() == 0) [[unlikely]]
+		{
+			return StaticString::npos;
+		}
+		else
+		{
+			return fsds::utf8HelperFunctions::findAnyCharacter(this->m_str, this->m_size, str.data(), str.size(), StaticString::npos).index;
+		}
+	}
+	StaticStringItterator StaticString::findAnyCharacterItterator(const StaticString& str) const
+	{
+		if(str.size() == 0) [[unlikely]]
+		{
 			return StaticStringItterator(this, true);
 		}
-	}
-						
-
-	size_t StaticString::findFirstCharacter(const StaticString& str) const
-	{
-		size_t codePointOffset = 0;
-		for(size_t i = 0; i < this->m_size; i++)
+		else
 		{
-			auto ret = this->firstCharacterEqualityWithLength(str);
-			if(ret.result == true)
+			auto result = fsds::utf8HelperFunctions::findAnyCharacter(this->m_str, this->m_size, str.data(), str.size(), StaticString::npos);
+			if(result.index == StaticString::npos)
 			{
-				return i;
+				return StaticStringItterator(this, true);
 			}
 			else
 			{
-				codePointOffset += ret.numCodePoints;
+				return StaticStringItterator(this, result.index, result.codePointOffset);
 			}
 		}
-		return StaticString::npos;
-	}
-	StaticStringItterator StaticString::findFirstCharacterItterator(const StaticString& str) const
-	{
-		size_t codePointOffset = 0;
-		for(size_t i = 0; i < this->m_size; i++)
-		{
-			auto ret = this->firstCharacterEqualityWithLength(str);
-			if(ret.result == true)
-			{
-				return StaticStringItterator(this, i, codePointOffset);
-			}
-			else
-			{
-				codePointOffset += ret.numCodePoints;
-			}
-		}
-		return StaticStringItterator(this, true);
 	}
 
-	bool StaticString::firstCharacterEquality(const StaticString& str) const
-	{
-		size_t numCodePoints = this->numCodePointsInFirstCharacter();
-		//if the number of code points are no equal then the two characters cannot be the same and functions as a safety check in the case of one string being a single character of lesser length thus overflowing the smaller string
-		if(numCodePoints != str.numCodePointsInFirstCharacter())
-		{
-			return false;
-		}
-		//it is important not to say two emtry strings start with the first character for future use
-		else if((numCodePoints == 0) || (str.isEmpty() == true))
-		{
-			return false;
-		}
-		else
-		{
-			for(size_t i = 0; i < numCodePoints; i++)
-			{
-				if(this->m_str[i] != str.data()[i])
-				{
-					return false;
-				}
-			}
-			return true;
-		}
-	}
-	StaticString::firstCharacterEqualityWithLengthReturnType StaticString::firstCharacterEqualityWithLength(const StaticString& str) const
-	{
-		size_t numCodePoints = this->numCodePointsInFirstCharacter();
-		//if the number of code points are no equal then the two characters cannot be the same and functions as a safety check in the case of one string being a single character of lesser length thus overflowing the smaller string
-		if(numCodePoints != str.numCodePointsInFirstCharacter())
-		{
-			StaticString::firstCharacterEqualityWithLengthReturnType result = {false, 0};
-			return result;
-		}
-		//it is important not to say two emtry strings start with the first character for future use
-		else if((numCodePoints == 0) || (str.isEmpty() == true))
-		{
-			StaticString::firstCharacterEqualityWithLengthReturnType result = {false, 0};
-			return result;
-		}
-		else
-		{
-			for(size_t i = 0; i < numCodePoints; i++)
-			{
-				if(this->m_str[i] != str.data()[i])
-				{
-					StaticString::firstCharacterEqualityWithLengthReturnType result = {false, numCodePoints};
-					return result;
-				}
-			}
-			StaticString::firstCharacterEqualityWithLengthReturnType result = {true, numCodePoints};
-			return result;
-		}
-	}
+	
+	
 
 	bool StaticString::startsWith(const StaticString& str) const
 	{
-		if(str.size() > this->m_size)
-		{
-			return false;
-		}
-		
-		size_t codePointOffset = 0;
-		for(size_t i = 0; i < str.size(); i++)
-		{
-			size_t numCodePoints = this->numCodePointsInFirstCharacter(codePointOffset);
-
-			if(numCodePoints != str.numCodePointsInFirstCharacter(codePointOffset))
-			{
-				return false;
-			}
-			
-			for(size_t j = 0; j < numCodePoints; j++)
-			{
-				if(this->m_str[codePointOffset + j] != str.data()[codePointOffset + j])
-				{
-					return false;
-				}
-			}
-
-			codePointOffset += numCodePoints;
-		}
-		return true;
+		return fsds::utf8HelperFunctions::startsWith(this->m_str, this->m_size, str.data(), str.size());
 	}
 	bool StaticString::endsWith(const StaticString& str) const
 	{
-		if(str.size() > this->m_size)
-		{
-			return false;
-		}
-		
-		size_t codePointOffset1 = 0;
-		for(size_t i = 0; i < (this->m_size - str.size()); i++)
-		{
-			codePointOffset1 += this->numCodePointsInFirstCharacter(codePointOffset1);
-		}
-
-		size_t codePointOffset2 = 0;
-		for(size_t i = 0; i < str.size(); i++)
-		{
-			size_t numCodePoints = this->numCodePointsInFirstCharacter(codePointOffset1);
-			
-			if(numCodePoints != str.numCodePointsInFirstCharacter(codePointOffset2))
-			{
-				return false;
-			}
-			
-			for(size_t j = 0; j < numCodePoints; j++)
-			{
-				if(this->m_str[codePointOffset1 + j] != str.data()[codePointOffset2 + j])
-				{
-					return false;
-				}
-			}
-
-			codePointOffset1 += numCodePoints;
-			codePointOffset2 += str.numCodePointsInFirstCharacter(codePointOffset2);
-		}
-		return true;
-	}
-
-	size_t StaticString::numCodePointsInFirstCharacter(size_t codePointOffset) const
-	{
-		//a code point can have on of 3 headers
-		//0X - ascii
-		//10 - continue character
-		//11 - start of of character
-
-		//start of characters have one of 7 options
-		//11 0XXXXX - start of 2 byte character
-		//11 10XXXX - start of 3 byte character
-		//11 110XXX - start of 4 byte character
-		//11 1110XX - start of 5 byte character
-		//11 11110X - start of 6 byte character
-		//11 111110 - start of 7 byte character
-		
-		if(this->isEmpty() == true) [[unlikely]]
-		{
-			return 0;
-		}
-		else
-		{
-			if((this->m_str[codePointOffset] & 0b10000000) == 0b00000000) [[likely]]
-			{
-				return 1;
-			}
-			else
-			{
-				size_t numCodePoints;
-				CharT codePoint = this->m_str[codePointOffset];				
-				if      ((codePoint & 0b11100000) == 0b11000000)            { numCodePoints = 2; }
-				else if ((codePoint & 0b11110000) == 0b11100000)            { numCodePoints = 3; }
-				else if ((codePoint & 0b11111000) == 0b11110000)            { numCodePoints = 4; }
-				else if ((codePoint & 0b11111100) == 0b11111000)            { numCodePoints = 5; }
-				else if ((codePoint & 0b11111110) == 0b11111100)            { numCodePoints = 6; }
-				else if ((codePoint & 0b11111111) == 0b11111110)            { numCodePoints = 7; }
-				else [[unlikely]]
-				{
-					return std::numeric_limits<int>::max();
-				}
-				return numCodePoints;
-			}
-		}
+		return fsds::utf8HelperFunctions::endsWith(this->m_str, this->m_size, str.data(), str.size());
 	}
 
 

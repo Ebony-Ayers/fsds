@@ -15,6 +15,7 @@
 
 #include "fast_insert_list.hpp"
 
+#include "utf-8.hpp"
 #include "static_string.hpp"
 #include "dynamic_string.hpp"
 #include "composite_string.hpp"
