@@ -15,7 +15,14 @@ namespace fsds
 
 	const StaticString StaticString::operator[](size_t pos) const
 	{
-		return StaticString(this->m_str + fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(this->m_str, this->m_size, pos), 1);
+		if(pos > this->m_size) [[unlikely]]
+		{
+			throw std::out_of_range("Index out of range");
+		}
+		else
+		{
+			return StaticString(this->m_str + fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(this->m_str, this->m_size, pos), 1);
+		}
 	}
 
 	const char* StaticString::cstr() const
@@ -101,7 +108,15 @@ namespace fsds
 	{
 		return fsds::utf8HelperFunctions::compare(this->m_str, this->m_size, other.data(), other.size());
 	}
+	int StaticString::compare(const DynamicString& other) const
+	{
+		return fsds::utf8HelperFunctions::compare(this->m_str, this->m_size, other.data(), other.size());
+	}
 	bool StaticString::contains(const StaticString& str) const
+	{
+		return find(str) != StaticString::npos;
+	}
+	bool StaticString::contains(const DynamicString& str) const
 	{
 		return find(str) != StaticString::npos;
 	}
@@ -117,7 +132,38 @@ namespace fsds
 			return fsds::utf8HelperFunctions::find(this->m_str, this->m_size, str.data(), str.size()).index;
 		}
 	}
+	size_t StaticString::find(const DynamicString& str) const
+	{
+		if(str.size() > this->m_size) [[unlikely]]
+		{
+			return StaticString::npos;
+		}
+		else
+		{
+			return fsds::utf8HelperFunctions::find(this->m_str, this->m_size, str.data(), str.size()).index;
+		}
+	}
 	StaticStringItterator StaticString::findItterator(const StaticString& str) const
+	{
+		if(str.size() > this->m_size) [[unlikely]]
+		{
+			return StaticStringItterator(this, true);
+		}
+		else
+		{
+			auto result = fsds::utf8HelperFunctions::find(this->m_str, this->m_size, str.data(), str.size(), StaticString::npos);
+			
+			if(result.index == StaticString::npos)
+			{
+				return StaticStringItterator(this, true);
+			}
+			else
+			{
+				return StaticStringItterator(this, result.index, result.codePointOffset);
+			}
+		}
+	}
+	StaticStringItterator StaticString::findItterator(const DynamicString& str) const
 	{
 		if(str.size() > this->m_size) [[unlikely]]
 		{
@@ -150,7 +196,37 @@ namespace fsds
 			return fsds::utf8HelperFunctions::findAnyCharacter(this->m_str, this->m_size, str.data(), str.size(), StaticString::npos).index;
 		}
 	}
+	size_t StaticString::findAnyCharacter(const DynamicString& str) const
+	{
+		if(str.size() == 0) [[unlikely]]
+		{
+			return StaticString::npos;
+		}
+		else
+		{
+			return fsds::utf8HelperFunctions::findAnyCharacter(this->m_str, this->m_size, str.data(), str.size(), StaticString::npos).index;
+		}
+	}
 	StaticStringItterator StaticString::findAnyCharacterItterator(const StaticString& str) const
+	{
+		if(str.size() == 0) [[unlikely]]
+		{
+			return StaticStringItterator(this, true);
+		}
+		else
+		{
+			auto result = fsds::utf8HelperFunctions::findAnyCharacter(this->m_str, this->m_size, str.data(), str.size(), StaticString::npos);
+			if(result.index == StaticString::npos)
+			{
+				return StaticStringItterator(this, true);
+			}
+			else
+			{
+				return StaticStringItterator(this, result.index, result.codePointOffset);
+			}
+		}
+	}
+	StaticStringItterator StaticString::findAnyCharacterItterator(const DynamicString& str) const
 	{
 		if(str.size() == 0) [[unlikely]]
 		{
@@ -177,7 +253,15 @@ namespace fsds
 	{
 		return fsds::utf8HelperFunctions::startsWith(this->m_str, this->m_size, str.data(), str.size());
 	}
+	bool StaticString::startsWith(const DynamicString& str) const
+	{
+		return fsds::utf8HelperFunctions::startsWith(this->m_str, this->m_size, str.data(), str.size());
+	}
 	bool StaticString::endsWith(const StaticString& str) const
+	{
+		return fsds::utf8HelperFunctions::endsWith(this->m_str, this->m_size, str.data(), str.size());
+	}
+	bool StaticString::endsWith(const DynamicString& str) const
 	{
 		return fsds::utf8HelperFunctions::endsWith(this->m_str, this->m_size, str.data(), str.size());
 	}

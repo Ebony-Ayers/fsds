@@ -9,7 +9,7 @@
 namespace fsds
 {
 	DynamicString::DynamicString(const CharT* str, const size_t& size)
-	: m_str(nullptr), m_size(size), m_capacity(0), m_numCodePoints(0)
+	: m_str(nullptr), m_size(size), m_capacity(0)
 	{
 		StaticString sString(str, size);
 
@@ -19,7 +19,7 @@ namespace fsds
 			codePointOffset += sString.numCodePointsInFirstCharacter(codePointOffset);
 		}
 		this->m_capacity = codePointOffset;
-		this->m_numCodePoints = codePointOffset;
+		this->m_capacity = codePointOffset;
 		
 		std::allocator<DynamicString::CharT> alloc;
 		this->m_str = alloc.allocate(this->m_capacity);
@@ -27,7 +27,7 @@ namespace fsds
 		std::copy(str, str + codePointOffset, this->m_str);
 	}
 	DynamicString::DynamicString(const CharT* str, const size_t& size, const size_t& numCodePoints)
-	: m_str(nullptr), m_size(size), m_capacity(numCodePoints), m_numCodePoints(numCodePoints)
+	: m_str(nullptr), m_size(size), m_capacity(numCodePoints)
 	{
 		std::allocator<DynamicString::CharT> alloc;
 		this->m_str = alloc.allocate(this->m_capacity);
@@ -35,13 +35,13 @@ namespace fsds
 		std::copy(str, str + numCodePoints, this->m_str);
 	}
 	DynamicString::DynamicString(const size_t& size, const size_t& numCodePoints)
-	: m_str(nullptr), m_size(size), m_capacity(numCodePoints), m_numCodePoints(numCodePoints)
+	: m_str(nullptr), m_size(size), m_capacity(numCodePoints)
 	{
 		std::allocator<DynamicString::CharT> alloc;
 		this->m_str = alloc.allocate(this->m_capacity);
 	}
 	DynamicString::DynamicString(const DynamicString& other) noexcept
-	: m_str(other.data()), m_size(other.size()), m_capacity(other.capacity()), m_numCodePoints(other.numCodePointsInString())
+	: m_str(other.data()), m_size(other.size()), m_capacity(other.capacity())
 	{
 		std::allocator<DynamicString::CharT> alloc;
 		this->m_str = alloc.allocate(other.capacity());
@@ -67,12 +67,8 @@ namespace fsds
 		}
 		else
 		{
-			size_t codePointOffset = 0;
-			for(size_t i = 0; i < pos; i++)
-			{
-				codePointOffset += this->numCodePointsInFirstCharacter(codePointOffset);
-			}
-			return DynamicString(this->m_str + codePointOffset, 1);
+			
+			return DynamicString(this->m_str + fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(this->m_str, this->m_size, pos), 1);
 		}
 	}
 	void DynamicString::set(size_t pos, const DynamicString& character)
@@ -112,11 +108,11 @@ namespace fsds
 					{
 						this->reallocate(this->m_capacity * 2);
 					}
-					this->m_numCodePoints += numCodePoints2 - numCodePoints1;
+					this->m_capacity += numCodePoints2 - numCodePoints1;
 				}
 				else
 				{
-					this->m_numCodePoints -= numCodePoints1 - numCodePoints2;
+					this->m_capacity -= numCodePoints1 - numCodePoints2;
 				}
 				//copy the original data so there is a gap for the new character
 				std::copy(this->m_str + nextCharacterPointOffset, this->m_str + codePointOffset + remainingLength, this->m_str + codePointOffset + numCodePoints2);
@@ -133,132 +129,59 @@ namespace fsds
 
 	bool DynamicString::valueEquality(const DynamicString& other) const
 	{
-		if((this->m_str == other.data()) && (this->m_size == other.size()))
-		{
-			return true;
-		}
-		else
-		{
-			size_t codePointOffset = 0;
-			for(size_t i = 0; i < this->m_size; i++)
-			{
-				size_t numCodePoints1 = this->numCodePointsInFirstCharacter(codePointOffset);
-				size_t numCodePoints2 = other.numCodePointsInFirstCharacter(codePointOffset);
-
-				if(numCodePoints1 != numCodePoints2)
-				{
-					return false;
-				}
-				
-				for(size_t j = 0; j < numCodePoints1; j++)
-				{
-					if(this->m_str[codePointOffset + j] != other.data()[codePointOffset + j])
-					{
-						return false;
-					}
-				}
-
-				codePointOffset += numCodePoints1;
-			}
-			return true;
-		}
+		return fsds::utf8HelperFunctions::equality(this->m_str, this->m_size, other.data(), other.size());
 	}
 	bool DynamicString::valueEquality(const StaticString& other) const
 	{
-		if((this->m_str == other.data()) && (this->m_size == other.size()))
-		{
-			return true;
-		}
-		else
-		{
-			size_t codePointOffset = 0;
-			for(size_t i = 0; i < this->m_size; i++)
-			{
-				size_t numCodePoints1 = this->numCodePointsInFirstCharacter(codePointOffset);
-				size_t numCodePoints2 = other.numCodePointsInFirstCharacter(codePointOffset);
-
-				if(numCodePoints1 != numCodePoints2)
-				{
-					return false;
-				}
-				
-				for(size_t j = 0; j < numCodePoints1; j++)
-				{
-					if(this->m_str[codePointOffset + j] != other.data()[codePointOffset + j])
-					{
-						return false;
-					}
-				}
-
-				codePointOffset += numCodePoints1;
-			}
-			return true;
-		}
+		return fsds::utf8HelperFunctions::equality(this->m_str, this->m_size, other.data(), other.size());
 	}
 
 	DynamicString DynamicString::substr(const size_t& pos, const size_t& len) const
 	{
-		size_t codePointOffset = 0;
-		for(size_t i = 0; i < pos; i++)
-		{
-			codePointOffset += this->numCodePointsInFirstCharacter(codePointOffset);
-		}
-		return DynamicString(this->m_str + codePointOffset, len);
+		return DynamicString(this->m_str + fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(this->m_str, this->m_size, pos), len);
 	}
 
 	DynamicString& DynamicString::concatenate(const DynamicString& str)
 	{
-		if(this->m_numCodePoints + str.numCodePointsInString() > this->m_capacity) [[unlikely]]
-		{
-			this->reallocate((this->m_capacity + str.numCodePointsInString()) * 2);
-		}
+		this->reallocate(this->m_capacity + str.numCodePointsInString());
 
-		std::copy(str.data(), str.data() + str.numCodePointsInString(), this->m_str + this->m_numCodePoints);
+		std::copy(str.data(), str.data() + str.numCodePointsInString(), this->m_str + this->m_capacity);
 		this->m_size += str.size();
-		this->m_numCodePoints += str.numCodePointsInString();
+		this->m_capacity += str.numCodePointsInString();
 		
 		return *this;
 	}
 	DynamicString& DynamicString::concatenate(const StaticString& str)
 	{
 		auto nunCodePointsInStr = str.numCodePointsInString();
-		if(this->m_numCodePoints + nunCodePointsInStr > this->m_capacity) [[unlikely]]
-		{
-			this->reallocate((this->m_capacity + nunCodePointsInStr) * 2);
-		}
+		this->reallocate(this->m_capacity + nunCodePointsInStr);
 
-		std::copy(str.data(), str.data() + nunCodePointsInStr, this->m_str + this->m_numCodePoints);
+		std::copy(str.data(), str.data() + nunCodePointsInStr, this->m_str + this->m_capacity);
 		this->m_size += str.size();
-		this->m_numCodePoints += nunCodePointsInStr;
+		this->m_capacity += nunCodePointsInStr;
 		
 		return *this;
 	}
 	DynamicString& DynamicString::concatenateFront(const DynamicString& str)
 	{
-		if(this->m_numCodePoints + str.numCodePointsInString() > this->m_capacity) [[unlikely]]
-		{
-			this->reallocate((this->m_capacity + str.numCodePointsInString()) * 2);
-		}
+		this->reallocate(this->m_capacity + str.numCodePointsInString());
 
-		std::copy(this->m_str, this->m_str + this->m_numCodePoints, this->m_str + str.m_numCodePoints);
+		std::copy(this->m_str, this->m_str + this->m_capacity, this->m_str + str.m_capacity);
 		std::copy(str.data(), str.data() + str.numCodePointsInString(), this->m_str);
 		this->m_size += str.size();
-		this->m_numCodePoints += str.numCodePointsInString();
+		this->m_capacity += str.numCodePointsInString();
 		
 		return *this;
 	}
 	DynamicString& DynamicString::concatenateFront(const StaticString& str)
 	{
 		auto nunCodePointsInStr = str.numCodePointsInString();
-		if(this->m_numCodePoints + nunCodePointsInStr > this->m_capacity) [[unlikely]]
-		{
-			this->reallocate((this->m_capacity + nunCodePointsInStr) * 2);
-		}
+		this->reallocate(this->m_capacity + nunCodePointsInStr);
 
-		std::copy(this->m_str, this->m_str + this->m_numCodePoints, this->m_str + nunCodePointsInStr);
+		std::copy(this->m_str, this->m_str + this->m_capacity, this->m_str + nunCodePointsInStr);
 		std::copy(str.data(), str.data() + nunCodePointsInStr, this->m_str);
 		this->m_size += str.size();
-		this->m_numCodePoints += nunCodePointsInStr;
+		this->m_capacity += nunCodePointsInStr;
 		
 		return *this;
 	}
@@ -272,16 +195,16 @@ namespace fsds
 			codePointOffset += this->numCodePointsInFirstCharacter(codePointOffset);
 		}
 
-		if(this->m_numCodePoints + str.numCodePointsInString() > this->m_capacity) [[unlikely]]
+		if(this->m_capacity + str.numCodePointsInString() > this->m_capacity) [[unlikely]]
 		{
 			this->reallocate((this->m_capacity + str.numCodePointsInString()) * 2);
 		}
 
-		std::copy(this->m_str + codePointOffset, this->m_str + this->m_numCodePoints, this->m_str + codePointOffset + str.numCodePointsInString());
+		std::copy(this->m_str + codePointOffset, this->m_str + this->m_capacity, this->m_str + codePointOffset + str.numCodePointsInString());
 		std::copy(str.data(), str.data() + str.numCodePointsInString(), this->m_str + codePointOffset);
 		
 		this->m_size += str.size();
-		this->m_numCodePoints += str.numCodePointsInString();
+		this->m_capacity += str.numCodePointsInString();
 
 		return *this;
 	}
@@ -295,16 +218,16 @@ namespace fsds
 			codePointOffset += this->numCodePointsInFirstCharacter(codePointOffset);
 		}
 
-		if(this->m_numCodePoints + nunCodePointsInStr > this->m_capacity) [[unlikely]]
+		if(this->m_capacity + nunCodePointsInStr > this->m_capacity) [[unlikely]]
 		{
 			this->reallocate((this->m_capacity + nunCodePointsInStr) * 2);
 		}
 
-		std::copy(this->m_str + codePointOffset, this->m_str + this->m_numCodePoints, this->m_str + codePointOffset + str.numCodePointsInString());
+		std::copy(this->m_str + codePointOffset, this->m_str + this->m_capacity, this->m_str + codePointOffset + str.numCodePointsInString());
 		std::copy(str.data(), str.data() + nunCodePointsInStr, this->m_str + codePointOffset);
 		
 		this->m_size += str.size();
-		this->m_numCodePoints += nunCodePointsInStr;
+		this->m_capacity += nunCodePointsInStr;
 
 		return *this;
 	}
@@ -323,18 +246,18 @@ namespace fsds
 			codePointOffsetEnd += this->numCodePointsInFirstCharacter(codePointOffsetEnd);
 		}
 
-		if(this->m_numCodePoints + str.numCodePointsInString() > this->m_capacity) [[unlikely]]
+		if(this->m_capacity + str.numCodePointsInString() > this->m_capacity) [[unlikely]]
 		{
 			this->reallocate((this->m_capacity + str.numCodePointsInString()) * 2);
 		}
 
-		std::copy(this->m_str + codePointOffsetEnd, this->m_str + this->m_numCodePoints, this->m_str + codePointOffsetStart + str.numCodePointsInString());
+		std::copy(this->m_str + codePointOffsetEnd, this->m_str + this->m_capacity, this->m_str + codePointOffsetStart + str.numCodePointsInString());
 		std::copy(str.data(), str.data() + str.numCodePointsInString(), this->m_str + codePointOffsetStart);
 		
 		this->m_size -= end - start;
 		this->m_size += str.size();
-		this->m_numCodePoints -= codePointOffsetEnd - codePointOffsetStart;
-		this->m_numCodePoints += str.numCodePointsInString();
+		this->m_capacity -= codePointOffsetEnd - codePointOffsetStart;
+		this->m_capacity += str.numCodePointsInString();
 		
 		return *this;
 	}
@@ -353,18 +276,18 @@ namespace fsds
 			codePointOffsetEnd += this->numCodePointsInFirstCharacter(codePointOffsetEnd);
 		}
 
-		if(this->m_numCodePoints + nunCodePointsInStr > this->m_capacity) [[unlikely]]
+		if(this->m_capacity + nunCodePointsInStr > this->m_capacity) [[unlikely]]
 		{
 			this->reallocate((this->m_capacity + nunCodePointsInStr) * 2);
 		}
 
-		std::copy(this->m_str + codePointOffsetEnd, this->m_str + this->m_numCodePoints, this->m_str + codePointOffsetStart + str.numCodePointsInString());
+		std::copy(this->m_str + codePointOffsetEnd, this->m_str + this->m_capacity, this->m_str + codePointOffsetStart + str.numCodePointsInString());
 		std::copy(str.data(), str.data() + nunCodePointsInStr, this->m_str + codePointOffsetStart);
 		
 		this->m_size -= end - start;
 		this->m_size += str.size();
-		this->m_numCodePoints -= codePointOffsetEnd - codePointOffsetStart;
-		this->m_numCodePoints += nunCodePointsInStr;
+		this->m_capacity -= codePointOffsetEnd - codePointOffsetStart;
+		this->m_capacity += nunCodePointsInStr;
 		
 		return *this;
 	}
@@ -382,15 +305,15 @@ namespace fsds
 
 			if(oldStr == sStr)
 			{
-				if((this->m_numCodePoints + newStr.numCodePointsInString()) - oldStr.numCodePointsInString() >= this->m_capacity) [[unlikely]]
+				if((this->m_capacity + newStr.numCodePointsInString()) - oldStr.numCodePointsInString() >= this->m_capacity) [[unlikely]]
 				{
 					this->reallocate(((this->m_capacity + newStr.numCodePointsInString()) - oldStr.numCodePointsInString()) * 2);
 				}
 				
-				std::copy(this->m_str + codePointOffset + oldStr.numCodePointsInString(), this->m_str + this->m_numCodePoints, this->m_str + codePointOffset + newStr.numCodePointsInString());
+				std::copy(this->m_str + codePointOffset + oldStr.numCodePointsInString(), this->m_str + this->m_capacity, this->m_str + codePointOffset + newStr.numCodePointsInString());
 				std::copy(newStr.data(), newStr.data() + newStr.numCodePointsInString(), this->m_str + codePointOffset);
-				this->m_numCodePoints -= oldStr.numCodePointsInString();
-				this->m_numCodePoints += newStr.numCodePointsInString();
+				this->m_capacity -= oldStr.numCodePointsInString();
+				this->m_capacity += newStr.numCodePointsInString();
 				this->m_size -= oldStr.size();
 				this->m_size += newStr.size();
 				std::cout << "replace " << i << std::endl;
@@ -414,15 +337,15 @@ namespace fsds
 
 			if(oldStr == sStr)
 			{
-				if((this->m_numCodePoints + nunCodePointsInNewStr) - oldStr.numCodePointsInString() >= this->m_capacity) [[unlikely]]
+				if((this->m_capacity + nunCodePointsInNewStr) - oldStr.numCodePointsInString() >= this->m_capacity) [[unlikely]]
 				{
 					this->reallocate(((this->m_capacity + nunCodePointsInNewStr) - oldStr.numCodePointsInString()) * 2);
 				}
 				
-				std::copy(this->m_str + codePointOffset + oldStr.numCodePointsInString(), this->m_str + this->m_numCodePoints, this->m_str + codePointOffset + newStr.numCodePointsInString());
+				std::copy(this->m_str + codePointOffset + oldStr.numCodePointsInString(), this->m_str + this->m_capacity, this->m_str + codePointOffset + newStr.numCodePointsInString());
 				std::copy(newStr.data(), newStr.data() + nunCodePointsInNewStr, this->m_str + codePointOffset);
-				this->m_numCodePoints -= oldStr.numCodePointsInString();
-				this->m_numCodePoints += nunCodePointsInNewStr;
+				this->m_capacity -= oldStr.numCodePointsInString();
+				this->m_capacity += nunCodePointsInNewStr;
 				this->m_size -= oldStr.size();
 				this->m_size += newStr.size();
 				std::cout << "replace " << i << std::endl;
@@ -446,15 +369,15 @@ namespace fsds
 
 			if(oldStr == sStr)
 			{
-				if((this->m_numCodePoints + newStr.numCodePointsInString()) - nunCodePointsInOldStr >= this->m_capacity) [[unlikely]]
+				if((this->m_capacity + newStr.numCodePointsInString()) - nunCodePointsInOldStr >= this->m_capacity) [[unlikely]]
 				{
 					this->reallocate(((this->m_capacity + newStr.numCodePointsInString()) - nunCodePointsInOldStr) * 2);
 				}
 				
-				std::copy(this->m_str + codePointOffset + nunCodePointsInOldStr, this->m_str + this->m_numCodePoints, this->m_str + codePointOffset + newStr.numCodePointsInString());
+				std::copy(this->m_str + codePointOffset + nunCodePointsInOldStr, this->m_str + this->m_capacity, this->m_str + codePointOffset + newStr.numCodePointsInString());
 				std::copy(newStr.data(), newStr.data() + newStr.numCodePointsInString(), this->m_str + codePointOffset);
-				this->m_numCodePoints -= nunCodePointsInOldStr;
-				this->m_numCodePoints += newStr.numCodePointsInString();
+				this->m_capacity -= nunCodePointsInOldStr;
+				this->m_capacity += newStr.numCodePointsInString();
 				this->m_size -= oldStr.size();
 				this->m_size += newStr.size();
 				std::cout << "replace " << i << std::endl;
@@ -479,15 +402,15 @@ namespace fsds
 
 			if(oldStr == sStr)
 			{
-				if((this->m_numCodePoints + nunCodePointsInNewStr) - nunCodePointsInOldStr >= this->m_capacity) [[unlikely]]
+				if((this->m_capacity + nunCodePointsInNewStr) - nunCodePointsInOldStr >= this->m_capacity) [[unlikely]]
 				{
 					this->reallocate(((this->m_capacity + nunCodePointsInNewStr) - nunCodePointsInOldStr) * 2);
 				}
 				
-				std::copy(this->m_str + codePointOffset + nunCodePointsInOldStr, this->m_str + this->m_numCodePoints, this->m_str + codePointOffset + newStr.numCodePointsInString());
+				std::copy(this->m_str + codePointOffset + nunCodePointsInOldStr, this->m_str + this->m_capacity, this->m_str + codePointOffset + newStr.numCodePointsInString());
 				std::copy(newStr.data(), newStr.data() + nunCodePointsInNewStr, this->m_str + codePointOffset);
-				this->m_numCodePoints -= nunCodePointsInOldStr;
-				this->m_numCodePoints += nunCodePointsInNewStr;
+				this->m_capacity -= nunCodePointsInOldStr;
+				this->m_capacity += nunCodePointsInNewStr;
 				this->m_size -= oldStr.size();
 				this->m_size += newStr.size();
 				std::cout << "replace " << i << std::endl;
@@ -499,102 +422,11 @@ namespace fsds
 
 	int DynamicString::compare(const DynamicString& other) const
 	{
-		return this->compare(static_cast<StaticString>(other));
+		return fsds::utf8HelperFunctions::compare(this->m_str, this->m_size, other.data(), other.size());
 	}
 	int DynamicString::compare(const StaticString& other) const
 	{
-		size_t codePointOffset1 = 0;
-		size_t codePointOffset2 = 0;
-		for(size_t i = 0; i < this->m_size; i++)
-		{
-			if(i >= other.size())
-			{
-				return -1;
-			}
-			
-			size_t numCodePoints1 = this->numCodePointsInFirstCharacter(codePointOffset1);
-			size_t numCodePoints2 = other.numCodePointsInFirstCharacter(codePointOffset2);
-			
-			uint64_t unicodeValue1 = 0;
-			uint64_t unicodeValue2 = 0;
-			
-			if(numCodePoints1 == 1)
-			{
-				unicodeValue1 = static_cast<uint64_t>(this->m_str[codePointOffset1]);
-			}
-			else
-			{
-				//copy the data bits (last 6) of the continute character code points
-				size_t shiftOffset = 0;
-				for(size_t j = 0; j < numCodePoints1 - 1; j++)
-				{
-					unicodeValue1 += (static_cast<uint64_t>(this->m_str[codePointOffset1 + numCodePoints1 - j - 1]) & 0b00111111) << shiftOffset;
-					shiftOffset += 6;
-				}
-				
-				//copy the data bits of the start character code point
-				uint64_t mask;
-				if     (numCodePoints1 == 2) { mask = 0b00011111; }
-				else if(numCodePoints1 == 3) { mask = 0b00001111; }
-				else if(numCodePoints1 == 4) { mask = 0b00000111; }
-				else if(numCodePoints1 == 5) { mask = 0b00000011; }
-				else if(numCodePoints1 == 6) { mask = 0b00000001; }
-				else                         { mask = 0b00000000; }
-				unicodeValue1 += (static_cast<uint64_t>(this->m_str[codePointOffset1]) & mask) << shiftOffset;
-			}
-
-			if(numCodePoints2 == 1)
-			{
-				unicodeValue2 = static_cast<uint64_t>(other.data()[codePointOffset2]);
-			}
-			else
-			{
-				//copy the data bits (last 6) of the continute character code points
-				size_t shiftOffset = 0;
-				for(size_t j = 0; j < numCodePoints2- 1; j++)
-				{
-					unicodeValue2 += (static_cast<uint64_t>(other.data()[codePointOffset2 + numCodePoints2 - j - 1]) & 0b00111111) << shiftOffset;
-					shiftOffset += 6;
-				}
-				
-				//copy the data bits of the start character code point
-				uint64_t mask;
-				if     (numCodePoints2 == 2) { mask = 0b00011111; }
-				else if(numCodePoints2 == 3) { mask = 0b00001111; }
-				else if(numCodePoints2 == 4) { mask = 0b00000111; }
-				else if(numCodePoints2 == 5) { mask = 0b00000011; }
-				else if(numCodePoints2 == 6) { mask = 0b00000001; }
-				else                         { mask = 0b00000000; }
-				unicodeValue2 += (static_cast<uint64_t>(other.data()[codePointOffset2]) & mask) << shiftOffset;
-			}
-
-			if(unicodeValue1 != unicodeValue2)
-			{
-				int64_t comparison = static_cast<int64_t>(unicodeValue1) - static_cast<int64_t>(unicodeValue2);
-				if(comparison < 0)
-				{
-					return 1;
-				}else if(comparison == 0)
-				{
-					return 0;
-				}
-				else
-				{
-					return -1;
-				}
-			}
-			
-			codePointOffset1 += numCodePoints1;
-			codePointOffset2 += numCodePoints2;
-		}
-		if(other.size() > this->m_size)
-		{
-			return 1;
-		}
-		else
-		{
-			return 0;
-		}
+		return fsds::utf8HelperFunctions::compare(this->m_str, this->m_size, other.data(), other.size());
 	}
 
 	bool DynamicString::contains(const DynamicString& str) const
@@ -608,7 +440,14 @@ namespace fsds
 
 	size_t DynamicString::find(const DynamicString& str) const
 	{
-		return this->find(static_cast<StaticString>(str));
+		if(str.size() > this->m_size) [[unlikely]]
+		{
+			return DynamicString::npos;
+		}
+		else
+		{
+			return fsds::utf8HelperFunctions::find(this->m_str, this->m_size, str.data(), str.size()).index;
+		}
 	}
 	size_t DynamicString::find(const StaticString& str) const
 	{
@@ -618,63 +457,28 @@ namespace fsds
 		}
 		else
 		{
-			size_t codePointOffsetI = 0;
-			for(size_t i = 0; i < this->m_size; i++)
-			{
-				if(str.size() + i <= this->m_size)
-				{
-					bool foundMatch = true;
-					
-					size_t codePointOffsetJ1 = 0;
-					size_t codePointOffsetJ2 = codePointOffsetI;
-					for(size_t j = 0; j < str.size(); j++)
-					{
-						size_t numCodePoints1 = str.numCodePointsInFirstCharacter(codePointOffsetJ1);
-						size_t numCodePoints2 = this->numCodePointsInFirstCharacter(codePointOffsetJ2);
-
-						if(numCodePoints1 == numCodePoints2)
-						{
-							for(size_t k = 0; k < numCodePoints1; k++)
-							{
-								if(this->m_str[codePointOffsetJ2 + k] != str.data()[codePointOffsetJ1 + k])
-								{
-									foundMatch = false;
-									break;
-								}
-								if(foundMatch == false)
-								{
-									break;
-								}
-							}
-						}
-						else
-						{
-							foundMatch = false;
-							break;
-						}
-						
-						codePointOffsetJ1 += numCodePoints1;
-						codePointOffsetJ2 += numCodePoints2;
-					}
-
-					if(foundMatch)
-					{
-						return i;
-					}
-				}
-				else
-				{
-					break;
-				}
-				
-				codePointOffsetI += this->numCodePointsInFirstCharacter(codePointOffsetI);
-			}
-			return DynamicString::npos;
+			return fsds::utf8HelperFunctions::find(this->m_str, this->m_size, str.data(), str.size()).index;
 		}
 	}
 	DynamicStringItterator DynamicString::findItterator(const DynamicString& str)
 	{
-		return this->findItterator(static_cast<StaticString>(str));
+		if(str.size() > this->m_size) [[unlikely]]
+		{
+			return DynamicStringItterator(this, true);
+		}
+		else
+		{
+			auto result = fsds::utf8HelperFunctions::find(this->m_str, this->m_size, str.data(), str.size(), DynamicString::npos);
+			
+			if(result.index == DynamicString::npos)
+			{
+				return DynamicStringItterator(this, true);
+			}
+			else
+			{
+				return DynamicStringItterator(this, result.index, result.codePointOffset);
+			}
+		}
 	}
 	DynamicStringItterator DynamicString::findItterator(const StaticString& str)
 	{
@@ -684,241 +488,96 @@ namespace fsds
 		}
 		else
 		{
-			size_t codePointOffsetI = 0;
-			for(size_t i = 0; i < this->m_size; i++)
+			auto result = fsds::utf8HelperFunctions::find(this->m_str, this->m_size, str.data(), str.size(), DynamicString::npos);
+			
+			if(result.index == DynamicString::npos)
 			{
-				if(str.size() + i <= this->m_size)
-				{
-					bool foundMatch = true;
-					
-					size_t codePointOffsetJ1 = 0;
-					size_t codePointOffsetJ2 = codePointOffsetI;
-					for(size_t j = 0; j < str.size(); j++)
-					{
-						size_t numCodePoints1 = str.numCodePointsInFirstCharacter(codePointOffsetJ1);
-						size_t numCodePoints2 = this->numCodePointsInFirstCharacter(codePointOffsetJ2);
-
-						if(numCodePoints1 == numCodePoints2)
-						{
-							for(size_t k = 0; k < numCodePoints1; k++)
-							{
-								if(this->m_str[codePointOffsetJ2 + k] != str.data()[codePointOffsetJ1 + k])
-								{
-									foundMatch = false;
-									break;
-								}
-								if(foundMatch == false)
-								{
-									break;
-								}
-							}
-						}
-						else
-						{
-							foundMatch = false;
-							break;
-						}
-						
-						codePointOffsetJ1 += numCodePoints1;
-						codePointOffsetJ2 += numCodePoints2;
-					}
-
-					if(foundMatch)
-					{
-						return DynamicStringItterator(this, i, codePointOffsetI);
-					}
-				}
-				else
-				{
-					break;
-				}
-				
-				codePointOffsetI += this->numCodePointsInFirstCharacter(codePointOffsetI);
+				return DynamicStringItterator(this, true);
 			}
+			else
+			{
+				return DynamicStringItterator(this, result.index, result.codePointOffset);
+			}
+		}
+	}
+						
+
+	size_t DynamicString::findAnyCharacter(const DynamicString& str) const
+	{
+		if(str.size() == 0) [[unlikely]]
+		{
+			return DynamicString::npos;
+		}
+		else
+		{
+			return fsds::utf8HelperFunctions::findAnyCharacter(this->m_str, this->m_size, str.data(), str.size(), DynamicString::npos).index;
+		}
+	}
+	size_t DynamicString::findAnyCharacter(const StaticString& str) const
+	{
+		if(str.size() == 0) [[unlikely]]
+		{
+			return DynamicString::npos;
+		}
+		else
+		{
+			return fsds::utf8HelperFunctions::findAnyCharacter(this->m_str, this->m_size, str.data(), str.size(), DynamicString::npos).index;
+		}
+	}
+	DynamicStringItterator DynamicString::findAnyCharacterItterator(const DynamicString& str)
+	{
+		if(str.size() == 0) [[unlikely]]
+		{
 			return DynamicStringItterator(this, true);
 		}
-	}
-						
-
-	size_t DynamicString::findFirstCharacter(const DynamicString& str) const
-	{
-		return this->findFirstCharacter(static_cast<StaticString>(str));
-	}
-	size_t DynamicString::findFirstCharacter(const StaticString& str) const
-	{
-		size_t codePointOffset = 0;
-		for(size_t i = 0; i < this->m_size; i++)
+		else
 		{
-			auto ret = this->firstCharacterEqualityWithLength(str);
-			if(ret.result == true)
+			auto result = fsds::utf8HelperFunctions::findAnyCharacter(this->m_str, this->m_size, str.data(), str.size(), DynamicString::npos);
+			if(result.index == DynamicString::npos)
 			{
-				return i;
+				return DynamicStringItterator(this, true);
 			}
 			else
 			{
-				codePointOffset += ret.numCodePoints;
+				return DynamicStringItterator(this, result.index, result.codePointOffset);
 			}
 		}
-		return DynamicString::npos;
 	}
-	DynamicStringItterator DynamicString::findFirstCharacterItterator(const DynamicString& str)
+	DynamicStringItterator DynamicString::findAnyCharacterItterator(const StaticString& str)
 	{
-		return this->findFirstCharacterItterator(static_cast<StaticString>(str));
-	}
-	DynamicStringItterator DynamicString::findFirstCharacterItterator(const StaticString& str)
-	{
-		size_t codePointOffset = 0;
-		for(size_t i = 0; i < this->m_size; i++)
+		if(str.size() == 0) [[unlikely]]
 		{
-			auto ret = this->firstCharacterEqualityWithLength(str);
-			if(ret.result == true)
+			return DynamicStringItterator(this, true);
+		}
+		else
+		{
+			auto result = fsds::utf8HelperFunctions::findAnyCharacter(this->m_str, this->m_size, str.data(), str.size(), DynamicString::npos);
+			if(result.index == DynamicString::npos)
 			{
-				return DynamicStringItterator(this, i, codePointOffset);
+				return DynamicStringItterator(this, true);
 			}
 			else
 			{
-				codePointOffset += ret.numCodePoints;
+				return DynamicStringItterator(this, result.index, result.codePointOffset);
 			}
 		}
-		return DynamicStringItterator(this, true);
 	}
 
 	bool DynamicString::startsWith(const DynamicString& str) const
 	{
-		if(str.numCodePointsInString() > this->m_numCodePoints)
-		{
-			return false;
-		}
-		if(str.size() > this->m_size)
-		{
-			return false;
-		}
-
-		for(size_t i = 0; i < str.numCodePointsInString(); i++)
-		{
-			if(this->m_str[i] != str.data()[i])
-			{
-				return false;
-			}
-		}
-		return true;
+		return fsds::utf8HelperFunctions::startsWith(this->m_str, this->m_size, str.data(), str.size());
 	}
 	bool DynamicString::startsWith(const StaticString& str) const
 	{
-		auto nunCodePointsInStr = str.numCodePointsInString();
-		if(nunCodePointsInStr > this->m_numCodePoints)
-		{
-			return false;
-		}
-		if(str.size() > this->m_size)
-		{
-			return false;
-		}
-
-		for(size_t i = 0; i < nunCodePointsInStr; i++)
-		{
-			if(this->m_str[i] != str.data()[i])
-			{
-				return false;
-			}
-		}
-		return true;
+		return fsds::utf8HelperFunctions::startsWith(this->m_str, this->m_size, str.data(), str.size());
 	}
 	bool DynamicString::endsWith(const DynamicString& str) const
 	{
-		if(str.numCodePointsInString() > this->m_numCodePoints)
-		{
-			return false;
-		}
-		if(str.size() > this->m_size)
-		{
-			return false;
-		}
-
-		for(size_t i = 0; i < str.numCodePointsInString(); i++)
-		{
-			if(this->m_str[this->m_numCodePoints - i] != str.data()[str.numCodePointsInString() - i])
-			{
-				return false;
-			}
-		}
-		return true;
+		return fsds::utf8HelperFunctions::endsWith(this->m_str, this->m_size, str.data(), str.size());
 	}
 	bool DynamicString::endsWith(const StaticString& str) const
 	{
-		auto numCodePointsInStr = str.numCodePointsInString();
-		if(numCodePointsInStr > this->m_numCodePoints)
-		{
-			return false;
-		}
-		if(str.size() > this->m_size)
-		{
-			return false;
-		}
-
-		for(size_t i = 0; i < numCodePointsInStr; i++)
-		{
-			if(this->m_str[this->m_numCodePoints - i] != str.data()[numCodePointsInStr - i])
-			{
-				return false;
-			}
-		}
-		return true;
-	}
-
-	bool DynamicString::firstCharacterEquality(const StaticString& str) const
-	{
-		auto numCodePointsInStr = this->numCodePointsInFirstCharacter();
-		//if the number of code points are no equal then the two characters cannot be the same and functions as a safety check in the case of one string being a single character of lesser length thus overflowing the smaller string
-		if(numCodePointsInStr != str.numCodePointsInFirstCharacter())
-		{
-			return false;
-		}
-		//it is important not to say two emtry strings start with the first character for future use
-		else if((numCodePointsInStr == 0) || (str.isEmpty() == true))
-		{
-			return false;
-		}
-		else
-		{
-			for(size_t i = 0; i < numCodePointsInStr; i++)
-			{
-				if(this->m_str[i] != str.data()[i])
-				{
-					return false;
-				}
-			}
-			return true;
-		}
-	}
-	DynamicString::firstCharacterEqualityWithLengthReturnType DynamicString::firstCharacterEqualityWithLength(const StaticString& str) const
-	{
-		auto numCodePointsInStr = this->numCodePointsInFirstCharacter();
-		//if the number of code points are no equal then the two characters cannot be the same and functions as a safety check in the case of one string being a single character of lesser length thus overflowing the smaller string
-		if(numCodePointsInStr != str.numCodePointsInFirstCharacter())
-		{
-			DynamicString::firstCharacterEqualityWithLengthReturnType result = {false, 0};
-			return result;
-		}
-		//it is important not to say two emtry strings start with the first character for future use
-		else if((numCodePointsInStr == 0) || (str.isEmpty() == true))
-		{
-			DynamicString::firstCharacterEqualityWithLengthReturnType result = {false, 0};
-			return result;
-		}
-		else
-		{
-			for(size_t i = 0; i < numCodePointsInStr; i++)
-			{
-				if(this->m_str[i] != str.data()[i])
-				{
-					DynamicString::firstCharacterEqualityWithLengthReturnType result = {false, numCodePointsInStr};
-					return result;
-				}
-			}
-			DynamicString::firstCharacterEqualityWithLengthReturnType result = {true, numCodePointsInStr};
-			return result;
-		}
+		return fsds::utf8HelperFunctions::endsWith(this->m_str, this->m_size, str.data(), str.size());
 	}
 
 

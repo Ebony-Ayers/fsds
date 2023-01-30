@@ -67,10 +67,10 @@ namespace fsds
 			size_t find(const StaticString& str) const;
 			DynamicStringItterator findItterator(const DynamicString& str);
 			DynamicStringItterator findItterator(const StaticString& str);
-			size_t findFirstCharacter(const DynamicString& str) const;
-			size_t findFirstCharacter(const StaticString& str) const;
-			DynamicStringItterator findFirstCharacterItterator(const DynamicString& str);
-			DynamicStringItterator findFirstCharacterItterator(const StaticString& str);
+			size_t findAnyCharacter(const DynamicString& str) const;
+			size_t findAnyCharacter(const StaticString& str) const;
+			DynamicStringItterator findAnyCharacterItterator(const DynamicString& str);
+			DynamicStringItterator findAnyCharacterItterator(const StaticString& str);
 
 			bool startsWith(const DynamicString& str) const;
 			bool startsWith(const StaticString& str) const;
@@ -80,17 +80,11 @@ namespace fsds
 			constexpr size_t numCodePointsInFirstCharacter(size_t codePointOffset = 0) const;
 		
 		private:
-			struct firstCharacterEqualityWithLengthReturnType { bool result; size_t numCodePoints; };
-			constexpr bool firstCharacterEquality(const DynamicString& str) const;
-			constexpr DynamicString::firstCharacterEqualityWithLengthReturnType firstCharacterEqualityWithLength(const DynamicString& str) const;
-			bool firstCharacterEquality(const StaticString& str) const;
-			DynamicString::firstCharacterEqualityWithLengthReturnType firstCharacterEqualityWithLength(const StaticString& str) const;
 			constexpr void reallocate(size_t newSize);
 
 			CharT* m_str;
 			size_t m_size;
 			size_t m_capacity;
-			size_t m_numCodePoints;
 	};
 
 	bool operator==(const DynamicString& lhs, const DynamicString& rhs);

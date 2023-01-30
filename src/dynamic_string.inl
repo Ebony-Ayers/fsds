@@ -10,7 +10,7 @@ namespace fsds
 	}
 	constexpr size_t DynamicString::numCodePointsInString() const
 	{
-		return this->m_numCodePoints;
+		return this->m_capacity;
 	}
 	constexpr bool DynamicString::isEmpty() const
 	{
@@ -65,61 +65,6 @@ namespace fsds
 			}
 		}
 	}
-
-	constexpr bool DynamicString::firstCharacterEquality(const fsds::DynamicString& str) const
-	{
-		size_t numCodePoints = this->numCodePointsInFirstCharacter();
-		//if the number of code points are no equal then the two characters cannot be the same and functions as a safety check in the case of one string being a single character of lesser length thus overflowing the smaller string
-		if(numCodePoints != str.numCodePointsInFirstCharacter())
-		{
-			return false;
-		}
-		//it is important not to say two emtry strings start with the first character for future use
-		else if((numCodePoints == 0) || (str.isEmpty() == true))
-		{
-			return false;
-		}
-		else
-		{
-			for(size_t i = 0; i < numCodePoints; i++)
-			{
-				if(this->m_str[i] != str.data()[i])
-				{
-					return false;
-				}
-			}
-			return true;
-		}
-	}
-	constexpr DynamicString::firstCharacterEqualityWithLengthReturnType DynamicString::firstCharacterEqualityWithLength(const fsds::DynamicString& str) const
-	{
-		size_t numCodePoints = this->numCodePointsInFirstCharacter();
-		//if the number of code points are no equal then the two characters cannot be the same and functions as a safety check in the case of one string being a single character of lesser length thus overflowing the smaller string
-		if(numCodePoints != str.numCodePointsInFirstCharacter())
-		{
-			DynamicString::firstCharacterEqualityWithLengthReturnType result = {false, 0};
-			return result;
-		}
-		//it is important not to say two emtry strings start with the first character for future use
-		else if((numCodePoints == 0) || (str.isEmpty() == true))
-		{
-			DynamicString::firstCharacterEqualityWithLengthReturnType result = {false, 0};
-			return result;
-		}
-		else
-		{
-			for(size_t i = 0; i < numCodePoints; i++)
-			{
-				if(this->m_str[i] != str.data()[i])
-				{
-					DynamicString::firstCharacterEqualityWithLengthReturnType result = {false, numCodePoints};
-					return result;
-				}
-			}
-			DynamicString::firstCharacterEqualityWithLengthReturnType result = {true, numCodePoints};
-			return result;
-		}
-	}
 	
 	
 
@@ -128,7 +73,7 @@ namespace fsds
 		std::allocator<DynamicString::CharT> alloc;
 		DynamicString::CharT* oldData = this->m_str;
 		this->m_str = alloc.allocate(newSize);
-		std::copy(oldData, oldData + this->m_numCodePoints, this->m_str);
+		std::copy(oldData, oldData + this->m_capacity, this->m_str);
 		alloc.deallocate(oldData, this->m_capacity);
 		this->m_capacity = newSize;
 	}

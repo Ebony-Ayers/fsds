@@ -53,17 +53,27 @@ namespace fsds
 			DynamicString replace(const DynamicString& oldStr, const DynamicString& newStr);
 			
 			int compare(const StaticString& other) const;
+			int compare(const DynamicString& other) const;
 			bool contains(const StaticString& str) const;
+			bool contains(const DynamicString& str) const;
 
 			size_t find(const StaticString& str) const;
+			size_t find(const DynamicString& str) const;
 			StaticStringItterator findItterator(const StaticString& str) const;
+			StaticStringItterator findItterator(const DynamicString& str) const;
 			size_t findAnyCharacter(const StaticString& str) const;
+			size_t findAnyCharacter(const DynamicString& str) const;
 			StaticStringItterator findAnyCharacterItterator(const StaticString& str) const;
+			StaticStringItterator findAnyCharacterItterator(const DynamicString& str) const;
 			size_t findNotAnyCharacter(const StaticString& str) const;
+			size_t findNotAnyCharacter(const DynamicString& str) const;
 			StaticStringItterator findNotAnyCharacterItterator(const StaticString& str) const;
+			StaticStringItterator findNotAnyCharacterItterator(const DynamicString& str) const;
 
 			bool startsWith(const StaticString& str) const;
+			bool startsWith(const DynamicString& str) const;
 			bool endsWith(const StaticString& str) const;
+			bool endsWith(const DynamicString& str) const;
 
 			constexpr size_t numCodePointsInFirstCharacter(size_t codePointOffset = 0) const;
 		
