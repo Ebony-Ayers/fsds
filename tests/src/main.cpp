@@ -1768,6 +1768,7 @@ void testStaticString()
 			testsFailed.push_back(11);
 		}
 	}
+	
 	//test 12: findAnyCharacterItterator
 	{
 		bool failed = false;
@@ -1855,7 +1856,159 @@ void testStaticString()
 		}
 	}
 
-	//test 13: startsWith
+	//test 13: findNotAnyCharacter
+	{
+		bool failed = false;
+		if(english1.findNotAnyCharacter(english5) != 1)
+		{
+			failed = true;
+		}
+		else if(russian1.findNotAnyCharacter(russian5) != 0)
+		{
+			failed = true;
+		}
+		else if(chinese1.findNotAnyCharacter(chinese5) != 0)
+		{
+			failed = true;
+		}
+		else if(mixed1.findNotAnyCharacter(mixed4) != 2)
+		{
+			failed = true;
+		}
+		else if(english1.findNotAnyCharacter(chinese3) != 0)
+		{
+			failed = true;
+		}
+		else if(russian1.findNotAnyCharacter(mixed3) != 0)
+		{
+			failed = true;
+		}
+		else if(chinese1.findNotAnyCharacter(mixed3) != 0)
+		{
+			failed = true;
+		}
+		else if(mixed1.findNotAnyCharacter(russian3) != 0)
+		{
+			failed = true;
+		}
+		else if(english1.findNotAnyCharacter(english6) != 1)
+		{
+			failed = true;
+		}
+		else if(russian1.findNotAnyCharacter(russian6) != 0)
+		{
+			failed = true;
+		}
+		else if(chinese1.findNotAnyCharacter(chinese6) != 0)
+		{
+			failed = true;
+		}
+		else if(english1.findNotAnyCharacter(english1) != fsds::StaticString::npos)
+		{
+			failed = true;
+		}
+
+		if(failed)
+		{
+			testsFailed.push_back(13);
+		}
+	}
+	
+	//test 14: findAnyCharacterItterator
+	{
+		bool failed = false;
+		{
+			fsds::StaticStringItterator iterator = english1.findNotAnyCharacterItterator(english5);
+			if((iterator.str() != &english1) || (iterator.currentPosition() != 1) || (iterator.currentCodePointOffset() != 1))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::StaticStringItterator iterator = russian1.findNotAnyCharacterItterator(russian5);
+			if((iterator.str() != &russian1) || (iterator.currentPosition() != 0) || (iterator.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::StaticStringItterator iterator = chinese1.findNotAnyCharacterItterator(chinese5); 
+			if((iterator.str() != &chinese1) || (iterator.currentPosition() != 0) || (iterator.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::StaticStringItterator iterator = mixed1.findNotAnyCharacterItterator(mixed4); 
+			if((iterator.str() != &mixed1) || (iterator.currentPosition() != 2) || (iterator.currentCodePointOffset() != 2))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::StaticStringItterator iterator = english1.findNotAnyCharacterItterator(chinese3); 
+			if((iterator.str() != &english1) || (iterator.currentPosition() != 0) || (iterator.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::StaticStringItterator iterator = russian1.findNotAnyCharacterItterator(mixed3); 
+			if((iterator.str() != &russian1) || (iterator.currentPosition() != 0) || (iterator.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::StaticStringItterator iterator = chinese1.findNotAnyCharacterItterator(mixed3); 
+			if((iterator.str() != &chinese1) || (iterator.currentPosition() != 0) || (iterator.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::StaticStringItterator iterator = mixed1.findNotAnyCharacterItterator(russian3); 
+			if((iterator.str() != &mixed1) || (iterator.currentPosition() != 0) || (iterator.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::StaticStringItterator iterator = english1.findNotAnyCharacterItterator(english6); 
+			if((iterator.str() != &english1) || (iterator.currentPosition() != 1) || (iterator.currentCodePointOffset() != 1))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::StaticStringItterator iterator = russian1.findNotAnyCharacterItterator(russian6); 
+			if((iterator.str() != &russian1) || (iterator.currentPosition() != 0) || (iterator.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::StaticStringItterator iterator = chinese1.findNotAnyCharacterItterator(chinese6); 
+			if((iterator.str() != &chinese1) || (iterator.currentPosition() != 0) || (iterator.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::StaticStringItterator iterator = english1.findNotAnyCharacterItterator(english1); 
+			if((iterator.str() != &english1) || (iterator.isNPos() != true))
+			{
+				failed = true;
+			}
+		}
+
+		if(failed)
+		{
+			testsFailed.push_back(14);
+		}
+	}
+
+	//test 15: startsWith
 	{
 		bool failed = false;
 		if(english1.startsWith(english3) != true)
@@ -1893,11 +2046,11 @@ void testStaticString()
 
 		if(failed)
 		{
-			testsFailed.push_back(13);
+			testsFailed.push_back(15);
 		}
 	}
 
-	//test 14: endsWith
+	//test 16: endsWith
 	{
 		bool failed = false;
 		if(english1.endsWith(english5) != true)
@@ -1935,11 +2088,11 @@ void testStaticString()
 
 		if(failed)
 		{
-			testsFailed.push_back(14);
+			testsFailed.push_back(16);
 		}
 	}
 
-	//test 15: numCodePointsInFirstCharacter
+	//test 17: numCodePointsInFirstCharacter
 	{
 		bool failed = false;
 		if(english1.numCodePointsInFirstCharacter() != 1)
@@ -1957,7 +2110,7 @@ void testStaticString()
 
 		if(failed)
 		{
-			testsFailed.push_back(15);
+			testsFailed.push_back(17);
 		}
 	}
 
@@ -1983,6 +2136,1054 @@ void testStaticString()
 	}
 }
 
+void testDynamicString()
+{
+	std::vector<size_t> testsFailed;
+	
+	//english has one code point per character
+	const char* baseStringEnglish1 = "this string contains highly meaningful text";
+	const char* baseStringEnglish2 = "x";
+	const char* baseStringEnglish3 = "this";
+	const char* baseStringEnglish4 = "this string contains really meaningful text";
+	const char* baseStringEnglish5 = "text";
+	const char* baseStringEnglish6 = "st";
+	const char* baseStringEnglish7 = "aaaa";
+	const char* baseStringEnglish8 = "bb";
+	const char* baseStringEnglish9 = "aabbaa";
+	const char* baseStringEnglish10 = "bbaaaa";
+	const char* baseStringEnglish11 = "aaaabb";
+	//russian has two code points per character
+	const char* baseStringRussian1 = "утф-8 очень раздражает";
+	const char* baseStringRussian2 = "е";
+	const char* baseStringRussian3 = "утф-8";
+	const char* baseStringRussian4 = "утф не очен раздражает";
+	const char* baseStringRussian5 = "раздражает";
+	const char* baseStringRussian6 = "ет";
+	const char* baseStringRussian7 = "аааа";
+	const char* baseStringRussian8 = "вв";
+	const char* baseStringRussian9 = "аавваа";
+	const char* baseStringRussian10 = "вваааа";
+	const char* baseStringRussian11 = "аааавв";
+	//chinese has 3+ code points per character
+	const char* baseStringChinese1 = "希望这被正确翻译";
+	const char* baseStringChinese2 = "翻";
+	const char* baseStringChinese3 = "希望";
+	const char* baseStringChinese4 = "请让这完全有意义";
+	const char* baseStringChinese5 = "翻译";
+	const char* baseStringChinese6 = "翻被";
+	const char* baseStringChinese7 = "希希希希";
+	const char* baseStringChinese8 = "被被";
+	const char* baseStringChinese9 = "希希被被希希";
+	const char* baseStringChinese10 = "被被希希希希";
+	const char* baseStringChinese11 = "希希希希被被";
+	//mixed language strings with various numbers of code points per character
+	const char* baseStringMixed1 = "this не 说得通";
+	const char* baseStringMixed2 = "得";
+	const char* baseStringMixed3 = "s не 说";
+	const char* baseStringMixed4 = "that не 说得通";
+	const char* baseStringMixed5 = "this не";
+	const char* baseStringMixed6 = "被被";
+	const char* baseStringMixed7 = "this被被 не";
+	const char* baseStringMixed8 = "被被this не";
+	const char* baseStringMixed9 = "this не被被";
+
+	const char* baseEmptyString = "";
+
+	fsds::DynamicString english1(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringEnglish1), 43);
+	fsds::DynamicString english2(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringEnglish2), 1);
+	fsds::DynamicString english3(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringEnglish3), 4);
+	fsds::DynamicString english4(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringEnglish4), 43);
+	fsds::DynamicString english5(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringEnglish5), 4);
+	fsds::DynamicString english6(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringEnglish6), 2);
+	fsds::DynamicString english7(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringEnglish7), 4);
+	fsds::DynamicString english8(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringEnglish8), 2);
+	fsds::DynamicString english9(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringEnglish9), 6);
+	fsds::DynamicString english10(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringEnglish10), 6);
+	fsds::DynamicString english11(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringEnglish11), 6);
+	fsds::DynamicString russian1(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringRussian1), 22);
+	fsds::DynamicString russian2(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringRussian2), 1);
+	fsds::DynamicString russian3(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringRussian3), 5);
+	fsds::DynamicString russian4(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringRussian4), 22);
+	fsds::DynamicString russian5(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringRussian5), 10);
+	fsds::DynamicString russian6(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringRussian6), 2);
+	fsds::DynamicString russian7(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringRussian7), 4);
+	fsds::DynamicString russian8(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringRussian8), 2);
+	fsds::DynamicString russian9(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringRussian9), 6);
+	fsds::DynamicString russian10(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringRussian10), 6);
+	fsds::DynamicString russian11(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringRussian11), 6);
+	fsds::DynamicString chinese1(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringChinese1), 8);
+	fsds::DynamicString chinese2(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringChinese2), 1);
+	fsds::DynamicString chinese3(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringChinese3), 2);
+	fsds::DynamicString chinese4(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringChinese4), 8);
+	fsds::DynamicString chinese5(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringChinese5), 2);
+	fsds::DynamicString chinese6(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringChinese6), 2);
+	fsds::DynamicString chinese7(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringChinese7), 4);
+	fsds::DynamicString chinese8(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringChinese8), 2);
+	fsds::DynamicString chinese9(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringChinese9), 6);
+	fsds::DynamicString chinese10(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringChinese10), 6);
+	fsds::DynamicString chinese11(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringChinese11), 6);
+	fsds::DynamicString mixed1(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringMixed1), 11);
+	fsds::DynamicString mixed2(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringMixed2), 1);
+	fsds::DynamicString mixed3(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringMixed3), 6);
+	fsds::DynamicString mixed4(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringMixed4), 11);
+	fsds::DynamicString mixed5(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringMixed5), 7);
+	fsds::DynamicString mixed6(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringMixed6), 2);
+	fsds::DynamicString mixed7(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringMixed7), 9);
+	fsds::DynamicString mixed8(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringMixed8), 9);
+	fsds::DynamicString mixed9(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringMixed9), 9);
+	fsds::DynamicString empty(reinterpret_cast<const fsds::DynamicString::CharT*>(baseEmptyString), 0);
+
+	//test 1: equality
+	{
+		bool failed = false;
+		if(english1 != english1)
+		{
+			failed = true;
+		}
+		else if(russian1 != russian1)
+		{
+			failed = true;
+		}
+		else if(chinese1 != chinese1)
+		{
+			failed = true;
+		}
+		else if(english1 == english2)
+		{
+			failed = true;
+		}
+		else if(mixed1 != mixed1)
+		{
+			failed = true;
+		}
+		else if(russian1 == russian2)
+		{
+			failed = true;
+		}
+		else if(chinese1 == chinese2)
+		{
+			failed = true;
+		}
+		else if(mixed1 == mixed2)
+		{
+			failed = true;
+		}
+
+		if(failed)
+		{
+			testsFailed.push_back(1);
+		}
+	}
+
+	//test 2: operator[]
+	{
+		bool failed = false;
+		if(english1[41] != english2)
+		{
+			failed = true;
+		}
+		else if(russian1[20] != russian2)
+		{
+			failed = true;
+		}
+		else if(chinese1[6] != chinese2)
+		{
+			failed = true;
+		}
+		else if(mixed1[9] != mixed2)
+		{
+			failed = true;
+		}
+
+		if(failed)
+		{
+			testsFailed.push_back(2);
+		}
+	}
+
+	//test 3: size()
+	{
+		bool failed = false;
+		if(english1.size() != 43)
+		{
+			failed = true;
+		}
+		else if(russian1.size() != 22)
+		{
+			failed = true;
+		}
+		else if(chinese1.size() != 8)
+		{
+			failed = true;
+		}
+		else if(mixed1.size() != 11)
+		{
+			failed = true;
+		}
+		else if(english2.size() != 1)
+		{
+			failed = true;
+		}
+		else if(russian2.size() != 1)
+		{
+			failed = true;
+		}
+		else if(chinese2.size() != 1)
+		{
+			failed = true;
+		}
+		else if(mixed2.size() != 1)
+		{
+			failed = true;
+		}
+		else if(empty.size() != 0)
+		{
+			failed = true;
+		}
+
+		if(failed)
+		{
+			testsFailed.push_back(3);
+		}
+	}
+
+	//test 4: numCodePointsInString()
+	{
+		bool failed = false;
+		if(english1.numCodePointsInString() != 43)
+		{
+			failed = true;
+		}
+		else if(russian1.numCodePointsInString() != 40)
+		{
+			failed = true;
+		}
+		else if(chinese1.numCodePointsInString() != 24)
+		{
+			failed = true;
+		}
+		else if(mixed1.numCodePointsInString() != 19)
+		{
+			failed = true;
+		}
+
+		if(failed)
+		{
+			testsFailed.push_back(4);
+		}
+	}
+
+	//test 5: isEmpty()
+	{
+		bool failed = false;
+		if(english1.isEmpty() != false)
+		{
+			failed = true;
+		}
+		else if(russian1.isEmpty() != false)
+		{
+			failed = true;
+		}
+		else if(chinese1.isEmpty() != false)
+		{
+			failed = true;
+		}
+		else if(mixed1.isEmpty() != false)
+		{
+			failed = true;
+		}
+		else if(empty.isEmpty() != true)
+		{
+			failed = true;
+		}
+
+		if(failed)
+		{
+			testsFailed.push_back(5);
+		}
+	}
+
+	//test 6: substr
+	{
+		bool failed = false;
+		if(english1.substr(0,4) != english3)
+		{
+			failed = true;
+		}
+		else if(russian1.substr(0,5) != russian3)
+		{
+			failed = true;
+		}
+		else if(chinese1.substr(0,2) != chinese3)
+		{
+			failed = true;
+		}
+		else if(mixed1.substr(3,6) != mixed3)
+		{
+			failed = true;
+		}
+
+		if(failed)
+		{
+			testsFailed.push_back(6);
+		}
+	}
+
+	//test 7: compare
+	{
+		bool failed = false;
+		if(english1.compare(english4) != 1)
+		{
+			failed = true;
+		}
+		else if(russian1.compare(russian4) != -1)
+		{
+			failed = true;
+		}
+		else if(chinese1.compare(chinese4) != 1)
+		{
+			failed = true;
+		}
+		else if(mixed1.compare(mixed4) != -1)
+		{
+			failed = true;
+		}
+		else if(english1.compare(english3) != -1)
+		{
+			failed = true;
+		}
+		else if(russian1.compare(russian3) != -1)
+		{
+			failed = true;
+		}
+		else if(chinese1.compare(chinese3) != -1)
+		{
+			failed = true;
+		}
+		else if(mixed1.compare(mixed3) != -1)
+		{
+			failed = true;
+		}
+		else if(english1.compare(english1) != 0)
+		{
+			failed = true;
+		}
+		else if(russian1.compare(russian1) != 0)
+		{
+			failed = true;
+		}
+		else if(chinese1.compare(chinese1) != 0)
+		{
+			failed = true;
+		}
+		else if(mixed1.compare(mixed1) != 0)
+		{
+			failed = true;
+		}
+
+		if(failed)
+		{
+			testsFailed.push_back(7);
+		}
+	}
+
+	//test 8: contains
+	{
+		bool failed = false;
+		if(english1.contains(english3) != true)
+		{
+			failed = true;
+		}
+		else if(russian1.contains(russian3) != true)
+		{
+			failed = true;
+		}
+		else if(chinese1.contains(chinese3) != true)
+		{
+			failed = true;
+		}
+		else if(mixed1.contains(mixed3) != true)
+		{
+			failed = true;
+		}
+		else if(english1.contains(chinese3) != false)
+		{
+			failed = true;
+		}
+		else if(russian1.contains(mixed3) != false)
+		{
+			failed = true;
+		}
+		else if(chinese1.contains(mixed3) != false)
+		{
+			failed = true;
+		}
+		else if(mixed1.contains(russian3) != false)
+		{
+			failed = true;
+		}
+
+		if(failed)
+		{
+			testsFailed.push_back(8);
+		}
+	}
+
+	//test 9: find
+	{
+		bool failed = false;
+		if(english1.find(english3) != 0)
+		{
+			failed = true;
+		}
+		else if(russian1.find(russian3) != 0)
+		{
+			failed = true;
+		}
+		else if(chinese1.find(chinese3) != 0)
+		{
+			failed = true;
+		}
+		else if(mixed1.find(mixed3) != 3)
+		{
+			failed = true;
+		}
+		else if(english1.find(chinese3) != fsds::DynamicString::npos)
+		{
+			failed = true;
+		}
+		else if(russian1.find(mixed3) != fsds::DynamicString::npos)
+		{
+			failed = true;
+		}
+		else if(chinese1.find(mixed3) != fsds::DynamicString::npos)
+		{
+			failed = true;
+		}
+		else if(mixed1.find(russian3) != fsds::DynamicString::npos)
+		{
+			failed = true;
+		}
+
+		if(failed)
+		{
+			testsFailed.push_back(9);
+		}
+	}
+
+	//test 10: findItterator
+	{
+		bool failed = false;
+		{
+			fsds::DynamicStringItterator it = english1.findItterator(english3);
+			if((it.str() != &english1) || (it.currentPosition() != 0) || (it.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator it = russian1.findItterator(russian3);
+			if((it.str() != &russian1) || (it.currentPosition() != 0) || (it.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator it = chinese1.findItterator(chinese3);
+			if((it.str() != &chinese1) || (it.currentPosition() != 0) || (it.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator it = mixed1.findItterator(mixed3);
+			if((it.str() != &mixed1) || (it.currentPosition() != 3) || (it.currentCodePointOffset() != 3))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator it = english1.findItterator(chinese3);
+			if((it.str() != &english1) || (it.currentPosition() != fsds::DynamicString::npos) || (it.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator it = russian1.findItterator(mixed3);
+			if((it.str() != &russian1) || (it.currentPosition() != fsds::DynamicString::npos) || (it.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator it = chinese1.findItterator(mixed3);
+			if((it.str() != &chinese1) || (it.currentPosition() != fsds::DynamicString::npos) || (it.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator it = mixed1.findItterator(russian3);
+			if((it.str() != &mixed1) || (it.currentPosition() != fsds::DynamicString::npos) || (it.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		} 
+
+		if(failed)
+		{
+			testsFailed.push_back(10);
+		}
+	}
+	
+	//test 11: findAnyCharacter
+	{
+		bool failed = false;
+		if(english1.findAnyCharacter(english5) != 0)
+		{
+			failed = true;
+		}
+		else if(russian1.findAnyCharacter(russian5) != 1)
+		{
+			failed = true;
+		}
+		else if(chinese1.findAnyCharacter(chinese5) != 6)
+		{
+			failed = true;
+		}
+		else if(mixed1.findAnyCharacter(mixed4) != 0)
+		{
+			failed = true;
+		}
+		else if(english1.findAnyCharacter(chinese3) != fsds::DynamicString::npos)
+		{
+			failed = true;
+		}
+		else if(russian1.findAnyCharacter(mixed3) != 5)
+		{
+			failed = true;
+		}
+		else if(chinese1.findAnyCharacter(mixed3) != fsds::DynamicString::npos)
+		{
+			failed = true;
+		}
+		else if(mixed1.findAnyCharacter(russian3) != fsds::DynamicString::npos)
+		{
+			failed = true;
+		}
+		else if(english1.findAnyCharacter(english6) != 0)
+		{
+			failed = true;
+		}
+		else if(russian1.findAnyCharacter(russian6) != 1)
+		{
+			failed = true;
+		}
+		else if(chinese1.findAnyCharacter(chinese6) != 3)
+		{
+			failed = true;
+		}
+
+		if(failed)
+		{
+			testsFailed.push_back(11);
+		}
+	}
+	
+	//test 12: findAnyCharacterItterator
+	{
+		bool failed = false;
+		{
+			fsds::DynamicStringItterator iterator = english1.findAnyCharacterItterator(english5);
+			if((iterator.str() != &english1) || (iterator.currentPosition() != 0) || (iterator.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator iterator = russian1.findAnyCharacterItterator(russian5);
+			if((iterator.str() != &russian1) || (iterator.currentPosition() != 1) || (iterator.currentCodePointOffset() != 2))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator iterator = chinese1.findAnyCharacterItterator(chinese5); 
+			if((iterator.str() != &chinese1) || (iterator.currentPosition() != 6) || (iterator.currentCodePointOffset() != 18))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator iterator = mixed1.findAnyCharacterItterator(mixed4); 
+			if((iterator.str() != &mixed1) || (iterator.currentPosition() != 0) || (iterator.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator iterator = english1.findAnyCharacterItterator(chinese3); 
+			if((iterator.str() != &english1) || (iterator.currentPosition() != fsds::DynamicString::npos) || (iterator.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator iterator = russian1.findAnyCharacterItterator(mixed3); 
+			if((iterator.str() != &russian1) || (iterator.currentPosition() != 5) || (iterator.currentCodePointOffset() != 8))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator iterator = chinese1.findAnyCharacterItterator(mixed3); 
+			if((iterator.str() != &chinese1) || (iterator.currentPosition() != fsds::DynamicString::npos) || (iterator.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator iterator = mixed1.findAnyCharacterItterator(russian3); 
+			if((iterator.str() != &mixed1) || (iterator.currentPosition() != fsds::DynamicString::npos) || (iterator.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator iterator = english1.findAnyCharacterItterator(english6); 
+			if((iterator.str() != &english1) || (iterator.currentPosition() != 0) || (iterator.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator iterator = russian1.findAnyCharacterItterator(russian6); 
+			if((iterator.str() != &russian1) || (iterator.currentPosition() != 1) || (iterator.currentCodePointOffset() != 2))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator iterator = chinese1.findAnyCharacterItterator(chinese6); 
+			if((iterator.str() != &chinese1) || (iterator.currentPosition() != 3) || (iterator.currentCodePointOffset() != 9))
+			{
+				failed = true;
+			}
+		}
+
+		if(failed)
+		{
+			testsFailed.push_back(12);
+		}
+	}
+
+	//test 13: findNotAnyCharacter
+	{
+		bool failed = false;
+		if(english1.findNotAnyCharacter(english5) != 1)
+		{
+			failed = true;
+		}
+		else if(russian1.findNotAnyCharacter(russian5) != 0)
+		{
+			failed = true;
+		}
+		else if(chinese1.findNotAnyCharacter(chinese5) != 0)
+		{
+			failed = true;
+		}
+		else if(mixed1.findNotAnyCharacter(mixed4) != 2)
+		{
+			failed = true;
+		}
+		else if(english1.findNotAnyCharacter(chinese3) != 0)
+		{
+			failed = true;
+		}
+		else if(russian1.findNotAnyCharacter(mixed3) != 0)
+		{
+			failed = true;
+		}
+		else if(chinese1.findNotAnyCharacter(mixed3) != 0)
+		{
+			failed = true;
+		}
+		else if(mixed1.findNotAnyCharacter(russian3) != 0)
+		{
+			failed = true;
+		}
+		else if(english1.findNotAnyCharacter(english6) != 1)
+		{
+			failed = true;
+		}
+		else if(russian1.findNotAnyCharacter(russian6) != 0)
+		{
+			failed = true;
+		}
+		else if(chinese1.findNotAnyCharacter(chinese6) != 0)
+		{
+			failed = true;
+		}
+		else if(english1.findNotAnyCharacter(english1) != fsds::DynamicString::npos)
+		{
+			failed = true;
+		}
+
+		if(failed)
+		{
+			testsFailed.push_back(13);
+		}
+	}
+	
+	//test 14: findAnyCharacterItterator
+	{
+		bool failed = false;
+		{
+			fsds::DynamicStringItterator iterator = english1.findNotAnyCharacterItterator(english5);
+			if((iterator.str() != &english1) || (iterator.currentPosition() != 1) || (iterator.currentCodePointOffset() != 1))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator iterator = russian1.findNotAnyCharacterItterator(russian5);
+			if((iterator.str() != &russian1) || (iterator.currentPosition() != 0) || (iterator.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator iterator = chinese1.findNotAnyCharacterItterator(chinese5); 
+			if((iterator.str() != &chinese1) || (iterator.currentPosition() != 0) || (iterator.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator iterator = mixed1.findNotAnyCharacterItterator(mixed4); 
+			if((iterator.str() != &mixed1) || (iterator.currentPosition() != 2) || (iterator.currentCodePointOffset() != 2))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator iterator = english1.findNotAnyCharacterItterator(chinese3); 
+			if((iterator.str() != &english1) || (iterator.currentPosition() != 0) || (iterator.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator iterator = russian1.findNotAnyCharacterItterator(mixed3); 
+			if((iterator.str() != &russian1) || (iterator.currentPosition() != 0) || (iterator.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator iterator = chinese1.findNotAnyCharacterItterator(mixed3); 
+			if((iterator.str() != &chinese1) || (iterator.currentPosition() != 0) || (iterator.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator iterator = mixed1.findNotAnyCharacterItterator(russian3); 
+			if((iterator.str() != &mixed1) || (iterator.currentPosition() != 0) || (iterator.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator iterator = english1.findNotAnyCharacterItterator(english6); 
+			if((iterator.str() != &english1) || (iterator.currentPosition() != 1) || (iterator.currentCodePointOffset() != 1))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator iterator = russian1.findNotAnyCharacterItterator(russian6); 
+			if((iterator.str() != &russian1) || (iterator.currentPosition() != 0) || (iterator.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator iterator = chinese1.findNotAnyCharacterItterator(chinese6); 
+			if((iterator.str() != &chinese1) || (iterator.currentPosition() != 0) || (iterator.currentCodePointOffset() != 0))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicStringItterator iterator = english1.findNotAnyCharacterItterator(english1); 
+			if((iterator.str() != &english1) || (iterator.isNPos() != true))
+			{
+				failed = true;
+			}
+		}
+
+		if(failed)
+		{
+			testsFailed.push_back(14);
+		}
+	}
+
+	//test 15: startsWith
+	{
+		bool failed = false;
+		if(english1.startsWith(english3) != true)
+		{
+			failed = true;
+		}
+		else if(russian1.startsWith(russian3) != true)
+		{
+			failed = true;
+		}
+		else if(chinese1.startsWith(chinese3) != true)
+		{
+			failed = true;
+		}
+		else if(mixed1.startsWith(mixed3) != false)
+		{
+			failed = true;
+		}
+		else if(english1.startsWith(chinese3) != false)
+		{
+			failed = true;
+		}
+		else if(russian1.startsWith(mixed3) != false)
+		{
+			failed = true;
+		}
+		else if(chinese1.startsWith(mixed3) != false)
+		{
+			failed = true;
+		}
+		else if(mixed1.startsWith(russian3) != false)
+		{
+			failed = true;
+		}
+
+		if(failed)
+		{
+			testsFailed.push_back(15);
+		}
+	}
+
+	//test 16: endsWith
+	{
+		bool failed = false;
+		if(english1.endsWith(english5) != true)
+		{
+			failed = true;
+		}
+		else if(russian1.endsWith(russian5) != true)
+		{
+			failed = true;
+		}
+		else if(chinese1.endsWith(chinese5) != true)
+		{
+			failed = true;
+		}
+		else if(mixed1.endsWith(mixed3) != false)
+		{
+			failed = true;
+		}
+		else if(english1.endsWith(chinese3) != false)
+		{
+			failed = true;
+		}
+		else if(russian1.endsWith(mixed3) != false)
+		{
+			failed = true;
+		}
+		else if(chinese1.endsWith(mixed3) != false)
+		{
+			failed = true;
+		}
+		else if(mixed1.endsWith(russian3) != false)
+		{
+			failed = true;
+		}
+
+		if(failed)
+		{
+			testsFailed.push_back(16);
+		}
+	}
+
+	//test 17: numCodePointsInFirstCharacter
+	{
+		bool failed = false;
+		if(english1.numCodePointsInFirstCharacter() != 1)
+		{
+			failed = true;
+		}
+		else if(russian1.numCodePointsInFirstCharacter() != 2)
+		{
+			failed = true;
+		}
+		else if(chinese1.numCodePointsInFirstCharacter() != 3)
+		{
+			failed = true;
+		}
+
+		if(failed)
+		{
+			testsFailed.push_back(17);
+		}
+	}
+
+	//test 18: insert
+	{
+		bool failed = false;
+		
+		{
+			fsds::DynamicString str(english7);
+			str.insert(2, english8);
+			if(str != english9)
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(english7);
+			str.insert(0, english8);
+			if(str != english10)
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(english7);
+			str.insert(4, english8);
+			if(str != english11)
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(russian7);
+			str.insert(2, russian8);
+			if(str != russian9)
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(russian7);
+			str.insert(0, russian8);
+			if(str != russian10)
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(russian7);
+			str.insert(4, russian8);
+			if(str != russian11)
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(chinese7);
+			str.insert(2, chinese8);
+			if(str != chinese9)
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(chinese7);
+			str.insert(0, chinese8);
+			if(str != chinese10)
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(chinese7);
+			str.insert(4, chinese8);
+			if(str != chinese11)
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(mixed5);
+			str.insert(4, mixed6);
+			if(str != mixed7)
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(mixed5);
+			str.insert(0, mixed6);
+			if(str != mixed8)
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(mixed5);
+			str.insert(7, mixed6);
+			if(str != mixed9)
+			{
+				failed = true;
+			}
+		}
+
+		if(failed)
+		{
+			testsFailed.push_back(18);
+		}
+	}
+
+	{
+		bool failed = false;
+
+		{
+			fsds::DynamicString str(english9);
+			str.replace(2, 4, english8);
+			std::cout << str << std::endl;
+			if(str != english7)
+			{
+				failed = true;
+			}
+		}
+
+		if(failed)
+		{
+			testsFailed.push_back(19);
+		}
+	}
+
+	if(testsFailed.size() == 0)
+	{
+		std::cout << "DynamicString passed all tests" << std::endl;
+	}
+	else
+	{
+		if(testsFailed.size() == 1)
+		{
+			std::cout << "DynamicString failed test " << testsFailed[0] << std::endl;
+		}
+		else
+		{
+			std::cout << "DynamicString failed tests ";
+			for(size_t i = 0; i < testsFailed.size() - 1; i++)
+			{
+				std::cout << testsFailed[i] << ", ";
+			}
+			std::cout << "and " << testsFailed[testsFailed.size()-1] << std::endl;
+		}
+	}
+}
+
 int main(int /*argc*/, const char** /*argv*/)
 {
 	testSPSCQueue();
@@ -1990,6 +3191,7 @@ int main(int /*argc*/, const char** /*argv*/)
 	testList();
 	testFastInsertList();
 	testStaticString();
+	testDynamicString();
 
 	return 0;
 }

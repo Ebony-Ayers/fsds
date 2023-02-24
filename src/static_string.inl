@@ -66,62 +66,6 @@ namespace fsds
 			}
 		}
 	}
-
-	// constexpr bool StaticString::firstCharacterEquality(const StaticString& str) const
-	// {
-	// 	size_t numCodePoints = this->numCodePointsInFirstCharacter();
-	// 	//if the number of code points are no equal then the two characters cannot be the same and functions as a safety check in the case of one string being a single character of lesser length thus overflowing the smaller string
-	// 	if(numCodePoints != str.numCodePointsInFirstCharacter())
-	// 	{
-	// 		return false;
-	// 	}
-	// 	//it is important not to say two emtry strings start with the first character for future use
-	// 	else if((numCodePoints == 0) || (str.isEmpty() == true))
-	// 	{
-	// 		return false;
-	// 	}
-	// 	else
-	// 	{
-	// 		for(size_t i = 0; i < numCodePoints; i++)
-	// 		{
-	// 			if(this->m_str[i] != str.data()[i])
-	// 			{
-	// 				return false;
-	// 			}
-	// 		}
-	// 		return true;
-	// 	}
-	// }
-
-	constexpr StaticString::firstCharacterEqualityWithLengthReturnType StaticString::firstCharacterEqualityWithLength(const StaticString& str, size_t codePointOffset) const
-	{
-		size_t numCodePoints = this->numCodePointsInFirstCharacter(codePointOffset);
-		//if the number of code points are no equal then the two characters cannot be the same and functions as a safety check in the case of one string being a single character of lesser length thus overflowing the smaller string
-		if(numCodePoints != str.numCodePointsInFirstCharacter())
-		{
-			StaticString::firstCharacterEqualityWithLengthReturnType result = {false, 0};
-			return result;
-		}
-		//it is important not to say two emtry strings start with the first character for future use
-		else if((numCodePoints == 0) || (str.isEmpty() == true))
-		{
-			StaticString::firstCharacterEqualityWithLengthReturnType result = {false, 0};
-			return result;
-		}
-		else
-		{
-			for(size_t i = 0; i < numCodePoints; i++)
-			{
-				if(this->m_str[codePointOffset + i] != str.data()[i])
-				{
-					StaticString::firstCharacterEqualityWithLengthReturnType result = {false, numCodePoints};
-					return result;
-				}
-			}
-			StaticString::firstCharacterEqualityWithLengthReturnType result = {true, numCodePoints};
-			return result;
-		}
-	}
 	
 	constexpr const StaticString* StaticStringItterator::str()
 	{

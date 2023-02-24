@@ -78,9 +78,6 @@ namespace fsds
 			constexpr size_t numCodePointsInFirstCharacter(size_t codePointOffset = 0) const;
 		
 		private:
-			//constexpr bool firstCharacterEquality(const StaticString& str) const;
-			struct firstCharacterEqualityWithLengthReturnType { bool result; size_t numCodePoints; };
-			constexpr StaticString::firstCharacterEqualityWithLengthReturnType firstCharacterEqualityWithLength(const StaticString& str, size_t codePointOffset = 0) const;
 
 			const CharT* m_str;
 			const size_t m_size;

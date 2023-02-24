@@ -71,6 +71,10 @@ namespace fsds
 			size_t findAnyCharacter(const StaticString& str) const;
 			DynamicStringItterator findAnyCharacterItterator(const DynamicString& str);
 			DynamicStringItterator findAnyCharacterItterator(const StaticString& str);
+			size_t findNotAnyCharacter(const DynamicString& str) const;
+			size_t findNotAnyCharacter(const StaticString& str) const;
+			DynamicStringItterator findNotAnyCharacterItterator(const DynamicString& str);
+			DynamicStringItterator findNotAnyCharacterItterator(const StaticString& str);
 
 			bool startsWith(const DynamicString& str) const;
 			bool startsWith(const StaticString& str) const;
@@ -94,23 +98,47 @@ namespace fsds
 
 	std::ostream& operator<<(std::ostream& os, const DynamicString& str);
 
+	// class DynamicStringItterator
+	// {
+	// 	public:
+	// 		DynamicStringItterator(DynamicString* sStr);
+	// 		DynamicStringItterator(DynamicString* sStr, const size_t& pos, const size_t& codePoint);
+	// 		DynamicStringItterator(DynamicString* sStr, const bool& isNPos);
+
+	// 		DynamicString get() const;
+	// 		void set(const DynamicString& character);
+
+	// 		bool next();
+	// 		bool previous();
+
+	// 		constexpr bool isNPos() const;
+		
+	// 	private:
+	// 		DynamicString* m_str;
+	// 		size_t m_pos;
+	// 		size_t m_chrIndex;
+	// };
+
 	class DynamicStringItterator
 	{
 		public:
-			DynamicStringItterator(DynamicString* sStr);
-			DynamicStringItterator(DynamicString* sStr, const size_t& pos, const size_t& codePoint);
-			DynamicStringItterator(DynamicString* sStr, const bool& isNPos);
+			DynamicStringItterator(const DynamicString* sStr);
+			DynamicStringItterator(const DynamicString* sStr, const size_t& pos, const size_t& codePoint);
+			DynamicStringItterator(const DynamicString* sStr, const bool& isNPos);
 
 			DynamicString get() const;
-			void set(const DynamicString& character);
 
 			bool next();
 			bool previous();
 
+			constexpr const DynamicString* str();
+			constexpr size_t currentPosition();
+			constexpr size_t currentCodePointOffset(); 
+
 			constexpr bool isNPos() const;
 		
 		private:
-			DynamicString* m_str;
+			const DynamicString* m_str;
 			size_t m_pos;
 			size_t m_chrIndex;
 	};

@@ -41,21 +41,26 @@ namespace fsds
 		}
 
 		template<typename T>
-		constexpr size_t codePointOffsetOfCharacterInString(const T* const str, const size_t& size, const size_t& pos, const size_t& codePointOffset)
+		constexpr size_t codePointOffsetOfCharacterInString(const T* const str, const size_t& size, const size_t& pos, const size_t& posOffset, const size_t& codePointOffset)
 		{
 			if(pos > size) [[unlikely]]
 			{
-				throw std::out_of_range("Index out of range");
+				throw std::out_of_range("utf8HelperFunctions::codePointOffsetOfCharacterInString Index out of range");
 			}
 			else
 			{
 				size_t internalCodePointOffset = codePointOffset;
-				for(size_t i = 0; i < pos; i++)
+				for(size_t i = posOffset; i < pos; i++)
 				{
 					internalCodePointOffset += fsds::utf8HelperFunctions::numCodePointsInFirstCharacter(str, internalCodePointOffset);
 				}
 				return internalCodePointOffset;
 			}
+		}
+		template<typename T>
+		constexpr size_t codePointOffsetOfCharacterInString(const T* const str, const size_t& size, const size_t& pos)
+		{
+			return codePointOffsetOfCharacterInString(str, size, pos, 0, 0);
 		}
 
 		template<typename T>
@@ -315,6 +320,50 @@ namespace fsds
 			}
 			return {npos, 0};
 		}
+		template<typename T>
+		constexpr IndexAndOffset findNotAnyCharacter(const T* const str1, const size_t& size1, const T* const str2, const size_t& size2, const size_t& npos)
+		{
+			size_t codePointOffset1 = 0;
+			for(size_t i = 0; i < size1; i++)
+			{
+				size_t numCodePoints1 = fsds::utf8HelperFunctions::numCodePointsInFirstCharacter(str1, codePointOffset1, npos);
+				
+				bool notInStr2 = true;
+				size_t codePointOffset2 = 0;
+				for(size_t j = 0; j < size2; j++)
+				{
+					size_t numCodePoints2 = fsds::utf8HelperFunctions::numCodePointsInFirstCharacter(str2, codePointOffset2, npos);
+					
+					if(numCodePoints1 == numCodePoints2) [[likely]]
+					{
+						bool foundMatch = true;
+						for(size_t k = 0; k < numCodePoints2; k++)
+						{
+							if(str1[codePointOffset1 + k] != str2[codePointOffset2 + k])
+							{
+								foundMatch = false;
+								break;
+							}
+						}
+						if(foundMatch)
+						{
+							notInStr2 = false;
+							break;
+						}
+					}
+
+					codePointOffset2 += numCodePoints2;
+				}
+
+				if(notInStr2)
+				{
+					return {i, codePointOffset1};
+				}
+
+				codePointOffset1 += numCodePoints1;
+			}
+			return {npos, 0};
+		}
 
 		template<typename T>
 		constexpr bool startsWith(const T* const str1, const size_t& size1, const T* const str2, const size_t& size2)
@@ -407,6 +456,21 @@ namespace fsds
 			std::copy(str1 + numCodePointsFirst1, str1 + numCodePointsTotal1, dest + numCodePointsFirst1 + numCodePoints2);
 			std::copy(str2, str2 + numCodePoints2, dest + numCodePointsFirst1);
 			std::copy(str1, str1 + numCodePointsFirst1, dest);
+		}
+		template<typename T>
+		constexpr void selfInsertReplace(T* str1, const size_t& size1, const T* const str2, const size_t& numCodePoints2, const size_t& blockTwoStart, const size_t& blockThreeStart)
+		{
+			const size_t blockTwoCodePointStart = fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(str1, size1, blockTwoStart);
+			const size_t blockThreeCodePointStart = fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(str1, size1, blockThreeStart, blockTwoStart, blockTwoCodePointStart);
+			const size_t blockThreeCodePointEnd = fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(str1, size1, size1, blockThreeStart, blockThreeCodePointStart);
+
+			size_t a1 = blockTwoCodePointStart;
+			size_t a2 = blockThreeCodePointEnd;
+			size_t a3 = numCodePoints2 + blockThreeCodePointEnd - (blockThreeCodePointStart - blockTwoCodePointStart);
+			//std::cout << blockTwoCodePointStart << " " << blockThreeCodePointStart << " " << (blockThreeCodePointStart - blockTwoCodePointStart) << std::endl;
+			std::copy_backward(str1 + blockThreeStart, str1 + blockThreeCodePointEnd, str1 + a3);
+			//std::copy_backward(str1 + blockThreeCodePointStart, str1 + blockThreeCodePointEnd, str1 + numCodePoints2 + blockThreeCodePointEnd);
+			std::copy(str2, str2 + numCodePoints2, str1 + blockTwoCodePointStart);
 		}
 	}
 }

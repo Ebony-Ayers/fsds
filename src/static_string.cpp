@@ -46,7 +46,7 @@ namespace fsds
 	DynamicString StaticString::mutableSubstr(const size_t& pos, const size_t& len) const
 	{
 		size_t codePointOffsetStart = fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(this->m_str, this->m_size, pos);
-		size_t codePointOffsetEnd = fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(this->m_str, this->m_size, pos, codePointOffsetStart);
+		size_t codePointOffsetEnd = fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(this->m_str, this->m_size, this->m_size, pos, codePointOffsetStart);
 		DynamicString result = DynamicString(len, codePointOffsetEnd - codePointOffsetStart);
 		std::copy(this->m_str + codePointOffsetStart, this->m_str + codePointOffsetEnd, result.data());
 		return result;
@@ -235,6 +235,66 @@ namespace fsds
 		else
 		{
 			auto result = fsds::utf8HelperFunctions::findAnyCharacter(this->m_str, this->m_size, str.data(), str.size(), StaticString::npos);
+			if(result.index == StaticString::npos)
+			{
+				return StaticStringItterator(this, true);
+			}
+			else
+			{
+				return StaticStringItterator(this, result.index, result.codePointOffset);
+			}
+		}
+	}
+	size_t StaticString::findNotAnyCharacter(const StaticString& str) const
+	{
+		if(str.size() == 0) [[unlikely]]
+		{
+			return StaticString::npos;
+		}
+		else
+		{
+			return fsds::utf8HelperFunctions::findNotAnyCharacter(this->m_str, this->m_size, str.data(), str.size(), StaticString::npos).index;
+		}
+	}
+	size_t StaticString::findNotAnyCharacter(const DynamicString& str) const
+	{
+		if(str.size() == 0) [[unlikely]]
+		{
+			return StaticString::npos;
+		}
+		else
+		{
+			return fsds::utf8HelperFunctions::findNotAnyCharacter(this->m_str, this->m_size, str.data(), str.size(), StaticString::npos).index;
+		}
+	}
+	StaticStringItterator StaticString::findNotAnyCharacterItterator(const StaticString& str) const
+	{
+		if(str.size() == 0) [[unlikely]]
+		{
+			return StaticStringItterator(this, true);
+		}
+		else
+		{
+			auto result = fsds::utf8HelperFunctions::findNotAnyCharacter(this->m_str, this->m_size, str.data(), str.size(), StaticString::npos);
+			if(result.index == StaticString::npos)
+			{
+				return StaticStringItterator(this, true);
+			}
+			else
+			{
+				return StaticStringItterator(this, result.index, result.codePointOffset);
+			}
+		}
+	}
+	StaticStringItterator StaticString::findNotAnyCharacterItterator(const DynamicString& str) const
+	{
+		if(str.size() == 0) [[unlikely]]
+		{
+			return StaticStringItterator(this, true);
+		}
+		else
+		{
+			auto result = fsds::utf8HelperFunctions::findNotAnyCharacter(this->m_str, this->m_size, str.data(), str.size(), StaticString::npos);
 			if(result.index == StaticString::npos)
 			{
 				return StaticStringItterator(this, true);
