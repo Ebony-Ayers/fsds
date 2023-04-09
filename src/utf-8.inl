@@ -458,18 +458,10 @@ namespace fsds
 			std::copy(str1, str1 + numCodePointsFirst1, dest);
 		}
 		template<typename T>
-		constexpr void selfInsertReplace(T* str1, const size_t& size1, const T* const str2, const size_t& numCodePoints2, const size_t& blockTwoStart, const size_t& blockThreeStart)
+		constexpr void selfInsertReplace(T* str1, const size_t& numCodePoints1, const T* const str2, const size_t& numCodePoints2, const size_t& blockTwoCodePointStart, const size_t& blockThreeCodePointStart)
 		{
-			const size_t blockTwoCodePointStart = fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(str1, size1, blockTwoStart);
-			const size_t blockThreeCodePointStart = fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(str1, size1, blockThreeStart, blockTwoStart, blockTwoCodePointStart);
-			const size_t blockThreeCodePointEnd = fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(str1, size1, size1, blockThreeStart, blockThreeCodePointStart);
-
-			size_t a1 = blockTwoCodePointStart;
-			size_t a2 = blockThreeCodePointEnd;
-			size_t a3 = numCodePoints2 + blockThreeCodePointEnd - (blockThreeCodePointStart - blockTwoCodePointStart);
-			//std::cout << blockTwoCodePointStart << " " << blockThreeCodePointStart << " " << (blockThreeCodePointStart - blockTwoCodePointStart) << std::endl;
-			std::copy_backward(str1 + blockThreeStart, str1 + blockThreeCodePointEnd, str1 + a3);
-			//std::copy_backward(str1 + blockThreeCodePointStart, str1 + blockThreeCodePointEnd, str1 + numCodePoints2 + blockThreeCodePointEnd);
+			const size_t newStrEnd = blockTwoCodePointStart + numCodePoints2 + (numCodePoints1 - blockThreeCodePointStart);
+			std::copy_backward(str1 + blockThreeCodePointStart, str1 + numCodePoints1, str1 + newStrEnd);
 			std::copy(str2, str2 + numCodePoints2, str1 + blockTwoCodePointStart);
 		}
 	}

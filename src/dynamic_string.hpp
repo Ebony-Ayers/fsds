@@ -97,27 +97,7 @@ namespace fsds
 	bool operator!=(const DynamicString& lhs, const StaticString& rhs);
 
 	std::ostream& operator<<(std::ostream& os, const DynamicString& str);
-
-	// class DynamicStringItterator
-	// {
-	// 	public:
-	// 		DynamicStringItterator(DynamicString* sStr);
-	// 		DynamicStringItterator(DynamicString* sStr, const size_t& pos, const size_t& codePoint);
-	// 		DynamicStringItterator(DynamicString* sStr, const bool& isNPos);
-
-	// 		DynamicString get() const;
-	// 		void set(const DynamicString& character);
-
-	// 		bool next();
-	// 		bool previous();
-
-	// 		constexpr bool isNPos() const;
-		
-	// 	private:
-	// 		DynamicString* m_str;
-	// 		size_t m_pos;
-	// 		size_t m_chrIndex;
-	// };
+	
 
 	class DynamicStringItterator
 	{

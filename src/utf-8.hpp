@@ -43,7 +43,7 @@ namespace fsds
 		template<typename T>
 		constexpr void insert(const T* const str1, const size_t& numCodePointsFirst1, const size_t& numCodePointsTotal1, const T* const str2, const size_t& numCodePoints2, T* dest);
 		template<typename T>
-		constexpr void selfInsertReplace(T* str1, const size_t& size1, const T* const str2, const size_t& numCodePoints2, const size_t& blockTwoStart, const size_t& blockThreeStart);
+		constexpr void selfInsertReplace(T* str1, const size_t& numCodePoints1, const T* const str2, const size_t& numCodePoints2, const size_t& blockTwoCodePointStart, const size_t& blockThreeCodePointStart);
 	};
 }
 

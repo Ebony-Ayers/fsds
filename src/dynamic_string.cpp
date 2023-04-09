@@ -188,17 +188,21 @@ namespace fsds
 
 	DynamicString& DynamicString::insert(size_t pos, const DynamicString& str)
 	{
+		const size_t posCodePointOffset= utf8HelperFunctions::codePointOffsetOfCharacterInString(this->m_str, this->m_size, pos);
+		const size_t previousCapacity = this->m_capacity;
 		this->reallocate(this->m_capacity + str.numCodePointsInString());
-		fsds::utf8HelperFunctions::selfInsertReplace(this->m_str, this->m_size, str.data(), str.numCodePointsInString(), pos, pos);
+		fsds::utf8HelperFunctions::selfInsertReplace(this->m_str, previousCapacity, str.data(), str.numCodePointsInString(), posCodePointOffset, posCodePointOffset);
 		this->m_size += str.size();
 
 		return *this;
 	}
 	DynamicString& DynamicString::insert(size_t pos, const StaticString& str)
 	{
-		auto nunCodePointsInStr = str.numCodePointsInString();
+		const size_t posCodePointOffset= utf8HelperFunctions::codePointOffsetOfCharacterInString(this->m_str, this->m_size, pos);
+		const size_t nunCodePointsInStr = str.numCodePointsInString();
+		const size_t previousCapacity = this->m_capacity;
 		this->reallocate(this->m_capacity + nunCodePointsInStr);
-		fsds::utf8HelperFunctions::selfInsertReplace(this->m_str, this->m_size, str.data(), nunCodePointsInStr, pos, pos);
+		fsds::utf8HelperFunctions::selfInsertReplace(this->m_str, previousCapacity, str.data(), nunCodePointsInStr, posCodePointOffset, posCodePointOffset);
 		this->m_size += str.size();
 
 		return *this;
@@ -206,175 +210,80 @@ namespace fsds
 
 	DynamicString& DynamicString::replace(size_t start, size_t end, const DynamicString& str)
 	{
-		size_t codePointOffsetStart = fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(this->m_str, this->m_size, start);
-		size_t codePointOffsetEnd = fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(this->m_str, this->m_size, end, start, codePointOffsetStart);
-		size_t newCapacity = (this->m_capacity + str.numCodePointsInString()) - (codePointOffsetEnd - codePointOffsetStart);
+		const size_t codePointOffsetStart = fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(this->m_str, this->m_size, start);
+		const size_t codePointOffsetEnd = fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(this->m_str, this->m_size, end, start, codePointOffsetStart);
+		const size_t newCapacity = (this->m_capacity + str.numCodePointsInString()) - (codePointOffsetEnd - codePointOffsetStart);
 
+		const size_t previousCapacity = this->m_capacity;
 		if(newCapacity > this->m_capacity)
 		{
 			this->reallocate(newCapacity);
 		}
-		fsds::utf8HelperFunctions::selfInsertReplace(this->m_str, this->m_size, str.data(), str.numCodePointsInString(), start, end);
+		fsds::utf8HelperFunctions::selfInsertReplace(this->m_str, previousCapacity, str.data(), str.numCodePointsInString(), codePointOffsetStart, codePointOffsetEnd);
 		this->m_size += str.size();
 		this->m_size -= end - start;
+		if(newCapacity < this->m_capacity)
+		{
+			this->reallocate(newCapacity);
+		}
 		
 		return *this;
 	}
 	DynamicString& DynamicString::replace(size_t start, size_t end, const StaticString& str)
 	{
-		auto nunCodePointsInStr = str.numCodePointsInString();
-		size_t codePointOffsetStart = 0;
-		size_t i;
-		for(i = 0; i < start; i++)
-		{
-			codePointOffsetStart += this->numCodePointsInFirstCharacter(codePointOffsetStart);
-		}
-		size_t codePointOffsetEnd = codePointOffsetStart;
-		for(; i < end; i++)
-		{
-			codePointOffsetEnd += this->numCodePointsInFirstCharacter(codePointOffsetEnd);
-		}
+		const size_t nunCodePointsInStr = str.numCodePointsInString();
+		const size_t codePointOffsetStart = fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(this->m_str, this->m_size, start);
+		const size_t codePointOffsetEnd = fsds::utf8HelperFunctions::codePointOffsetOfCharacterInString(this->m_str, this->m_size, end, start, codePointOffsetStart);
+		const size_t newCapacity = (this->m_capacity + nunCodePointsInStr) - (codePointOffsetEnd - codePointOffsetStart);
 
-		if(this->m_capacity + nunCodePointsInStr > this->m_capacity) [[unlikely]]
+		const size_t previousCapacity = this->m_capacity;
+		if(newCapacity > this->m_capacity)
 		{
-			this->reallocate((this->m_capacity + nunCodePointsInStr) * 2);
+			this->reallocate(newCapacity);
 		}
-
-		std::copy(this->m_str + codePointOffsetEnd, this->m_str + this->m_capacity, this->m_str + codePointOffsetStart + str.numCodePointsInString());
-		std::copy(str.data(), str.data() + nunCodePointsInStr, this->m_str + codePointOffsetStart);
-		
-		this->m_size -= end - start;
+		fsds::utf8HelperFunctions::selfInsertReplace(this->m_str, previousCapacity, str.data(), nunCodePointsInStr, codePointOffsetStart, codePointOffsetEnd);
 		this->m_size += str.size();
-		this->m_capacity -= codePointOffsetEnd - codePointOffsetStart;
-		this->m_capacity += nunCodePointsInStr;
+		this->m_size -= end - start;
+		if(newCapacity < this->m_capacity)
+		{
+			this->reallocate(newCapacity);
+		}
 		
 		return *this;
 	}
 	DynamicString& DynamicString::replace(const DynamicString& oldStr, const DynamicString& newStr)
 	{
-		for(size_t i = this->m_size - oldStr.size(); i < this->m_size; i--)
-		{
-			size_t codePointOffset = 0;
-			for(size_t j = 0; j < i; j++)
-			{
-				codePointOffset += this->numCodePointsInFirstCharacter(codePointOffset);
-			}
+		const size_t start = this->find(oldStr);
+		const size_t end = start + oldStr.size();
 
-			StaticString sStr(this->m_str + codePointOffset, oldStr.size());
-
-			if(oldStr == sStr)
-			{
-				if((this->m_capacity + newStr.numCodePointsInString()) - oldStr.numCodePointsInString() >= this->m_capacity) [[unlikely]]
-				{
-					this->reallocate(((this->m_capacity + newStr.numCodePointsInString()) - oldStr.numCodePointsInString()) * 2);
-				}
-				
-				std::copy(this->m_str + codePointOffset + oldStr.numCodePointsInString(), this->m_str + this->m_capacity, this->m_str + codePointOffset + newStr.numCodePointsInString());
-				std::copy(newStr.data(), newStr.data() + newStr.numCodePointsInString(), this->m_str + codePointOffset);
-				this->m_capacity -= oldStr.numCodePointsInString();
-				this->m_capacity += newStr.numCodePointsInString();
-				this->m_size -= oldStr.size();
-				this->m_size += newStr.size();
-				std::cout << "replace " << i << std::endl;
-			}
-		}
+		this->replace(start, end, newStr);
 		
 		return *this;
 	}
 	DynamicString& DynamicString::replace(const DynamicString& oldStr, const StaticString& newStr)
 	{
-		auto nunCodePointsInNewStr = newStr.numCodePointsInString();
-		for(size_t i = this->m_size - oldStr.size(); i < this->m_size; i--)
-		{
-			size_t codePointOffset = 0;
-			for(size_t j = 0; j < i; j++)
-			{
-				codePointOffset += this->numCodePointsInFirstCharacter(codePointOffset);
-			}
+		const size_t start = this->find(oldStr);
+		const size_t end = start + oldStr.size();
 
-			StaticString sStr(this->m_str + codePointOffset, oldStr.size());
-
-			if(oldStr == sStr)
-			{
-				if((this->m_capacity + nunCodePointsInNewStr) - oldStr.numCodePointsInString() >= this->m_capacity) [[unlikely]]
-				{
-					this->reallocate(((this->m_capacity + nunCodePointsInNewStr) - oldStr.numCodePointsInString()) * 2);
-				}
-				
-				std::copy(this->m_str + codePointOffset + oldStr.numCodePointsInString(), this->m_str + this->m_capacity, this->m_str + codePointOffset + newStr.numCodePointsInString());
-				std::copy(newStr.data(), newStr.data() + nunCodePointsInNewStr, this->m_str + codePointOffset);
-				this->m_capacity -= oldStr.numCodePointsInString();
-				this->m_capacity += nunCodePointsInNewStr;
-				this->m_size -= oldStr.size();
-				this->m_size += newStr.size();
-				std::cout << "replace " << i << std::endl;
-			}
-		}
+		this->replace(start, end, newStr);
 		
 		return *this;
 	}
 	DynamicString& DynamicString::replace(const StaticString& oldStr, const DynamicString& newStr)
 	{
-		auto nunCodePointsInOldStr = oldStr.numCodePointsInString();
-		for(size_t i = this->m_size - oldStr.size(); i < this->m_size; i--)
-		{
-			size_t codePointOffset = 0;
-			for(size_t j = 0; j < i; j++)
-			{
-				codePointOffset += this->numCodePointsInFirstCharacter(codePointOffset);
-			}
+		const size_t start = this->find(oldStr);
+		const size_t end = start + oldStr.size();
 
-			StaticString sStr(this->m_str + codePointOffset, oldStr.size());
-
-			if(oldStr == sStr)
-			{
-				if((this->m_capacity + newStr.numCodePointsInString()) - nunCodePointsInOldStr >= this->m_capacity) [[unlikely]]
-				{
-					this->reallocate(((this->m_capacity + newStr.numCodePointsInString()) - nunCodePointsInOldStr) * 2);
-				}
-				
-				std::copy(this->m_str + codePointOffset + nunCodePointsInOldStr, this->m_str + this->m_capacity, this->m_str + codePointOffset + newStr.numCodePointsInString());
-				std::copy(newStr.data(), newStr.data() + newStr.numCodePointsInString(), this->m_str + codePointOffset);
-				this->m_capacity -= nunCodePointsInOldStr;
-				this->m_capacity += newStr.numCodePointsInString();
-				this->m_size -= oldStr.size();
-				this->m_size += newStr.size();
-				std::cout << "replace " << i << std::endl;
-			}
-		}
+		this->replace(start, end, newStr);
 		
 		return *this;
 	}
 	DynamicString& DynamicString::replace(const StaticString& oldStr, const StaticString& newStr)
 	{
-		auto nunCodePointsInOldStr = oldStr.numCodePointsInString();
-		auto nunCodePointsInNewStr = newStr.numCodePointsInString();
-		for(size_t i = this->m_size - oldStr.size(); i < this->m_size; i--)
-		{
-			size_t codePointOffset = 0;
-			for(size_t j = 0; j < i; j++)
-			{
-				codePointOffset += this->numCodePointsInFirstCharacter(codePointOffset);
-			}
+		const size_t start = this->find(oldStr);
+		const size_t end = start + oldStr.size();
 
-			StaticString sStr(this->m_str + codePointOffset, oldStr.size());
-
-			if(oldStr == sStr)
-			{
-				if((this->m_capacity + nunCodePointsInNewStr) - nunCodePointsInOldStr >= this->m_capacity) [[unlikely]]
-				{
-					this->reallocate(((this->m_capacity + nunCodePointsInNewStr) - nunCodePointsInOldStr) * 2);
-				}
-				
-				std::copy(this->m_str + codePointOffset + nunCodePointsInOldStr, this->m_str + this->m_capacity, this->m_str + codePointOffset + newStr.numCodePointsInString());
-				std::copy(newStr.data(), newStr.data() + nunCodePointsInNewStr, this->m_str + codePointOffset);
-				this->m_capacity -= nunCodePointsInOldStr;
-				this->m_capacity += nunCodePointsInNewStr;
-				this->m_size -= oldStr.size();
-				this->m_size += newStr.size();
-				std::cout << "replace " << i << std::endl;
-			}
-		}
+		this->replace(start, end, newStr);
 		
 		return *this;
 	}
@@ -648,29 +557,6 @@ namespace fsds
 
 
 
-	// DynamicStringItterator::DynamicStringItterator(DynamicString* sStr)
-	// : m_str(sStr), m_pos(0), m_chrIndex(0)
-	// {}
-	// DynamicStringItterator::DynamicStringItterator(DynamicString* sStr, const size_t& pos, const size_t& codePoint)
-	// : m_str(sStr), m_pos(pos), m_chrIndex(codePoint)
-	// {}
-	// DynamicStringItterator::DynamicStringItterator(DynamicString* sStr, const bool& isNPos)
-	// : m_str(sStr), m_pos(0), m_chrIndex(0)
-	// {
-	// 	if(isNPos)
-	// 	{
-	// 		this->m_pos = DynamicString::npos;
-	// 	}
-	// }
-
-	// DynamicString DynamicStringItterator::get() const
-	// {
-	// 	return DynamicString(m_str->data() + this->m_pos, 1);
-	// }
-	// void DynamicStringItterator::set(const DynamicString& character)
-	// {
-	// 	this->m_str->set(this->m_chrIndex, character);
-	// }
 
 	DynamicStringItterator::DynamicStringItterator(const DynamicString* sStr)
 	: m_str(sStr), m_pos(0), m_chrIndex(0)

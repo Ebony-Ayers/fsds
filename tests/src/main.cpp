@@ -2152,6 +2152,7 @@ void testDynamicString()
 	const char* baseStringEnglish9 = "aabbaa";
 	const char* baseStringEnglish10 = "bbaaaa";
 	const char* baseStringEnglish11 = "aaaabb";
+	const char* baseStringEnglish12 = "aaaaaaaa";
 	//russian has two code points per character
 	const char* baseStringRussian1 = "утф-8 очень раздражает";
 	const char* baseStringRussian2 = "е";
@@ -2164,6 +2165,7 @@ void testDynamicString()
 	const char* baseStringRussian9 = "аавваа";
 	const char* baseStringRussian10 = "вваааа";
 	const char* baseStringRussian11 = "аааавв";
+	const char* baseStringRussian12 = "аааааааа";
 	//chinese has 3+ code points per character
 	const char* baseStringChinese1 = "希望这被正确翻译";
 	const char* baseStringChinese2 = "翻";
@@ -2176,6 +2178,7 @@ void testDynamicString()
 	const char* baseStringChinese9 = "希希被被希希";
 	const char* baseStringChinese10 = "被被希希希希";
 	const char* baseStringChinese11 = "希希希希被被";
+	const char* baseStringChinese12 = "希希希希希希希希";
 	//mixed language strings with various numbers of code points per character
 	const char* baseStringMixed1 = "this не 说得通";
 	const char* baseStringMixed2 = "得";
@@ -2200,6 +2203,7 @@ void testDynamicString()
 	fsds::DynamicString english9(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringEnglish9), 6);
 	fsds::DynamicString english10(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringEnglish10), 6);
 	fsds::DynamicString english11(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringEnglish11), 6);
+	fsds::DynamicString english12(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringEnglish12), 8);
 	fsds::DynamicString russian1(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringRussian1), 22);
 	fsds::DynamicString russian2(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringRussian2), 1);
 	fsds::DynamicString russian3(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringRussian3), 5);
@@ -2211,6 +2215,7 @@ void testDynamicString()
 	fsds::DynamicString russian9(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringRussian9), 6);
 	fsds::DynamicString russian10(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringRussian10), 6);
 	fsds::DynamicString russian11(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringRussian11), 6);
+	fsds::DynamicString russian12(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringRussian12), 8);
 	fsds::DynamicString chinese1(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringChinese1), 8);
 	fsds::DynamicString chinese2(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringChinese2), 1);
 	fsds::DynamicString chinese3(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringChinese3), 2);
@@ -2222,6 +2227,7 @@ void testDynamicString()
 	fsds::DynamicString chinese9(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringChinese9), 6);
 	fsds::DynamicString chinese10(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringChinese10), 6);
 	fsds::DynamicString chinese11(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringChinese11), 6);
+	fsds::DynamicString chinese12(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringChinese12), 8);
 	fsds::DynamicString mixed1(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringMixed1), 11);
 	fsds::DynamicString mixed2(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringMixed2), 1);
 	fsds::DynamicString mixed3(reinterpret_cast<const fsds::DynamicString::CharT*>(baseStringMixed3), 6);
@@ -3143,14 +3149,152 @@ void testDynamicString()
 		}
 	}
 
+	//test 19: replace start end
 	{
 		bool failed = false;
 
 		{
 			fsds::DynamicString str(english9);
-			str.replace(2, 4, english8);
-			std::cout << str << std::endl;
-			if(str != english7)
+			str.replace(2, 4, empty);
+			if((str != english7) || (str.size() != 4) || (str.numCodePointsInString() != 4))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(english10);
+			str.replace(0, 2, empty);
+			if((str != english7) || (str.size() != 4) || (str.numCodePointsInString() != 4))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(english11);
+			str.replace(4, 6, empty);
+			if((str != english7) || (str.size() != 4) || (str.numCodePointsInString() != 4))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(english9);
+			str.replace(2, 4, english7);
+			if((str != english12) || (str.size() != 8) || (str.numCodePointsInString() != 8))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(english10);
+			str.replace(0, 2, english7);
+			if((str != english12) || (str.size() != 8) || (str.numCodePointsInString() != 8))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(english11);
+			str.replace(4, 6, english7);
+			if((str != english12) || (str.size() != 8) || (str.numCodePointsInString() != 8))
+			{
+				failed = true;
+			}
+		}
+
+		{
+			fsds::DynamicString str(russian9);
+			str.replace(2, 4, empty);
+			if((str != russian7) || (str.size() != 4) || (str.numCodePointsInString() != 8))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(russian10);
+			str.replace(0, 2, empty);
+			if((str != russian7) || (str.size() != 4) || (str.numCodePointsInString() != 8))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(russian11);
+			str.replace(4, 6, empty);
+			if((str != russian7) || (str.size() != 4) || (str.numCodePointsInString() != 8))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(russian9);
+			str.replace(2, 4, russian7);
+			if((str != russian12) || (str.size() != 8) || (str.numCodePointsInString() != 16))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(russian10);
+			str.replace(0, 2, russian7);
+			if((str != russian12) || (str.size() != 8) || (str.numCodePointsInString() != 16))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(russian11);
+			str.replace(4, 6, russian7);
+			if((str != russian12) || (str.size() != 8) || (str.numCodePointsInString() != 16))
+			{
+				failed = true;
+			}
+		}
+
+		{
+			fsds::DynamicString str(chinese9);
+			str.replace(2, 4, empty);
+			if((str != chinese7) || (str.size() != 4) || (str.numCodePointsInString() != 12) )
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(chinese10);
+			str.replace(0, 2, empty);
+			if((str != chinese7) || (str.size() != 4) || (str.numCodePointsInString() != 12))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(chinese11);
+			str.replace(4, 6, empty);
+			if((str != chinese7) || (str.size() != 4) || (str.numCodePointsInString() != 12))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(chinese9);
+			str.replace(2, 4, chinese7);
+			if((str != chinese12) || (str.size() != 8) || (str.numCodePointsInString() != 24))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(chinese10);
+			str.replace(0, 2, chinese7);
+			if((str != chinese12) || (str.size() != 8) || (str.numCodePointsInString() != 24))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(chinese11);
+			str.replace(4, 6, chinese7);
+			if((str != chinese12) || (str.size() != 8) || (str.numCodePointsInString() != 24))
 			{
 				failed = true;
 			}
@@ -3159,6 +3303,41 @@ void testDynamicString()
 		if(failed)
 		{
 			testsFailed.push_back(19);
+		}
+	}
+
+	//test 20: replace old new
+	{
+		bool failed = false;
+
+		{
+			fsds::DynamicString str(english9);
+			str.replace(english8, empty);
+			if((str != english7) || (str.size() != 4) || (str.numCodePointsInString() != 4))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(russian9);
+			str.replace(russian8, empty);
+			if((str != russian7) || (str.size() != 4) || (str.numCodePointsInString() != 8))
+			{
+				failed = true;
+			}
+		}
+		{
+			fsds::DynamicString str(chinese9);
+			str.replace(chinese8, empty);
+			if((str != chinese7) || (str.size() != 4) || (str.numCodePointsInString() != 12))
+			{
+				failed = true;
+			}
+		}
+
+		if(failed)
+		{
+			testsFailed.push_back(20);
 		}
 	}
 
