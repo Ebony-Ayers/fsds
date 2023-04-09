@@ -79,15 +79,15 @@ namespace fsds
 	}
 
 	
-	constexpr const DynamicString* DynamicStringItterator::str()
+	constexpr const DynamicString* DynamicStringItterator::str() const
 	{
 		return this->m_str;
 	}
-	constexpr size_t DynamicStringItterator::currentPosition()
+	constexpr size_t DynamicStringItterator::currentPosition() const
 	{
 		return this->m_pos;
 	}
-	constexpr size_t DynamicStringItterator::currentCodePointOffset()
+	constexpr size_t DynamicStringItterator::currentCodePointOffset() const
 	{
 		return this->m_chrIndex;
 	} 

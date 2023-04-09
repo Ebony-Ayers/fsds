@@ -450,4 +450,40 @@ namespace fsds
 			return false;
 		}
 	}
+
+	StaticString StaticStringItterator::operator*() const
+	{
+		return this->get();
+	}
+	StaticString StaticStringItterator::operator++()
+	{
+		this->next();
+		return this->get();
+	}
+	StaticString StaticStringItterator::operator++(int)
+	{
+		StaticString result = this->get();
+		this->next();
+		return result;
+	}
+	StaticStringItterator& StaticStringItterator::operator=(const StaticStringItterator& other)
+	{
+		this->m_str = other.m_str;
+		this->m_pos = other.m_pos;
+		this->m_chrIndex = other.m_chrIndex;
+
+		return *this;
+	}
+	StaticStringItterator::StaticStringItterator(const StaticStringItterator& other)
+	: m_str(other.m_str), m_pos(other.m_pos), m_chrIndex(other.m_chrIndex)
+	{}
+
+	bool operator==(const StaticStringItterator& lhs, const StaticStringItterator& rhs)
+	{
+		return (lhs.str() == rhs.str()) && (lhs.currentPosition() == rhs.currentPosition()) && (lhs.currentCodePointOffset() == rhs.currentCodePointOffset());
+	}
+	bool operator!=(const StaticStringItterator& lhs, const StaticStringItterator& rhs)
+	{
+		return !(lhs == rhs);
+	}
 }

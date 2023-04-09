@@ -67,15 +67,15 @@ namespace fsds
 		}
 	}
 	
-	constexpr const StaticString* StaticStringItterator::str()
+	constexpr const StaticString* StaticStringItterator::str() const
 	{
 		return this->m_str;
 	}
-	constexpr size_t StaticStringItterator::currentPosition()
+	constexpr size_t StaticStringItterator::currentPosition() const
 	{
 		return this->m_pos;
 	}
-	constexpr size_t StaticStringItterator::currentCodePointOffset()
+	constexpr size_t StaticStringItterator::currentCodePointOffset() const
 	{
 		return this->m_chrIndex;
 	} 

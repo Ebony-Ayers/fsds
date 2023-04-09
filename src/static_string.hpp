@@ -104,17 +104,27 @@ namespace fsds
 			bool next();
 			bool previous();
 
-			constexpr const StaticString* str();
-			constexpr size_t currentPosition();
-			constexpr size_t currentCodePointOffset(); 
+			constexpr const StaticString* str() const;
+			constexpr size_t currentPosition() const;
+			constexpr size_t currentCodePointOffset() const; 
 
 			constexpr bool isNPos() const;
+
+			//standard iterator complaince
+			StaticString operator*() const;
+			StaticString operator++();
+			StaticString operator++(int);
+			StaticStringItterator& operator=(const StaticStringItterator& other);
+			StaticStringItterator(const StaticStringItterator& other);
 		
 		private:
 			const StaticString* m_str;
 			size_t m_pos;
 			size_t m_chrIndex;
 	};
+
+	bool operator==(const StaticStringItterator& lhs, const StaticStringItterator& rhs);
+	bool operator!=(const StaticStringItterator& lhs, const StaticStringItterator& rhs);
 }
 
 #include "static_string.inl"

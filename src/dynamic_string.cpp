@@ -628,4 +628,41 @@ namespace fsds
 			return false;
 		}
 	}
+
+
+	DynamicString DynamicStringItterator::operator*() const
+	{
+		return this->get();
+	}
+	DynamicString DynamicStringItterator::operator++()
+	{
+		this->next();
+		return this->get();
+	}
+	DynamicString DynamicStringItterator::operator++(int)
+	{
+		DynamicString result = this->get();
+		this->next();
+		return result;
+	}
+	DynamicStringItterator& DynamicStringItterator::operator=(const DynamicStringItterator& other)
+	{
+		this->m_str = other.m_str;
+		this->m_pos = other.m_pos;
+		this->m_chrIndex = other.m_chrIndex;
+
+		return *this;
+	}
+	DynamicStringItterator::DynamicStringItterator(const DynamicStringItterator& other)
+	: m_str(other.m_str), m_pos(other.m_pos), m_chrIndex(other.m_chrIndex)
+	{}
+
+	bool operator==(const DynamicStringItterator& lhs, const DynamicStringItterator& rhs)
+	{
+		return (lhs.str() == rhs.str()) && (lhs.currentPosition() == rhs.currentPosition()) && (lhs.currentCodePointOffset() == rhs.currentCodePointOffset());
+	}
+	bool operator!=(const DynamicStringItterator& lhs, const DynamicStringItterator& rhs)
+	{
+		return !(lhs == rhs);
+	}
 }

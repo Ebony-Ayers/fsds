@@ -97,7 +97,7 @@ namespace fsds
 	bool operator!=(const DynamicString& lhs, const StaticString& rhs);
 
 	std::ostream& operator<<(std::ostream& os, const DynamicString& str);
-	
+
 
 	class DynamicStringItterator
 	{
@@ -111,17 +111,27 @@ namespace fsds
 			bool next();
 			bool previous();
 
-			constexpr const DynamicString* str();
-			constexpr size_t currentPosition();
-			constexpr size_t currentCodePointOffset(); 
+			constexpr const DynamicString* str() const;
+			constexpr size_t currentPosition() const;
+			constexpr size_t currentCodePointOffset() const; 
 
 			constexpr bool isNPos() const;
+
+			//standard iterator complaince
+			DynamicString operator*() const;
+			DynamicString operator++();
+			DynamicString operator++(int);
+			DynamicStringItterator& operator=(const DynamicStringItterator& other);
+			DynamicStringItterator(const DynamicStringItterator& other);
 		
 		private:
 			const DynamicString* m_str;
 			size_t m_pos;
 			size_t m_chrIndex;
 	};
+
+	bool operator==(const DynamicStringItterator& lhs, const DynamicStringItterator& rhs);
+	bool operator!=(const DynamicStringItterator& lhs, const DynamicStringItterator& rhs);
 }
 
 
