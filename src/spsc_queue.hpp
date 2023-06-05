@@ -1,6 +1,7 @@
 #ifndef SPSC_QUEUE_HPP_HEADER_GUARD
 #define SPSC_QUEUE_HPP_HEADER_GUARD
 #include "fsds_options.hpp"
+#include "pch.hpp"
 
 namespace fsds
 {

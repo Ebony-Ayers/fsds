@@ -1,6 +1,7 @@
 #ifndef LIST_HPP_HEADER_GUARD
 #define LIST_HPP_HEADER_GUARD
 #include "fsds_options.hpp"
+#include "pch.hpp"
 
 #include <iterator>
 #include <algorithm>

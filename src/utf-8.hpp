@@ -1,6 +1,7 @@
 #ifndef UTF8_HEADER_GUARD
 #define UTF8_HEADER_GUARD
 #include "fsds_options.hpp"
+#include "pch.hpp"
 
 #include <iostream>
 

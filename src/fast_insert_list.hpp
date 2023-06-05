@@ -1,6 +1,7 @@
 #ifndef FAST_INSERT_LIST_HPP_HEADER_GUARD
 #define FAST_INSERT_LIST_HPP_HEADER_GUARD
 #include "fsds_options.hpp"
+#include "pch.hpp"
 
 #include "list.hpp"
 

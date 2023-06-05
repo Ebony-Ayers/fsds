@@ -1,6 +1,7 @@
 #ifndef FINITE_PQUEUE_HPP_HEADER_GUARD
 #define FINITE_PQUEUE_HPP_HEADER_GUARD
 #include "fsds_options.hpp"
+#include "pch.hpp"
 
 #include <array>
 #include "list.hpp"

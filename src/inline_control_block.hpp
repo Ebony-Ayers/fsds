@@ -1,6 +1,7 @@
 #ifndef INLINE_CONTROL_BLOCK_HPP_HEADER_GUARD
 #define INLINE_CONTROL_BLOCK_HPP_HEADER_GUARD
 #include "fsds_options.hpp"
+#include "pch.hpp"
 
 #if defined(FSDS_COMPILER_CLANG)
     #define ALIGN_MEMBER_PREFIX(n)

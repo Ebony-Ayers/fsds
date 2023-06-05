@@ -1,6 +1,7 @@
 #ifndef MPSC_QUEUE_HPP_HEADER_GUARD
 #define MPSC_QUEUE_HPP_HEADER_GUARD
 #include "fsds_options.hpp"
+#include "pch.hpp"
 
 #include "queue_block.hpp"
 

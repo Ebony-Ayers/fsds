@@ -1,6 +1,7 @@
 #ifndef ALIGNED_ALLOCATOR_HPP_HEADER_GUARD
 #define ALIGNED_ALLOCATOR_HPP_HEADER_GUARD
 #include "fsds_options.hpp"
+#include "pch.hpp"
 
 #include <memory>
 
