@@ -166,6 +166,27 @@ namespace fsds
 	}
 
 	template<typename T, typename Allocator>
+	constexpr void ts_List<T, Allocator>::deepCopy(ts_List<T, Allocator>& dest) const
+	{
+		FTS_READ_WRITE_READ_LOCKGUARD_1(&this->m_lock);
+		FTS_READ_WRITE_WRITE_LOCKGUARD(&dest.m_lock);
+		this->m_list.deepCopy(dest);
+	}
+
+	template<typename T, typename Allocator>
+	constexpr size_t ts_List<T, Allocator>::getExternalReallocateMinimumRequiredSpace()
+	{
+		FTS_READ_WRITE_READ_LOCKGUARD(&this->m_lock);
+		return this->m_list.getExternalReallocateMinimumRequiredSpace();
+	}
+	template<typename T, typename Allocator>
+	constexpr void ts_List<T, Allocator>::externalReallocate(void* ptr, size_t newSizeBytes)
+	{
+		FTS_READ_WRITE_WRITE_LOCKGUARD(&this->m_lock);
+		this->m_list.externalReallocate(ptr, newSizeBytes);
+	}
+
+	template<typename T, typename Allocator>
 	constexpr bool operator==(const ts_List<T, Allocator>& lhs, const ts_List<T, Allocator>& rhs)
 	{
 		return lhs.dataReferenceEquality(rhs);

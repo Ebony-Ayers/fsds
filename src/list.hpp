@@ -69,6 +69,10 @@ namespace fsds
 			constexpr bool valueEquality(const List<T, Allocator>& other) const;
 
 			constexpr void deepCopy(List<T, Allocator>& dest) const;
+
+			//returns the size in bytes
+			constexpr size_t getExternalReallocateMinimumRequiredSpace();
+			constexpr void externalReallocate(void* ptr, size_t newSizeBytes);
 		
 		private:
 			constexpr static size_t sm_baseAllocation = 16;
@@ -134,6 +138,12 @@ namespace fsds
 			constexpr void removeFront();
 
 			constexpr bool valueEquality(const ts_List<T, Allocator>& other);
+
+			constexpr void deepCopy(ts_List<T, Allocator>& dest) const;
+
+			//returns the size in bytes
+			constexpr size_t getExternalReallocateMinimumRequiredSpace();
+			constexpr void externalReallocate(void* ptr, size_t newSizeBytes);
 		
 		private:
 			fsds::List<T,Allocator> m_list;

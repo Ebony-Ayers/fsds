@@ -609,6 +609,18 @@ void testList()
 	{
 		testsFailed.push_back(17);
 	}
+	
+	//test 18: externalReallocate
+	{
+		size_t minSize = list6.getExternalReallocateMinimumRequiredSpace() / sizeof(size_t);
+		std::allocator<size_t> alloc;
+		size_t* ptr = alloc.allocate(minSize*2);
+		list6.externalReallocate(ptr, minSize*2);
+		if(list6 != list4)
+		{
+			testsFailed.push_back(17);
+		}
+	}
 
 	if(testsFailed.size() == 0)
 	{

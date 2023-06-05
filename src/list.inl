@@ -312,6 +312,22 @@ namespace fsds
 	}
 
 	template<typename T, typename Allocator>
+	constexpr size_t List<T, Allocator>::getExternalReallocateMinimumRequiredSpace()
+	{
+		return this->m_capacity * sizeof(T);
+	}
+	template<typename T, typename Allocator>
+	constexpr void List<T, Allocator>::externalReallocate(void* ptr, size_t newSizeBytes)
+	{
+		size_t newCapacity = newSizeBytes / sizeof(T);
+		if(newCapacity >= this->m_size) [[likely]]
+		{
+			std::copy(this->m_data, this->m_data+this->m_size, reinterpret_cast<T*>(ptr));
+			this->m_capacity = newCapacity;
+		}
+	}
+
+	template<typename T, typename Allocator>
 	void List<T, Allocator>::reallocate(size_t newSize)
 	{
 		Allocator alloc;
