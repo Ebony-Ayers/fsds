@@ -19,5 +19,6 @@
 #include "static_string.hpp"
 #include "dynamic_string.hpp"
 #include "composite_string.hpp"
+#include "string_builder.hpp"
 
 #endif //#ifndef FSDS_HPP_HEADER_GUARD

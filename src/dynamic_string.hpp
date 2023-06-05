@@ -1,6 +1,7 @@
 #ifndef DYNAMIC_STRING_HPP_HEADER_GUARD
 #define DYNAMIC_STRING_HPP_HEADER_GUARD
 #include "fsds_options.hpp"
+#include "pch.hpp"
 
 #include <iostream>
 #include "static_string.hpp"

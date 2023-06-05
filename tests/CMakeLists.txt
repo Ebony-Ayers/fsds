@@ -58,7 +58,8 @@ if(ENABLE_PCH)
   target_precompile_headers(
     ${project_options_library}
     INTERFACE
-    <iostream>)
+    <iostream>
+    <cstdint>)
 endif()
 
 add_subdirectory(src)
