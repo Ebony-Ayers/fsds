@@ -6,6 +6,7 @@
 #include "list.hpp"
 
 #include <type_traits>
+#include <bitset>
 
 namespace fsds
 {
@@ -37,7 +38,7 @@ namespace fsds
 		private:
 			struct Chunk
 			{
-				size_t sizeInChunk;
+				std::bitset<chunkSize> activeFlags;
 				T data[chunkSize];
 			};
 
