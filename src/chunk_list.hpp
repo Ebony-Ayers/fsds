@@ -7,6 +7,7 @@
 
 #include <type_traits>
 #include <bitset>
+#include <algorithm>
 
 namespace fsds
 {
@@ -16,7 +17,6 @@ namespace fsds
 		public:
 
 			constexpr ChunkList();									//default constructor
-			constexpr explicit ChunkList(const size_t& count);		//constructor specifying initial capacity
 			constexpr ChunkList(const ChunkList& other);			//copy constructor
 			constexpr ChunkList(ChunkList&& other) noexcept;		//move constructor
 			constexpr ChunkList(std::initializer_list<T> init) = delete;
@@ -25,6 +25,7 @@ namespace fsds
 			constexpr ChunkList& operator=(const ChunkList& other);
 			constexpr ChunkList& operator=(ChunkList&& other) noexcept;
 
+			[[nodiscard]] constexpr  T* add();
 			[[nodiscard]] constexpr  T* add(const T& val);
 			[[nodiscard]] constexpr T* add(T& val);
 			constexpr void remove(T* element);

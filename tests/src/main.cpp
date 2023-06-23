@@ -2753,6 +2753,342 @@ void testDynamicString()
 	}
 }
 
+class ChunkListTestClass
+{
+	public:
+		static size_t numAllocated;
+		static size_t numCreated;
+		size_t val;
+
+		ChunkListTestClass()
+		: val()
+		{
+			ChunkListTestClass::numAllocated++;
+			ChunkListTestClass::numCreated++;
+		}
+		ChunkListTestClass(size_t initialValue)
+		: val(initialValue)
+		{
+			ChunkListTestClass::numAllocated++;
+			ChunkListTestClass::numCreated++;
+		}
+		~ChunkListTestClass()
+		{
+			ChunkListTestClass::numAllocated--;
+		}
+
+		ChunkListTestClass& operator=(const ChunkListTestClass& other)
+		{
+			this->val = other.val;
+			return *this;
+		}
+		ChunkListTestClass& operator=(const size_t& other)
+		{
+			this->val = other;
+			return *this;
+		}
+};
+size_t ChunkListTestClass::numAllocated = 0;
+size_t ChunkListTestClass::numCreated = 0;
+
+void testChunkList()
+{
+	std::vector<size_t> testsFailed;
+
+	{
+		ChunkListTestClass var;
+	}
+
+	//fsds::ChunkList<ChunkListTestClass, 16> cl;
+	
+	//test 1: constructor
+	{
+		auto numAllocatedBeforeTest = ChunkListTestClass::numAllocated;
+		auto numCreatedBeforeTest = ChunkListTestClass::numCreated;
+		{
+			fsds::ChunkList<ChunkListTestClass, 16> localCL;
+		}
+		if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) && (numCreatedBeforeTest + 1 == ChunkListTestClass::numCreated))
+		{
+			testsFailed.push_back(1);
+		}
+	}
+
+	//test 2: single add
+	{
+		auto numAllocatedBeforeTest = ChunkListTestClass::numAllocated;
+		auto numCreatedBeforeTest = ChunkListTestClass::numCreated;
+		{
+			fsds::ChunkList<ChunkListTestClass, 16> localCL;
+			auto elem = localCL.add(ChunkListTestClass(6));
+			if(elem->val != 6)
+			{
+				testsFailed.push_back(2);
+			}
+		}
+		if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) && (numCreatedBeforeTest + 1 == ChunkListTestClass::numCreated))
+		{
+			testsFailed.push_back(2);
+		}
+	}
+
+	//test 3: adds less than chunk size
+	{
+		auto numAllocatedBeforeTest = ChunkListTestClass::numAllocated;
+		auto numCreatedBeforeTest = ChunkListTestClass::numCreated;
+		{
+			fsds::ChunkList<ChunkListTestClass, 16> localCL;
+			for(size_t i = 0; i < 4; i++)
+			{
+				auto elem = localCL.add(ChunkListTestClass(i+6));
+				if(elem->val != i+6)
+				{
+					testsFailed.push_back(3);
+					break;
+				}
+			}
+		}
+		if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) && (numCreatedBeforeTest + 4 == ChunkListTestClass::numCreated))
+		{
+			testsFailed.push_back(3);
+		}
+	}
+
+	//test 4: adds more than chunk size
+	{
+		auto numAllocatedBeforeTest = ChunkListTestClass::numAllocated;
+		auto numCreatedBeforeTest = ChunkListTestClass::numCreated;
+		{
+			fsds::ChunkList<ChunkListTestClass, 16> localCL;
+			for(size_t i = 0; i < 40; i++)
+			{
+				auto elem = localCL.add(ChunkListTestClass(i+6));
+				if(elem->val != i+6)
+				{
+					testsFailed.push_back(4);
+					break;
+				}
+			}
+		}
+		if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) && (numCreatedBeforeTest + 40 == ChunkListTestClass::numCreated))
+		{
+			testsFailed.push_back(4);
+		}
+	}
+
+	//test 5: single add and remove
+	{
+		auto numAllocatedBeforeTest = ChunkListTestClass::numAllocated;
+		auto numCreatedBeforeTest = ChunkListTestClass::numCreated;
+		{
+			fsds::ChunkList<ChunkListTestClass, 16> localCL;
+			auto elem = localCL.add(ChunkListTestClass(6));
+			if(elem->val != 6)
+			{
+				testsFailed.push_back(5);
+			}
+			localCL.remove(elem);
+
+			if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) && (numCreatedBeforeTest + 1 == ChunkListTestClass::numCreated))
+			{
+				testsFailed.push_back(5);
+			}
+		}
+	}
+
+	//test 6: adds less than chunk size then remove
+	{
+		auto numAllocatedBeforeTest = ChunkListTestClass::numAllocated;
+		auto numCreatedBeforeTest = ChunkListTestClass::numCreated;
+		{
+			fsds::ChunkList<ChunkListTestClass, 16> localCL;
+			std::array<ChunkListTestClass*, 4> elems;
+			for(size_t i = 0; i < 4; i++)
+			{
+				elems[i] = localCL.add(ChunkListTestClass(i+6));
+				if(elems[i]->val != i+6)
+				{
+					testsFailed.push_back(6);
+					break;
+				}
+			}
+			for(size_t i = 0; i < 4; i++)
+			{
+				localCL.remove(elems[i]);
+			}
+
+			if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) && (numCreatedBeforeTest + 4 == ChunkListTestClass::numCreated))
+			{
+				testsFailed.push_back(6);
+			}
+		}
+	}
+
+	//test 7: adds less than chunk size alternating with removing
+	{
+		auto numAllocatedBeforeTest = ChunkListTestClass::numAllocated;
+		auto numCreatedBeforeTest = ChunkListTestClass::numCreated;
+		{
+			fsds::ChunkList<ChunkListTestClass, 16> localCL;
+			for(size_t i = 0; i < 4; i++)
+			{
+				auto elem = localCL.add(ChunkListTestClass(i+6));
+				if(elem->val != i+6)
+				{
+					testsFailed.push_back(4);
+					break;
+				}
+				localCL.remove(elem);
+			}
+			
+			if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) && (numCreatedBeforeTest + 4 == ChunkListTestClass::numCreated))
+			{
+				testsFailed.push_back(4);
+			}
+		}
+	}
+
+	//test 8: adds more than chunk size alternating with removing
+	{
+		auto numAllocatedBeforeTest = ChunkListTestClass::numAllocated;
+		auto numCreatedBeforeTest = ChunkListTestClass::numCreated;
+		{
+			fsds::ChunkList<ChunkListTestClass, 16> localCL;
+			for(size_t i = 0; i < 40; i++)
+			{
+				auto elem = localCL.add(ChunkListTestClass(i+6));
+				if(elem->val != i+6)
+				{
+					testsFailed.push_back(8);
+					break;
+				}
+				localCL.remove(elem);
+			}
+			
+			if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) && (numCreatedBeforeTest + 40 == ChunkListTestClass::numCreated))
+			{
+				testsFailed.push_back(8);
+			}
+		}
+	}
+
+	//test 9: adds more than chunk size then remove
+	{
+		auto numAllocatedBeforeTest = ChunkListTestClass::numAllocated;
+		auto numCreatedBeforeTest = ChunkListTestClass::numCreated;
+		{
+			fsds::ChunkList<ChunkListTestClass, 16> localCL;
+			std::array<ChunkListTestClass*, 40> elems;
+			for(size_t i = 0; i < 40; i++)
+			{
+				elems[i] = localCL.add(ChunkListTestClass(i+6));
+				if(elems[i]->val != i+6)
+				{
+					testsFailed.push_back(9);
+					break;
+				}
+			}
+			for(size_t i = 0; i < 40; i++)
+			{
+				localCL.remove(elems[i]);
+			}
+			
+			if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) && (numCreatedBeforeTest + 40 == ChunkListTestClass::numCreated))
+			{
+				testsFailed.push_back(9);
+			}
+		}
+	}
+
+	//test 10: is empty
+	{
+		{
+			fsds::ChunkList<ChunkListTestClass, 16> localCL;
+			auto elem = localCL.add(ChunkListTestClass(6));
+			if(localCL.isEmpty() == true)
+			{
+				testsFailed.push_back(10);
+			}
+			localCL.remove(elem);
+			if(localCL.isEmpty() == false)
+			{
+				testsFailed.push_back(10);
+			}
+		}
+	}
+
+	//test 11: size
+	{
+		{
+			fsds::ChunkList<ChunkListTestClass, 16> localCL;
+			std::array<ChunkListTestClass*, 40> elems;
+			for(size_t i = 0; i < 40; i++)
+			{
+				elems[i] = localCL.add(ChunkListTestClass(i+6));
+				if(localCL.size() != i+1)
+				{
+					testsFailed.push_back(11);
+					break;
+				}
+			}
+			for(size_t i = 0; i < 40; i++)
+			{
+				localCL.remove(elems[i]);
+				if(localCL.size() != 40-i-1)
+				{
+					testsFailed.push_back(11);
+					break;
+				}
+			}
+		}
+	}
+
+	//test 12: clear
+	{
+		auto numAllocatedBeforeTest = ChunkListTestClass::numAllocated;
+		auto numCreatedBeforeTest = ChunkListTestClass::numCreated;
+		{
+			fsds::ChunkList<ChunkListTestClass, 16> localCL;
+			for(size_t i = 0; i < 40; i++)
+			{
+				auto elem = localCL.add(ChunkListTestClass(i+6));
+				if(elem->val != i+6)
+				{
+					testsFailed.push_back(12);
+					break;
+				}
+			}
+			localCL.clear();
+
+			if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) && (numCreatedBeforeTest + 40 == ChunkListTestClass::numCreated))
+			{
+				testsFailed.push_back(12);
+			}
+		}
+	}
+
+	if(testsFailed.size() == 0)
+	{
+		std::cout << "ChunkList passed all tests" << std::endl;
+	}
+	else
+	{
+		if(testsFailed.size() == 1)
+		{
+			std::cout << "ChunkList failed test " << testsFailed[0] << std::endl;
+		}
+		else
+		{
+			std::cout << "ChunkList failed tests ";
+			for(size_t i = 0; i < testsFailed.size() - 1; i++)
+			{
+				std::cout << testsFailed[i] << ", ";
+			}
+			std::cout << "and " << testsFailed[testsFailed.size()-1] << std::endl;
+		}
+	}
+}
+
 int main(int /*argc*/, const char** /*argv*/)
 {
 	testSPSCQueue();
@@ -2760,6 +3096,7 @@ int main(int /*argc*/, const char** /*argv*/)
 	testList();
 	testStaticString();
 	testDynamicString();
+	testChunkList();
 
 	return 0;
 }

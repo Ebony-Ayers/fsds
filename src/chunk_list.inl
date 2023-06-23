@@ -1,34 +1,66 @@
 namespace fsds
 {
 	template<typename T, size_t chunkSize>
+	constexpr ChunkList<T, chunkSize>::ChunkList()
+	: m_chunks()
+	{
+		this->allocateNewChunk();
+	}
+
+	template<typename T, size_t chunkSize>
+	constexpr ChunkList<T, chunkSize>::ChunkList(const ChunkList& other)
+	: m_chunks(other.m_chunks)
+	{}
+
+	template<typename T, size_t chunkSize>
+	constexpr ChunkList<T, chunkSize>::ChunkList(ChunkList&& other) noexcept
+	: m_chunks(std::move(other.m_chunks))
+	{}
+	
+	template<typename T, size_t chunkSize>
 	constexpr ChunkList<T, chunkSize>::~ChunkList()
 	{
 		this->clear();
 	}
 	
+
 	template<typename T, size_t chunkSize>
-	[[nodiscard]] constexpr  T* ChunkList<T, chunkSize>::add(const T& val)
+	[[nodiscard]] constexpr  T* ChunkList<T, chunkSize>::add()
 	{
-		if(this->m_chunks.back().activeFlags.all()) [[unlikely]]
+		if(this->m_chunks.back()->activeFlags.all()) [[unlikely]]
 		{
 			this->allocateNewChunk();
 		}
 		//number of active elements in the last chuck
-		size_t activeElementsInChunk = this->m_chunks.back().activeFlags.count();
-		this->m_chunks.back().activeFlags[activeElementsInChunk] = true;
-		this->m_chunks.back().data[activeElementsInChunk] = val;
+		size_t activeElementsInChunk = this->m_chunks.back()->activeFlags.count();
+		this->m_chunks.back()->activeFlags[activeElementsInChunk] = true;
+		return &(this->m_chunks.back()->data[activeElementsInChunk]);
+	}
+	template<typename T, size_t chunkSize>
+	[[nodiscard]] constexpr  T* ChunkList<T, chunkSize>::add(const T& val)
+	{
+		if(this->m_chunks.back()->activeFlags.all()) [[unlikely]]
+		{
+			this->allocateNewChunk();
+		}
+		//number of active elements in the last chuck
+		size_t activeElementsInChunk = this->m_chunks.back()->activeFlags.count();
+		this->m_chunks.back()->activeFlags[activeElementsInChunk] = true;
+		this->m_chunks.back()->data[activeElementsInChunk] = val;
+		return &(this->m_chunks.back()->data[activeElementsInChunk]);
 	}
 	template<typename T, size_t chunkSize>
 	[[nodiscard]] constexpr T* ChunkList<T, chunkSize>::add(T& val)
 	{
-		if(this->m_chunks.back().activeFlags.all()) [[unlikely]]
+		if(this->m_chunks.back()->activeFlags.all()) [[unlikely]]
 		{
 			this->allocateNewChunk();
 		}
 		//number of active elements in the last chuck
-		size_t activeElementsInChunk = this->m_chunks.back().activeFlags.count();
-		this->m_chunks.back().activeFlags[activeElementsInChunk] = true;
-		this->m_chunks.back().data[activeElementsInChunk] = val;
+		size_t activeElementsInChunk = this->m_chunks.back()->activeFlags.count();
+		this->m_chunks.back()->activeFlags[activeElementsInChunk] = true;
+		this->m_chunks.back()->data[activeElementsInChunk] = val;
+		return &(this->m_chunks.back()->data[activeElementsInChunk]);
 	}
 	template<typename T, size_t chunkSize>
 	constexpr void ChunkList<T, chunkSize>::remove(T* element)
@@ -39,7 +71,8 @@ namespace fsds
 	template<typename T, size_t chunkSize>
 	[[nodiscard]] constexpr bool ChunkList<T, chunkSize>::isEmpty() const noexcept
 	{
-		return this->m_chunks.size() == 0;
+		auto res = this->size();
+		return (res == 0);
 	}
 	template<typename T, size_t chunkSize>
 	constexpr size_t ChunkList<T, chunkSize>::size() const noexcept
@@ -67,6 +100,7 @@ namespace fsds
 						this->m_chunks[reverseI]->data[j].~T();
 					}
 				}
+				this->m_chunks.back()->activeFlags.reset();
 				this->DeallocateLastChunk();
 			}
 		}
@@ -74,6 +108,7 @@ namespace fsds
 		{
 			for(size_t i = 0; i < this->m_chunks.size(); i++)
 			{
+				this->m_chunks.back()->activeFlags.reset();
 				this->DeallocateLastChunk();
 			}
 		}
@@ -109,15 +144,15 @@ namespace fsds
 		for(size_t i = 0; i < this->m_chunks.size(); i++)
 		{
 			//we can calculate where the element is in the chunk. If this is the wrong chunk then the offset value will be non-sensicle.
-			auto offset = element - reinterpret_cast<T*>(this->m_chunks[i]->data);
+			ptrdiff_t offset = element - reinterpret_cast<T*>(this->m_chunks[i]->data);
 			//check if the offset makes sense meaning this is the correct chunk. deallocate the element only if this is true
-			if((0 <= offset) && (offset < chunkSize))
+			if((0 <= offset) && (offset < static_cast<ptrdiff_t>(chunkSize)))
 			{
 				//because elements are not reused then if the element is true then it has not been dellocated allowing is to safely avoid double deallocations.
 				//note that if the same memory a chunk occupied was reallocated to the same chunk list then double deallocation would be possible.
-				if(this->m_chunks[i]->activeFlags[offset] == true)
+				if(this->m_chunks[i]->activeFlags[static_cast<size_t>(offset)] == true)
 				{
-					this->m_chunks[i]->activeFlags[offset] = false;
+					this->m_chunks[i]->activeFlags[static_cast<size_t>(offset)] = false;
 					if(std::is_trivially_destructible<T>::value)
 					{
 						element->~T();
