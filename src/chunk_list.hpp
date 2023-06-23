@@ -32,7 +32,6 @@ namespace fsds
 			[[nodiscard]] constexpr bool isEmpty() const noexcept;
 			constexpr size_t size() const noexcept;
 
-			//TODO: add a way to destroy all elements
 			constexpr void clear();
 
 		private:
@@ -43,6 +42,8 @@ namespace fsds
 			};
 
 			constexpr Chunk* allocateNewChunk();
+			constexpr void DeallocateChunk(size_t index);
+			constexpr void DeallocateLastChunk();
 			constexpr void deleteElement(T* element);
 
 			fsds::List<Chunk*> m_chunks;
