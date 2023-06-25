@@ -2,65 +2,86 @@ namespace fsds
 {
 	template<typename T, size_t chunkSize>
 	constexpr ChunkList<T, chunkSize>::ChunkList()
-	: m_chunks()
+	: m_chunks(), m_nextElementInChunk(0)
 	{
 		this->allocateNewChunk();
 	}
 
 	template<typename T, size_t chunkSize>
-	constexpr ChunkList<T, chunkSize>::ChunkList(const ChunkList& other)
-	: m_chunks(other.m_chunks)
-	{}
-
-	template<typename T, size_t chunkSize>
 	constexpr ChunkList<T, chunkSize>::ChunkList(ChunkList&& other) noexcept
-	: m_chunks(std::move(other.m_chunks))
-	{}
+	{
+		if(!this->isEmpty)
+		{
+			this->clearWithoutAllocating();
+		}
+		m_chunks(std::move(other.m_chunks));
+		this->m_nextElementInChunk = other.m_nextElementInChunk;
+	}
 	
 	template<typename T, size_t chunkSize>
 	constexpr ChunkList<T, chunkSize>::~ChunkList()
 	{
-		this->clear();
+		this->clearWithoutAllocating();
+	}
+
+	template<typename T, size_t chunkSize>
+	constexpr ChunkList<T, chunkSize>& ChunkList<T, chunkSize>::operator=(ChunkList&& other) noexcept
+	{
+		if(!this->isEmpty)
+		{
+			this->clearWithoutAllocating();
+		}
+		m_chunks(std::move(other.m_chunks));
+		this->m_nextElementInChunk = other.m_nextElementInChunk;
 	}
 	
 
 	template<typename T, size_t chunkSize>
 	[[nodiscard]] constexpr  T* ChunkList<T, chunkSize>::add()
 	{
-		if(this->m_chunks.back()->activeFlags.all()) [[unlikely]]
+		//if the last element in the chunk has been used move onto the next chunk
+		if(this->m_nextElementInChunk >= chunkSize) [[unlikely]]
 		{
 			this->allocateNewChunk();
 		}
-		//number of active elements in the last chuck
-		size_t activeElementsInChunk = this->m_chunks.back()->activeFlags.count();
-		this->m_chunks.back()->activeFlags[activeElementsInChunk] = true;
-		return &(this->m_chunks.back()->data[activeElementsInChunk]);
+		//mark the peice of memory as active
+		this->m_chunks.back()->activeFlags[this->m_nextElementInChunk] = true;
+		//get a reference to the new memory
+		T* newElement = &(this->m_chunks.back()->data[this->m_nextElementInChunk]);
+		this->m_nextElementInChunk++;
+		return newElement;
 	}
 	template<typename T, size_t chunkSize>
 	[[nodiscard]] constexpr  T* ChunkList<T, chunkSize>::add(const T& val)
 	{
-		if(this->m_chunks.back()->activeFlags.all()) [[unlikely]]
+		//if the last element in the chunk has been used move onto the next chunk
+		if(this->m_nextElementInChunk >= chunkSize) [[unlikely]]
 		{
 			this->allocateNewChunk();
 		}
-		//number of active elements in the last chuck
-		size_t activeElementsInChunk = this->m_chunks.back()->activeFlags.count();
-		this->m_chunks.back()->activeFlags[activeElementsInChunk] = true;
-		this->m_chunks.back()->data[activeElementsInChunk] = val;
-		return &(this->m_chunks.back()->data[activeElementsInChunk]);
+		//mark the peice of memory as active
+		this->m_chunks.back()->activeFlags[this->m_nextElementInChunk] = true;
+		//get a reference to the new memory
+		T* newElement = &(this->m_chunks.back()->data[this->m_nextElementInChunk]);
+		*newElement = val;
+		this->m_nextElementInChunk++;
+		return newElement;
 	}
 	template<typename T, size_t chunkSize>
 	[[nodiscard]] constexpr T* ChunkList<T, chunkSize>::add(T& val)
 	{
-		if(this->m_chunks.back()->activeFlags.all()) [[unlikely]]
+		//if the last element in the chunk has been used move onto the next chunk
+		if(this->m_nextElementInChunk >= chunkSize) [[unlikely]]
 		{
 			this->allocateNewChunk();
 		}
-		//number of active elements in the last chuck
-		size_t activeElementsInChunk = this->m_chunks.back()->activeFlags.count();
-		this->m_chunks.back()->activeFlags[activeElementsInChunk] = true;
-		this->m_chunks.back()->data[activeElementsInChunk] = val;
-		return &(this->m_chunks.back()->data[activeElementsInChunk]);
+		//mark the peice of memory as active
+		this->m_chunks.back()->activeFlags[this->m_nextElementInChunk] = true;
+		//get a reference to the new memory
+		T* newElement = &(this->m_chunks.back()->data[this->m_nextElementInChunk]);
+		*newElement = val;
+		this->m_nextElementInChunk++;
+		return m_nextElementInChunk;
 	}
 	template<typename T, size_t chunkSize>
 	constexpr void ChunkList<T, chunkSize>::remove(T* element)
@@ -71,8 +92,7 @@ namespace fsds
 	template<typename T, size_t chunkSize>
 	[[nodiscard]] constexpr bool ChunkList<T, chunkSize>::isEmpty() const noexcept
 	{
-		auto res = this->size();
-		return (res == 0);
+		return this->size() == 0;
 	}
 	template<typename T, size_t chunkSize>
 	constexpr size_t ChunkList<T, chunkSize>::size() const noexcept
@@ -80,6 +100,7 @@ namespace fsds
 		size_t total = 0;
 		for(size_t i = 0; i < this->m_chunks.size(); i++)
 		{
+			//count the number of active elements in the ith chunk
 			total += this->m_chunks[i]->activeFlags.count();
 		}
 		return total;
@@ -88,30 +109,8 @@ namespace fsds
 	template<typename T, size_t chunkSize>
 	constexpr void ChunkList<T, chunkSize>::clear()
 	{
-		if(std::is_trivially_destructible<T>::value)
-		{
-			for(size_t i = 0; i < this->m_chunks.size(); i++)
-			{
-				size_t reverseI = this->m_chunks.size() - i - 1;
-				for(size_t j = 0; j < this->m_chunks[reverseI]->activeFlags.size(); j++)
-				{
-					if(this->m_chunks[reverseI]->activeFlags[j] == true)
-					{
-						this->m_chunks[reverseI]->data[j].~T();
-					}
-				}
-				this->m_chunks.back()->activeFlags.reset();
-				this->DeallocateLastChunk();
-			}
-		}
-		else
-		{
-			for(size_t i = 0; i < this->m_chunks.size(); i++)
-			{
-				this->m_chunks.back()->activeFlags.reset();
-				this->DeallocateLastChunk();
-			}
-		}
+		this->clearWithoutAllocating();
+		this->allocateNewChunk();
 	}
 	
 	template<typename T, size_t chunkSize>
@@ -121,6 +120,7 @@ namespace fsds
 		ChunkList<T, chunkSize>::Chunk* p = alloc.allocate(1);
 		this->m_chunks.append(p);
 		p->activeFlags.reset();
+		this->m_nextElementInChunk = 0;
 		return p;
 	}
 	template<typename T, size_t chunkSize>
@@ -158,6 +158,39 @@ namespace fsds
 						element->~T();
 					}
 				}
+			}
+		}
+	}
+	template<typename T, size_t chunkSize>
+	constexpr void ChunkList<T, chunkSize>::clearWithoutAllocating()
+	{
+		if(std::is_trivially_destructible<T>::value)
+		{
+			for(size_t i = 0; i < this->m_chunks.size(); i++)
+			{
+				//deallocating chunks in reverse is faster as the chunks are stored in a list
+				size_t reverseI = this->m_chunks.size() - i - 1;
+				for(size_t j = 0; j < this->m_chunks[reverseI]->activeFlags.size(); j++)
+				{
+					//only call the destructor if the object is active
+					if(this->m_chunks[reverseI]->activeFlags[j] == true)
+					{
+						this->m_chunks[reverseI]->data[j].~T();
+					}
+				}
+				//reset the flags to avoid potential future memory issues if this chunk was to be reused.
+				this->m_chunks.back()->activeFlags.reset();
+				this->DeallocateLastChunk();
+			}
+		}
+		else
+		{
+			//deallocating chunks in reverse is faster as the chunks are stored in a list
+			for(size_t i = 0; i < this->m_chunks.size(); i++)
+			{
+				//reset the flags to avoid potential future memory issues if this chunk was to be reused.
+				this->m_chunks.back()->activeFlags.reset();
+				this->DeallocateLastChunk();
 			}
 		}
 	}

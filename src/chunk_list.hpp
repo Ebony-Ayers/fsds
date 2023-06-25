@@ -17,12 +17,10 @@ namespace fsds
 		public:
 
 			constexpr ChunkList();									//default constructor
-			constexpr ChunkList(const ChunkList& other);			//copy constructor
 			constexpr ChunkList(ChunkList&& other) noexcept;		//move constructor
 			constexpr ChunkList(std::initializer_list<T> init) = delete;
 			constexpr ~ChunkList();
 
-			constexpr ChunkList& operator=(const ChunkList& other);
 			constexpr ChunkList& operator=(ChunkList&& other) noexcept;
 
 			[[nodiscard]] constexpr  T* add();
@@ -38,6 +36,7 @@ namespace fsds
 		private:
 			struct Chunk
 			{
+				//the nth activeFlag signifies that the nth element of data is active
 				std::bitset<chunkSize> activeFlags;
 				T data[chunkSize];
 			};
@@ -46,8 +45,10 @@ namespace fsds
 			constexpr void DeallocateChunk(size_t index);
 			constexpr void DeallocateLastChunk();
 			constexpr void deleteElement(T* element);
+			constexpr void clearWithoutAllocating();
 
 			fsds::List<Chunk*> m_chunks;
+			size_t m_nextElementInChunk;
 	};
 }
 
