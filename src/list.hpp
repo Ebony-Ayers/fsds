@@ -53,18 +53,21 @@ namespace fsds
 			constexpr void clear();
 			
 			constexpr void append(const T& value);
+			constexpr void prepend(const T& value);
+			constexpr void insert(size_t pos, const T& value);
 			template<typename... Args>
 			constexpr void appendConstruct(Args&&... args);
-			constexpr void prepend(const T& value);
 			template<typename... Args>
 			constexpr void prependConstruct(Args&&... args);
-			constexpr void insert(size_t pos, const T& value);
 			template<typename... Args>
 			constexpr void insertConstruct(size_t pos, Args&&... args);
 
 			constexpr void remove(size_t pos);
 			constexpr void removeBack();
 			constexpr void removeFront();
+			constexpr void removeDeconstruct(size_t pos);
+			constexpr void removeBackDeconstruct();
+			constexpr void removeFrontDeconstruct();
 
 			constexpr bool valueEquality(const List<T, Allocator>& other) const;
 
@@ -78,6 +81,9 @@ namespace fsds
 			constexpr static size_t sm_baseAllocation = 16;
 			
 			void reallocate(size_t newSize);
+			constexpr void deallocate();
+			constexpr void deconstructElement(T* element);
+			constexpr void deconstructAll();
 
 			T* m_data;
 			size_t m_size;
@@ -124,18 +130,21 @@ namespace fsds
 			constexpr void clear();
 			
 			constexpr void append(const T& value);
+			constexpr void prepend(const T& value);
+			constexpr void insert(size_t pos, const T& value);
 			template<typename... Args>
 			constexpr void appendConstruct(Args&&... args);
-			constexpr void prepend(const T& value);
 			template<typename... Args>
 			constexpr void prependConstruct(Args&&... args);
-			constexpr void insert(size_t pos, const T& value);
 			template<typename... Args>
 			constexpr void insertConstruct(size_t pos, Args&&... args);
 
 			constexpr void remove(size_t pos);
 			constexpr void removeBack();
 			constexpr void removeFront();
+			constexpr void removeDeconstruct(size_t pos);
+			constexpr void removeBackDeconstruct();
+			constexpr void removeFrontDeconstruct();
 
 			constexpr bool valueEquality(const ts_List<T, Allocator>& other);
 

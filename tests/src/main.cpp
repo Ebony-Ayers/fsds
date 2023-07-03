@@ -2758,27 +2758,41 @@ class ChunkListTestClass
 	public:
 		static size_t numAllocated;
 		static size_t numCreated;
+		static size_t numDestroyed;
+		static size_t numBadDestructions;
 		size_t val;
+		int hasBeenInitialised; //314159 means constructed anything else means uninitialised
 
 		ChunkListTestClass()
-		: val()
+		: val(), hasBeenInitialised(314159)
 		{
 			ChunkListTestClass::numAllocated++;
 			ChunkListTestClass::numCreated++;
 		}
 		ChunkListTestClass(size_t initialValue)
-		: val(initialValue)
+		: val(initialValue), hasBeenInitialised(314159)
 		{
 			ChunkListTestClass::numAllocated++;
 			ChunkListTestClass::numCreated++;
 		}
 		~ChunkListTestClass()
 		{
+			if(this->hasBeenInitialised != 314159)
+			{
+				ChunkListTestClass::numBadDestructions++;
+			}
+			this->hasBeenInitialised = 0;
 			ChunkListTestClass::numAllocated--;
+			ChunkListTestClass::numDestroyed++;
 		}
 
 		ChunkListTestClass& operator=(const ChunkListTestClass& other)
 		{
+			if(this->hasBeenInitialised != 314159)
+			{
+				this->hasBeenInitialised = 314159;
+				ChunkListTestClass::numAllocated++;
+			}
 			this->val = other.val;
 			return *this;
 		}
@@ -2790,34 +2804,38 @@ class ChunkListTestClass
 };
 size_t ChunkListTestClass::numAllocated = 0;
 size_t ChunkListTestClass::numCreated = 0;
+size_t ChunkListTestClass::numDestroyed = 0;
+size_t ChunkListTestClass::numBadDestructions = 0;
 
 void testChunkList()
 {
 	std::vector<size_t> testsFailed;
 
+	if(std::is_trivially_destructible<ChunkListTestClass>::value)
 	{
-		ChunkListTestClass var;
+		std::cout << "ChunkList test is invalid as the test class is trivially destructible" << std::endl;
+		testsFailed.push_back(0);
 	}
-
-	//fsds::ChunkList<ChunkListTestClass, 16> cl;
 	
 	//test 1: constructor
 	{
 		auto numAllocatedBeforeTest = ChunkListTestClass::numAllocated;
 		auto numCreatedBeforeTest = ChunkListTestClass::numCreated;
+		auto numDestroyedBeforeTest = ChunkListTestClass::numDestroyed;
 		{
 			fsds::ChunkList<ChunkListTestClass, 16> localCL;
 		}
-		if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) && (numCreatedBeforeTest + 1 == ChunkListTestClass::numCreated))
+		if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) || (numCreatedBeforeTest != ChunkListTestClass::numCreated) || (numDestroyedBeforeTest != ChunkListTestClass::numDestroyed) || (ChunkListTestClass::numBadDestructions != 0))
 		{
 			testsFailed.push_back(1);
 		}
 	}
-
+	
 	//test 2: single add
 	{
 		auto numAllocatedBeforeTest = ChunkListTestClass::numAllocated;
 		auto numCreatedBeforeTest = ChunkListTestClass::numCreated;
+		auto numDestroyedBeforeTest = ChunkListTestClass::numDestroyed;
 		{
 			fsds::ChunkList<ChunkListTestClass, 16> localCL;
 			auto elem = localCL.add(ChunkListTestClass(6));
@@ -2826,16 +2844,17 @@ void testChunkList()
 				testsFailed.push_back(2);
 			}
 		}
-		if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) && (numCreatedBeforeTest + 1 == ChunkListTestClass::numCreated))
+		if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) || (numCreatedBeforeTest + 1 != ChunkListTestClass::numCreated) || (numDestroyedBeforeTest + 2 != ChunkListTestClass::numDestroyed) || (ChunkListTestClass::numBadDestructions != 0))
 		{
 			testsFailed.push_back(2);
 		}
 	}
-
+	
 	//test 3: adds less than chunk size
 	{
 		auto numAllocatedBeforeTest = ChunkListTestClass::numAllocated;
 		auto numCreatedBeforeTest = ChunkListTestClass::numCreated;
+		auto numDestroyedBeforeTest = ChunkListTestClass::numDestroyed;
 		{
 			fsds::ChunkList<ChunkListTestClass, 16> localCL;
 			for(size_t i = 0; i < 4; i++)
@@ -2848,21 +2867,23 @@ void testChunkList()
 				}
 			}
 		}
-		if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) && (numCreatedBeforeTest + 4 == ChunkListTestClass::numCreated))
+		if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) || (numCreatedBeforeTest + 4 != ChunkListTestClass::numCreated) || (numDestroyedBeforeTest + 8 != ChunkListTestClass::numDestroyed) || (ChunkListTestClass::numBadDestructions != 0))
 		{
 			testsFailed.push_back(3);
 		}
 	}
-
+	
 	//test 4: adds more than chunk size
 	{
 		auto numAllocatedBeforeTest = ChunkListTestClass::numAllocated;
 		auto numCreatedBeforeTest = ChunkListTestClass::numCreated;
+		auto numDestroyedBeforeTest = ChunkListTestClass::numDestroyed;
 		{
 			fsds::ChunkList<ChunkListTestClass, 16> localCL;
 			for(size_t i = 0; i < 40; i++)
 			{
 				auto elem = localCL.add(ChunkListTestClass(i+6));
+				//std::cout << ">> allocated:" << ChunkListTestClass::numAllocated << ", created:" << ChunkListTestClass::numCreated << ", destroyed:" << ChunkListTestClass::numDestroyed << std::endl;
 				if(elem->val != i+6)
 				{
 					testsFailed.push_back(4);
@@ -2870,16 +2891,18 @@ void testChunkList()
 				}
 			}
 		}
-		if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) && (numCreatedBeforeTest + 40 == ChunkListTestClass::numCreated))
+		
+		if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) || (numCreatedBeforeTest + 40 != ChunkListTestClass::numCreated) || (numDestroyedBeforeTest + 80 != ChunkListTestClass::numDestroyed) || (ChunkListTestClass::numBadDestructions != 0))
 		{
 			testsFailed.push_back(4);
 		}
 	}
-
+	
 	//test 5: single add and remove
 	{
 		auto numAllocatedBeforeTest = ChunkListTestClass::numAllocated;
 		auto numCreatedBeforeTest = ChunkListTestClass::numCreated;
+		auto numDestroyedBeforeTest = ChunkListTestClass::numDestroyed;
 		{
 			fsds::ChunkList<ChunkListTestClass, 16> localCL;
 			auto elem = localCL.add(ChunkListTestClass(6));
@@ -2889,17 +2912,18 @@ void testChunkList()
 			}
 			localCL.remove(elem);
 
-			if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) && (numCreatedBeforeTest + 1 == ChunkListTestClass::numCreated))
+			if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) || (numCreatedBeforeTest + 1 != ChunkListTestClass::numCreated) || (numDestroyedBeforeTest + 2 != ChunkListTestClass::numDestroyed) || (ChunkListTestClass::numBadDestructions != 0))
 			{
 				testsFailed.push_back(5);
 			}
 		}
 	}
-
+	
 	//test 6: adds less than chunk size then remove
 	{
 		auto numAllocatedBeforeTest = ChunkListTestClass::numAllocated;
 		auto numCreatedBeforeTest = ChunkListTestClass::numCreated;
+		auto numDestroyedBeforeTest = ChunkListTestClass::numDestroyed;
 		{
 			fsds::ChunkList<ChunkListTestClass, 16> localCL;
 			std::array<ChunkListTestClass*, 4> elems;
@@ -2917,17 +2941,18 @@ void testChunkList()
 				localCL.remove(elems[i]);
 			}
 
-			if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) && (numCreatedBeforeTest + 4 == ChunkListTestClass::numCreated))
+			if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) || (numCreatedBeforeTest + 4 != ChunkListTestClass::numCreated) || (numDestroyedBeforeTest + 8 != ChunkListTestClass::numDestroyed) || (ChunkListTestClass::numBadDestructions != 0))
 			{
 				testsFailed.push_back(6);
 			}
 		}
 	}
-
+	
 	//test 7: adds less than chunk size alternating with removing
 	{
 		auto numAllocatedBeforeTest = ChunkListTestClass::numAllocated;
 		auto numCreatedBeforeTest = ChunkListTestClass::numCreated;
+		auto numDestroyedBeforeTest = ChunkListTestClass::numDestroyed;
 		{
 			fsds::ChunkList<ChunkListTestClass, 16> localCL;
 			for(size_t i = 0; i < 4; i++)
@@ -2935,23 +2960,24 @@ void testChunkList()
 				auto elem = localCL.add(ChunkListTestClass(i+6));
 				if(elem->val != i+6)
 				{
-					testsFailed.push_back(4);
+					testsFailed.push_back(7);
 					break;
 				}
 				localCL.remove(elem);
 			}
 			
-			if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) && (numCreatedBeforeTest + 4 == ChunkListTestClass::numCreated))
+			if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) || (numCreatedBeforeTest + 4 != ChunkListTestClass::numCreated) || (numDestroyedBeforeTest + 8 != ChunkListTestClass::numDestroyed) || (ChunkListTestClass::numBadDestructions != 0))
 			{
-				testsFailed.push_back(4);
+				testsFailed.push_back(7);
 			}
 		}
 	}
-
+	
 	//test 8: adds more than chunk size alternating with removing
 	{
 		auto numAllocatedBeforeTest = ChunkListTestClass::numAllocated;
 		auto numCreatedBeforeTest = ChunkListTestClass::numCreated;
+		auto numDestroyedBeforeTest = ChunkListTestClass::numDestroyed;
 		{
 			fsds::ChunkList<ChunkListTestClass, 16> localCL;
 			for(size_t i = 0; i < 40; i++)
@@ -2965,17 +2991,18 @@ void testChunkList()
 				localCL.remove(elem);
 			}
 			
-			if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) && (numCreatedBeforeTest + 40 == ChunkListTestClass::numCreated))
+			if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) || (numCreatedBeforeTest + 40 != ChunkListTestClass::numCreated) || (numDestroyedBeforeTest + 80 != ChunkListTestClass::numDestroyed) || (ChunkListTestClass::numBadDestructions != 0))
 			{
 				testsFailed.push_back(8);
 			}
 		}
 	}
-
+	
 	//test 9: adds more than chunk size then remove
 	{
 		auto numAllocatedBeforeTest = ChunkListTestClass::numAllocated;
 		auto numCreatedBeforeTest = ChunkListTestClass::numCreated;
+		auto numDestroyedBeforeTest = ChunkListTestClass::numDestroyed;
 		{
 			fsds::ChunkList<ChunkListTestClass, 16> localCL;
 			std::array<ChunkListTestClass*, 40> elems;
@@ -2993,13 +3020,13 @@ void testChunkList()
 				localCL.remove(elems[i]);
 			}
 			
-			if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) && (numCreatedBeforeTest + 40 == ChunkListTestClass::numCreated))
+			if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) || (numCreatedBeforeTest + 40 != ChunkListTestClass::numCreated) || (numDestroyedBeforeTest + 80 != ChunkListTestClass::numDestroyed) || (ChunkListTestClass::numBadDestructions != 0))
 			{
 				testsFailed.push_back(9);
 			}
 		}
 	}
-
+	
 	//test 10: is empty
 	{
 		{
@@ -3016,7 +3043,7 @@ void testChunkList()
 			}
 		}
 	}
-
+	
 	//test 11: size
 	{
 		{
@@ -3042,11 +3069,12 @@ void testChunkList()
 			}
 		}
 	}
-
+	
 	//test 12: clear
 	{
 		auto numAllocatedBeforeTest = ChunkListTestClass::numAllocated;
 		auto numCreatedBeforeTest = ChunkListTestClass::numCreated;
+		auto numDestroyedBeforeTest = ChunkListTestClass::numDestroyed;
 		{
 			fsds::ChunkList<ChunkListTestClass, 16> localCL;
 			for(size_t i = 0; i < 40; i++)
@@ -3060,13 +3088,13 @@ void testChunkList()
 			}
 			localCL.clear();
 
-			if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) && (numCreatedBeforeTest + 40 == ChunkListTestClass::numCreated))
+			if((numAllocatedBeforeTest != ChunkListTestClass::numAllocated) || (numCreatedBeforeTest + 40 != ChunkListTestClass::numCreated) || (numDestroyedBeforeTest + 80 != ChunkListTestClass::numDestroyed) || (ChunkListTestClass::numBadDestructions != 0))
 			{
 				testsFailed.push_back(12);
 			}
 		}
 	}
-
+	
 	if(testsFailed.size() == 0)
 	{
 		std::cout << "ChunkList passed all tests" << std::endl;

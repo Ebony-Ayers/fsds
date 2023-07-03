@@ -26,7 +26,10 @@ namespace fsds
 			[[nodiscard]] constexpr  T* add();
 			[[nodiscard]] constexpr  T* add(const T& val);
 			[[nodiscard]] constexpr T* add(T& val);
+			template<typename... Args>
+			[[nodiscard]] constexpr T* addConstruct(Args&&... args);
 			constexpr void remove(T* element);
+			constexpr void removeDeconstuct(T* element);
 			
 			[[nodiscard]] constexpr bool isEmpty() const noexcept;
 			constexpr size_t size() const noexcept;

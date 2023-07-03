@@ -105,24 +105,10 @@ namespace fsds
 		this->m_list.append(value);
 	}
 	template<typename T, typename Allocator>
-	template<typename... Args>
-	constexpr void ts_List<T, Allocator>::appendConstruct(Args&&... args)
-	{
-		FTS_READ_WRITE_WRITE_LOCKGUARD(&this->m_lock);
-		this->m_list.appendConstruct(args...);
-	}
-	template<typename T, typename Allocator>
 	constexpr void ts_List<T, Allocator>::prepend(const T& value)
 	{
 		FTS_READ_WRITE_WRITE_LOCKGUARD(&this->m_lock);
 		this->m_list.prepend(value);
-	}
-	template<typename T, typename Allocator>
-	template<typename... Args>
-	constexpr void ts_List<T, Allocator>::prependConstruct(Args&&... args)
-	{
-		FTS_READ_WRITE_WRITE_LOCKGUARD(&this->m_lock);
-		this->m_list.prependConstruct(args...);
 	}
 	template<typename T, typename Allocator>
 	constexpr void ts_List<T, Allocator>::insert(size_t pos, const T& value)
@@ -132,10 +118,42 @@ namespace fsds
 	}
 	template<typename T, typename Allocator>
 	template<typename... Args>
+	constexpr void ts_List<T, Allocator>::appendConstruct(Args&&... args)
+	{
+		FTS_READ_WRITE_WRITE_LOCKGUARD(&this->m_lock);
+		this->m_list.appendConstruct(args...);
+	}
+	template<typename T, typename Allocator>
+	template<typename... Args>
+	constexpr void ts_List<T, Allocator>::prependConstruct(Args&&... args)
+	{
+		FTS_READ_WRITE_WRITE_LOCKGUARD(&this->m_lock);
+		this->m_list.prependConstruct(args...);
+	}
+	template<typename T, typename Allocator>
+	template<typename... Args>
 	constexpr void ts_List<T, Allocator>::insertConstruct(size_t pos, Args&&... args)
 	{
 		FTS_READ_WRITE_WRITE_LOCKGUARD(&this->m_lock);
 		this->m_list.insertConstruct(pos, args...);
+	}
+	template<typename T, typename Allocator>
+	constexpr void ts_List<T, Allocator>::removeDeconstruct(size_t pos)
+	{
+		FTS_READ_WRITE_WRITE_LOCKGUARD(&this->m_lock);
+		this->m_list.removeDeconstruct(pos);
+	}
+	template<typename T, typename Allocator>
+	constexpr void ts_List<T, Allocator>::removeBackDeconstruct()
+	{
+		FTS_READ_WRITE_WRITE_LOCKGUARD(&this->m_lock);
+		this->m_list.removeBackDeconstruct();
+	}
+	template<typename T, typename Allocator>
+	constexpr void ts_List<T, Allocator>::removeFrontDeconstruct()
+	{
+		FTS_READ_WRITE_WRITE_LOCKGUARD(&this->m_lock);
+		this->m_list.removeFrontDeconstruct();
 	}
 
 	template<typename T, typename Allocator>

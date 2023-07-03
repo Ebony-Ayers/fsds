@@ -41,22 +41,25 @@ namespace fsds
 	template<typename T, typename Allocator>
 	constexpr List<T, Allocator>::~List()
 	{
-		if(this->m_data != nullptr)
-		{
-			Allocator alloc;
-			alloc.deallocate(this->m_data, this->m_capacity);
-		}
+		this->deallocate();
+		this->deconstructAll();
 	}
 
 	template<typename T, typename Allocator>
 	constexpr List<T, Allocator>& List<T, Allocator>::operator=(const List& other)
 	{
+		this->deallocate();
+		this->deconstructAll();
+
 		other.deepCopy(*this);
 		return *this;
 	}
 	template<typename T, typename Allocator>
 	constexpr List<T, Allocator>& List<T, Allocator>::operator=(List&& other) noexcept
 	{
+		this->deallocate();
+		this->deconstructAll();
+
 		this->m_data = other.m_data;
 		this->m_size = other.m_size;
 		this->m_capacity = other.m_capacity;
@@ -162,8 +165,10 @@ namespace fsds
 	template<typename T, typename Allocator>
 	constexpr void List<T, Allocator>::clear()
 	{
+		this->deallocate();
+		this->deconstructAll();
+		
 		Allocator alloc;
-		alloc.deallocate(this->m_data, this->m_capacity);
 		this->m_data = alloc.allocate(List<T, Allocator>::sm_baseAllocation);
 		this->m_size = 0;
 		this->m_capacity = List<T, Allocator>::sm_baseAllocation;
@@ -180,17 +185,6 @@ namespace fsds
 		this->m_size++;
 	}
 	template<typename T, typename Allocator>
-	template<typename... Args>
-	constexpr void List<T, Allocator>::appendConstruct(Args&&... args)
-	{
-		if(this->m_size >= this->m_capacity)
-		{
-			this->reallocate(this->m_capacity * 2);
-		}
-		this->m_data[this->m_size] = T(args...);
-		this->m_size++;
-	}
-	template<typename T, typename Allocator>
 	constexpr void List<T, Allocator>::prepend(const T& value)
 	{
 		if(this->m_size >= this->m_capacity)
@@ -199,18 +193,6 @@ namespace fsds
 		}
 		std::copy(this->m_data, this->m_data + this->m_size, this->m_data + 1);
 		this->m_data[0] = value;
-		this->m_size++;
-	}
-	template<typename T, typename Allocator>
-	template<typename... Args>
-	constexpr void List<T, Allocator>::prependConstruct(Args&&... args)
-	{
-		if(this->m_size >= this->m_capacity)
-		{
-			this->reallocate(this->m_capacity * 2);
-		}
-		std::copy(this->m_data, this->m_data + this->m_size, this->m_data + 1);
-		this->m_data[0] = T(args...);
 		this->m_size++;
 	}
 	template<typename T, typename Allocator>
@@ -228,6 +210,29 @@ namespace fsds
 		}
 		std::copy(this->m_data + pos, this->m_data + this->m_size, this->m_data + pos + 1);
 		this->m_data[pos] = value;
+		this->m_size++;
+	}
+	template<typename T, typename Allocator>
+	template<typename... Args>
+	constexpr void List<T, Allocator>::appendConstruct(Args&&... args)
+	{
+		if(this->m_size >= this->m_capacity)
+		{
+			this->reallocate(this->m_capacity * 2);
+		}
+		this->m_data[this->m_size] = T(args...);
+		this->m_size++;
+	}
+	template<typename T, typename Allocator>
+	template<typename... Args>
+	constexpr void List<T, Allocator>::prependConstruct(Args&&... args)
+	{
+		if(this->m_size >= this->m_capacity)
+		{
+			this->reallocate(this->m_capacity * 2);
+		}
+		std::copy(this->m_data, this->m_data + this->m_size, this->m_data + 1);
+		this->m_data[0] = T(args...);
 		this->m_size++;
 	}
 	template<typename T, typename Allocator>
@@ -258,22 +263,43 @@ namespace fsds
 				throw std::out_of_range("List::remove pos out of range");
 			}
 		#endif
-		this->m_data[pos].~T();
 		std::copy(this->m_data + pos + 1, this->m_data + this->m_size, this->m_data + pos);
 		this->m_size--;
 	}
 	template<typename T, typename Allocator>
 	constexpr void List<T, Allocator>::removeBack()
 	{
-		this->m_data[this->m_size - 1].~T();
 		this->m_size--;
 	}
 	template<typename T, typename Allocator>
 	constexpr void List<T, Allocator>::removeFront()
 	{
-		this->m_data[0].~T();
 		std::copy(this->m_data + 1, this->m_data + this->m_size, this->m_data);
 		this->m_size--;
+	}
+	template<typename T, typename Allocator>
+	constexpr void List<T, Allocator>::removeDeconstruct(size_t pos)
+	{
+		#ifdef FSDS_DEBUG
+			if(pos >= this->m_size) [[unlikely]]
+			{
+				throw std::out_of_range("List::removeDeconstruct pos out of range");
+			}
+		#endif
+		this->deconstructElement(this->m_data+pos);
+		this->remove(pos);
+	}
+	template<typename T, typename Allocator>
+	constexpr void List<T, Allocator>::removeBackDeconstruct()
+	{
+		this->deconstructElement(&(this->back()));
+		this->removeBack();
+	}
+	template<typename T, typename Allocator>
+	constexpr void List<T, Allocator>::removeFrontDeconstruct()
+	{
+		this->deconstructElement(&(this->front()));
+		this->removeFront();
 	}
 
 	template<typename T, typename Allocator>
@@ -336,6 +362,36 @@ namespace fsds
 		std::copy(oldData, oldData + this->m_size, this->m_data);
 		alloc.deallocate(oldData, this->m_capacity);
 		this->m_capacity = newSize;
+	}
+
+	template<typename T, typename Allocator>
+	constexpr void List<T, Allocator>::deallocate()
+	{
+		if(this->m_data != nullptr)
+		{
+			Allocator alloc;
+			alloc.deallocate(this->m_data, this->m_capacity);
+			this->m_data = nullptr;
+			this->m_size = 0;
+			this->m_capacity = 0;
+		}
+	}
+
+	template<typename T, typename Allocator>
+	constexpr void List<T, Allocator>::deconstructElement(T* element)
+	{
+		if(!std::is_trivially_destructible<T>::value)
+		{
+			std::destroy_at(element);
+		}
+	}
+	template<typename T, typename Allocator>
+	constexpr void List<T, Allocator>::deconstructAll()
+	{
+		if(!std::is_trivially_destructible<T>::value)
+		{
+			std::destroy(this->m_data, this->m_data + this->m_size);
+		}
 	}
 
 	template<typename T, typename Allocator>

@@ -153,7 +153,7 @@ namespace fsds
 				if(this->m_chunks[i]->activeFlags[static_cast<size_t>(offset)] == true)
 				{
 					this->m_chunks[i]->activeFlags[static_cast<size_t>(offset)] = false;
-					if(std::is_trivially_destructible<T>::value)
+					if(!std::is_trivially_destructible<T>::value)
 					{
 						element->~T();
 					}
@@ -164,12 +164,13 @@ namespace fsds
 	template<typename T, size_t chunkSize>
 	constexpr void ChunkList<T, chunkSize>::clearWithoutAllocating()
 	{
-		if(std::is_trivially_destructible<T>::value)
+		if(!std::is_trivially_destructible<T>::value)
 		{
-			for(size_t i = 0; i < this->m_chunks.size(); i++)
+			size_t initialNumChunks = this->m_chunks.size();
+			for(size_t i = 0; i < initialNumChunks; i++)
 			{
 				//deallocating chunks in reverse is faster as the chunks are stored in a list
-				size_t reverseI = this->m_chunks.size() - i - 1;
+				size_t reverseI = initialNumChunks - i - 1;
 				for(size_t j = 0; j < this->m_chunks[reverseI]->activeFlags.size(); j++)
 				{
 					//only call the destructor if the object is active
