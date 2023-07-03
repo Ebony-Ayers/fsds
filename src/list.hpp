@@ -9,6 +9,8 @@
 #include <stdexcept>
 #include <type_traits>
 
+#include "list_internal.hpp"
+
 namespace fsds
 {
 	template<typename T, typename Allocator = std::allocator<T>>
