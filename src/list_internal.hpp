@@ -11,8 +11,8 @@ namespace fsds
     {
         struct ListHeader
         {
-            size_t m_size;
-			size_t m_capacity;
+            size_t size;
+			size_t capacity;
         };
 
         //you need to manually allocate space for data. capacity is how many elements were allocated
@@ -23,7 +23,7 @@ namespace fsds
         constexpr void copyConstructor(ListHeader& thisHeader, T* const thisData, ListHeader& otherHeader, T* const otherData, const size_t& capacity);
         template<typename T>
         //the move constructor does not require space to be allocated
-        constexpr void moveConstructor(ListHeader& thisHeader, T* const thisData, ListHeader& otherHeader, T* const otherData, const size_t& capacity);
+        constexpr void moveConstructor(ListHeader& thisHeader, T* const thisData, ListHeader& otherHeader, T* const otherData);
         template<typename T>
         //you need to manually allocate space for data. capacity is how many elements were allocated
         constexpr void initialiserListConstructor(ListHeader& header, T* data, std::initializer_list<T> init, const size_t& capacity);
@@ -32,10 +32,10 @@ namespace fsds
 
         //you need to manually allocate space for data. capacity is how many elements were allocated
         template<typename T>
-        constexpr void copyAssignmentOperator(ListHeader& thisHeader, T* const thisData, ListHeader& otherHeader, T* const otherData);
+        constexpr void copyAssignmentOperator(ListHeader& thisHeader, T* const thisData, ListHeader& otherHeader, T* const otherData, const size_t& capacity);
         //move assignment does not require reallocating space
         template<typename T>
-        constexpr void moveAssignmentOperator(ListHeader& thisHeader, T* const thisData, ListHeader& otherHeader);
+        constexpr void moveAssignmentOperator(ListHeader& thisHeader, T* const thisData, ListHeader& otherHeader, T* const otherData);
 
         template<typename T>
         constexpr T& elementAccessOperator(ListHeader& header, T* const data, const size_t& pos);
@@ -73,19 +73,21 @@ namespace fsds
         constexpr size_t prependReallocationMinimumElements(ListHeader& header, T* const data);
         template<typename T>
         constexpr size_t insertReallocationMinimumElements(ListHeader& header, T* const data);
+        //if no reallocation was needed newData should be the same as oldData
+        //If a reallocation happened oldData should be the unmodified original data and newData is the pointer to the newlt allocated uninitialised memeory. In addition the capacity of the header must be updated externally as the append functions do not modify it.
         //returns a pointer to the old memory for deallocation. This pointer should only be deallocated if a reallocation previously took place
         template<typename T>
-        constexpr T* append(ListHeader& header, T* const data);
+        constexpr T* append(ListHeader& header, T* const oldData, const T* newData, const T& value);
         template<typename T>
-        constexpr T* prepend(ListHeader& header, T* const data);
+        constexpr T* prepend(ListHeader& header, T* const oldData, const T* newData, const T& value);
         template<typename T>
-        constexpr T* insert(ListHeader& header, T* const data);
-        template<typename T>
-        constexpr T* appendConstruct(ListHeader& header, T* const data);
-        template<typename T>
-        constexpr T* prependConstruct(ListHeader& header, T* const data);
-        template<typename T>
-        constexpr T* insertConstruct(ListHeader& header, T* const data);
+        constexpr T* insert(ListHeader& header, T* const oldData, const T* newData, const size_t& pos, const T& value);
+        template<typename T, typename... Args>
+        constexpr T* appendConstruct(ListHeader& header, T* const oldData, const T* newData, Args&&... args);
+        template<typename T, typename... Args>
+        constexpr T* prependConstruct(ListHeader& header, T* const oldData, const T* newData, Args&&... args);
+        template<typename T, typename... Args>
+        constexpr T* insertConstruct(ListHeader& header, T* const oldData, const T* newData, const size_t& pos, Args&&... args);
 
         template<typename T>
         constexpr void remove(ListHeader& header, T* const data, size_t pos);
@@ -105,6 +107,9 @@ namespace fsds
 
         template<typename T>
         constexpr void deepCopy(ListHeader& thisHeader, T* const thisData, ListHeader& destHeader, T* const destData);
+
+        template<typename T>
+        constexpr void desconstructAllElements(ListHeader& header, T* const data);
     }
 }
 
