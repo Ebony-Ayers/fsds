@@ -127,22 +127,22 @@ namespace fsds
         }
 
         template<typename T>
-        constexpr bool isEmpty(const ListHeader& header)
+        constexpr bool isEmpty(const ListHeader& header, const T* const /*data*/)
         {
             return header.size == 0;
         }
         template<typename T>
-        constexpr size_t size(const ListHeader& header)
+        constexpr size_t size(const ListHeader& header, const T* const /*data*/)
         {
             return header.size;
         }
         template<typename T>
-        constexpr size_t maxSize(const ListHeader& header)
+        constexpr size_t maxSize(const ListHeader& header, const T* const /*data*/)
         {
             return std::numeric_limits<size_t>::max() / sizeof(T);
         }
         template<typename T>
-        constexpr size_t capcity(const ListHeader& header)
+        constexpr size_t capacity(const ListHeader& header, const T* const /*data*/)
         {
             return header.capacity;
         }
@@ -177,65 +177,71 @@ namespace fsds
         //If a reallocation happened oldData should be the unmodified original data and newData is the pointer to the newlt allocated uninitialised memeory
         //returns a pointer to the old memory for deallocation. This pointer should only be deallocated if a reallocation previously took place
         template<typename T>
-        constexpr T* append(ListHeader& header, T* const oldData, const T* newData, const T& value)
+        constexpr T* append(ListHeader& header, T* const oldData, T* const newData, const T& value)
         {
-            if(oldData == newData)
+            if(oldData != newData)
             {
                 std::copy(oldData, oldData + header.size, newData);
             }
             newData[header.size] = value;
             header.size++;
+            return oldData;
         }
         template<typename T>
-        constexpr T* prepend(ListHeader& header, T* const oldData, const T* newData, const T& value)
+        constexpr T* prepend(ListHeader& header, T* const oldData, T* const newData, const T& value)
         {
-            std::copy_backward(oldData, oldData + header.size, newData + header.size);
+            std::copy_backward(oldData, oldData + header.size, newData + header.size + 1);
             newData[0] = value;
             header.size++;
+            return oldData;
         }
         template<typename T>
-        constexpr T* insert(ListHeader& header, T* const oldData, const T* newData, const size_t& pos, const T& value)
+        constexpr T* insert(ListHeader& header, T* const oldData, T* const newData, const size_t& pos, const T& value)
         {
-            std::copy_backward(oldData + pos, oldData + header.size, newData + header.size);
+            std::copy_backward(oldData + pos, oldData + header.size, newData + header.size + 1);
             if(oldData != newData)
             {
                 std::copy(oldData, oldData + pos, newData);
             }
             newData[pos] = value;
             header.size++;
+            return oldData;
         }
         template<typename T, typename... Args>
-        constexpr T* appendConstruct(ListHeader& header, T* const oldData, const T* newData, Args&&... args)
+        constexpr T* appendConstruct(ListHeader& header, T* const oldData, T* const newData, Args&&... args)
         {
-            if(oldData == newData)
+            if(oldData != newData)
             {
                 std::copy(oldData, oldData + header.size, newData);
             }
             std::construct_at(newData + header.size, args...);
             header.size++;
+            return oldData;
         }
         template<typename T, typename... Args>
-        constexpr T* prependConstruct(ListHeader& header, T* const oldData, const T* newData, Args&&... args)
+        constexpr T* prependConstruct(ListHeader& header, T* const oldData, T* const newData, Args&&... args)
         {
-            std::copy_backward(oldData, oldData + header.size, newData + header.size);
+            std::copy_backward(oldData, oldData + header.size, newData + header.size + 1);
             std::construct_at(newData, args...);
             header.size++;
+            return oldData;
         }
         template<typename T, typename... Args>
-        constexpr T* insertConstruct(ListHeader& header, T* const oldData, const T* newData, const size_t& pos, Args&&... args)
+        constexpr T* insertConstruct(ListHeader& header, T* const oldData, T* const newData, const size_t& pos, Args&&... args)
         {
             if (pos >= header.size) [[unlikely]]
             {
                 throw std::out_of_range("fsds::listInternalFunctions::insertConstruct() index out of range");
             }
 
-            std::copy_backward(oldData + pos, oldData + header.size, newData + header.size);
+            std::copy_backward(oldData + pos, oldData + header.size, newData + header.size + 1);
             if(oldData != newData)
             {
                 std::copy(oldData, oldData + pos, newData);
             }
             std::construct_at(newData + pos, args...);
             header.size++;
+            return oldData;
         }
 
         template<typename T>
@@ -254,7 +260,7 @@ namespace fsds
             header.size--;
         }
         template<typename T>
-        constexpr void removeBack(ListHeader& header, T* const data)
+        constexpr void removeBack(ListHeader& header, T* const /*data*/)
         {
             if(header.size == 0) [[unlikely]]
             {
@@ -315,7 +321,7 @@ namespace fsds
         }
 
         template<typename T>
-        constexpr bool valueEquality(ListHeader& thisHeader, T* const thisData, ListHeader& otherHeader, T* const otherData)
+        constexpr bool valueEquality(const ListHeader& thisHeader, const T* const thisData, const ListHeader& otherHeader, const T* const otherData)
         {
             if(thisHeader.size != otherHeader.size)
             {
@@ -342,7 +348,7 @@ namespace fsds
         }
 
         template<typename T>
-        constexpr void deepCopy(ListHeader& thisHeader, T* const thisData, ListHeader& destHeader, T* const destData)
+        constexpr void deepCopy(const ListHeader& thisHeader, const T* const thisData, ListHeader& destHeader, T* const destData)
         {
             std::copy(thisData, thisData + thisHeader.size, destData);
             destHeader.size = thisHeader.size;
@@ -357,6 +363,40 @@ namespace fsds
                 {
                     std::destroy_at(data + i);
                 }
+            }
+        }
+
+        template<typename AllocatorT, typename T>
+        constexpr T* reallocationAllocateHelper(ListHeader& header, T* const data, const size_t& desiredCapacity)
+        {
+            const size_t desieredNumelements = desiredCapacity / sizeof(T);
+            T* newData;
+            if(header.size >= header.capacity) [[unlikely]]
+            {
+                if(desieredNumelements > header.size) [[likely]]
+                {
+                    AllocatorT alloc;
+                    newData = alloc.allocate(desieredNumelements);
+                    header.capacity = desieredNumelements;
+                }
+                else
+                {
+                    throw std::out_of_range("fsds::listInternalFunctions::reallocationHelper() attempting to realocate less space then is already allocated.");
+                }
+            }
+            else
+            {
+                newData = data;
+            }
+            return newData;
+        }
+        template<typename AllocatorT, typename T>
+        constexpr void reallocationDeallocateHelper(const ListHeader& /*header*/, T* const oldData, const T* const newData, const size_t& oldCapacity)
+        {
+            if(newData != oldData) [[unlikely]]
+            {
+                AllocatorT alloc;
+                alloc.deallocate(oldData, oldCapacity);
             }
         }
     }

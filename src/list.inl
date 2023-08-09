@@ -2,15 +2,19 @@ namespace fsds
 {
 	template<typename T, typename Allocator>
 	constexpr List<T, Allocator>::List() noexcept(noexcept(Allocator()))
-	: m_data(nullptr), m_size(0), m_capacity(List<T, Allocator>::sm_baseAllocation)
+	: m_data(nullptr)//, m_size(0), m_capacity(List<T, Allocator>::sm_baseAllocation)
 	{
+		this->m_header.size = 0;
+		this->m_header.capacity = List<T, Allocator>::sm_baseAllocation;
 		Allocator alloc;
 		this->m_data = alloc.allocate(List<T, Allocator>::sm_baseAllocation);
 	}
 	template<typename T, typename Allocator>
 	constexpr List<T, Allocator>::List(const size_t& count)
-	: m_data(nullptr), m_size(count), m_capacity(count)
+	: m_data(nullptr)//, m_size(count), m_capacity(count)
 	{
+		this->m_header.size = count;
+		this->m_header.capacity = count;
 		Allocator alloc;
 		this->m_data = alloc.allocate(count);
 	}
@@ -24,17 +28,19 @@ namespace fsds
 	constexpr List<T, Allocator>::List(List&& other) noexcept
 	{
 		this->m_data = other.m_data;
-		this->m_size = other.m_size;
-		this->m_capacity = other.m_capacity;
+		this->m_header.size = other.m_header.size;
+		this->m_header.capacity = other.m_header.capacity;
 
 		other.m_data = nullptr;
-		other.m_size = 0;
-		other.m_capacity = 0;
+		other.m_header.size = 0;
+		other.m_header.capacity = 0;
 	}
 	template<typename T, typename Allocator>
 	constexpr List<T, Allocator>::List(std::initializer_list<T> init, const Allocator& alloc)
-	: m_data(nullptr), m_size(init.size()), m_capacity(init.size())
+	: m_data(nullptr)//, m_size(init.size()), m_capacity(init.size())
 	{
+		this->m_header.size = init.size();
+		this->m_header.capacity = init.size();
 		this->m_data = alloc.allocate(init.size());
 		std::copy(init.begin(), init.end(), this->m_data);
 	}
@@ -61,12 +67,12 @@ namespace fsds
 		this->deconstructAll();
 
 		this->m_data = other.m_data;
-		this->m_size = other.m_size;
-		this->m_capacity = other.m_capacity;
+		this->m_header.size = other.m_header.size;
+		this->m_header.capacity = other.m_header.capacity;
 
 		other.m_data = nullptr;
-		other.m_size = 0;
-		other.m_capacity = 0;
+		other.m_header.size = 0;
+		other.m_header.capacity = 0;
 
 		return *this;
 	}
@@ -81,45 +87,33 @@ namespace fsds
 	template<typename T, typename Allocator>
 	constexpr T& List<T, Allocator>::operator[](size_t pos)
 	{
-		#ifdef FSDS_DEBUG
-			if(this->m_size == 0) [[unlikely]]
-			{
-				throw std::out_of_range("List::operator[] out of range");
-			}
-		#endif
-		return this->m_data[pos];
+		return fsds::listInternalFunctions::elementAccessOperator(this->m_header, this->m_data, pos);
 	}
 	template<typename T, typename Allocator>
 	constexpr const T& List<T, Allocator>::operator[](size_t pos) const
 	{
-		#ifdef FSDS_DEBUG
-			if(this->m_size == 0) [[unlikely]]
-			{
-				throw std::out_of_range("List::operator[] out of range");
-			}
-		#endif
-		return this->m_data[pos];
+		return fsds::listInternalFunctions::constElementAccessOperator(this->m_header, this->m_data, pos);
 	}
 
 	template<typename T, typename Allocator>
 	constexpr T& List<T, Allocator>::front()
 	{
-		return this->m_data[0];
+		return fsds::listInternalFunctions::front(this->m_header, this->m_data);
 	}
 	template<typename T, typename Allocator>
 	constexpr const T& List<T, Allocator>::front() const
 	{
-		return this->m_data[0];
+		return fsds::listInternalFunctions::constFront(this->m_header, this->m_data);
 	}
 	template<typename T, typename Allocator>
 	constexpr T& List<T, Allocator>::back()
 	{
-		return this->m_data[this->m_size - 1];
+		return fsds::listInternalFunctions::back(this->m_header, this->m_data);
 	}
 	template<typename T, typename Allocator>
 	constexpr const T& List<T, Allocator>::back() const
 	{
-		return this->m_data[this->m_size - 1];
+		return fsds::listInternalFunctions::constBack(this->m_header, this->m_data);
 	}
 
 	template<typename T, typename Allocator>
@@ -136,28 +130,28 @@ namespace fsds
 	template<typename T, typename Allocator>
 	[[nodiscard]] constexpr bool List<T, Allocator>::isEmpty() const noexcept
 	{
-		return this->m_size == 0;
+		return fsds::listInternalFunctions::isEmpty(this->m_header, this->m_data);
 	}
 	template<typename T, typename Allocator>
 	constexpr size_t List<T, Allocator>::size() const noexcept
 	{
-		return this->m_size;
+		return fsds::listInternalFunctions::size(this->m_header, this->m_data);
 	}
 	template<typename T, typename Allocator>
 	constexpr size_t List<T, Allocator>::maxSize() const noexcept
 	{
-		return std::numeric_limits<size_t>::max() / sizeof(T);
+		return fsds::listInternalFunctions::maxSize(this->m_header, this->m_data);
 	}
 	template<typename T, typename Allocator>
 	constexpr size_t List<T, Allocator>::capacity() const noexcept
 	{
-		return this->m_capacity;
+		return fsds::listInternalFunctions::capacity(this->m_header, this->m_data);
 	}
 
 	template<typename T, typename Allocator>
 	constexpr void List<T, Allocator>::reserve(size_t newCap)
 	{
-		if(newCap > this->m_capacity)
+		if(newCap > this->m_header.capacity)
 		{
 			this->reallocate(newCap);
 		}
@@ -165,162 +159,103 @@ namespace fsds
 	template<typename T, typename Allocator>
 	constexpr void List<T, Allocator>::clear()
 	{
-		this->deallocate();
-		this->deconstructAll();
-		
-		Allocator alloc;
-		this->m_data = alloc.allocate(List<T, Allocator>::sm_baseAllocation);
-		this->m_size = 0;
-		this->m_capacity = List<T, Allocator>::sm_baseAllocation;
+		fsds::listInternalFunctions::clear(this->m_header, this->m_data);
 	}
 	
 	template<typename T, typename Allocator>
 	constexpr void List<T, Allocator>::append(const T& value)
 	{
-		if(this->m_size >= this->m_capacity)
-		{
-			this->reallocate(this->m_capacity * 2);
-		}
-		this->m_data[this->m_size] = value;
-		this->m_size++;
+		//test to see if allocation helpers work
+		const size_t oldCapacity = this->m_header.capacity;
+		T* newData = fsds::listInternalFunctions::reallocationAllocateHelper<std::allocator<T>>(this->m_header, this->m_data, this->getExternalReallocateMinimumRequiredSpace()*2);
+		fsds::listInternalFunctions::append(this->m_header, this->m_data, newData, value);
+		fsds::listInternalFunctions::reallocationDeallocateHelper<std::allocator<T>>(this->m_header, this->m_data, newData, oldCapacity);
+		this->m_data = newData;
 	}
 	template<typename T, typename Allocator>
 	constexpr void List<T, Allocator>::prepend(const T& value)
 	{
-		if(this->m_size >= this->m_capacity)
+		if(this->m_header.size >= this->m_header.capacity)
 		{
-			this->reallocate(this->m_capacity * 2);
+			this->reallocate(this->m_header.capacity * 2);
 		}
-		std::copy(this->m_data, this->m_data + this->m_size, this->m_data + 1);
-		this->m_data[0] = value;
-		this->m_size++;
+		fsds::listInternalFunctions::prepend(this->m_header, this->m_data, this->m_data, value);
 	}
 	template<typename T, typename Allocator>
 	constexpr void List<T, Allocator>::insert(size_t pos, const T& value)
 	{
-		#ifdef FSDS_DEBUG
-			if(pos > this->m_size) [[unlikely]]
-			{
-				throw std::out_of_range("List::insert pos out of range");
-			}
-		#endif
-		if(this->m_size >= this->m_capacity)
+		if(this->m_header.size >= this->m_header.capacity)
 		{
-			this->reallocate(this->m_capacity * 2);
+			this->reallocate(this->m_header.capacity * 2);
 		}
-		std::copy(this->m_data + pos, this->m_data + this->m_size, this->m_data + pos + 1);
-		this->m_data[pos] = value;
-		this->m_size++;
+		fsds::listInternalFunctions::insert(this->m_header, this->m_data, this->m_data, pos, value);
 	}
 	template<typename T, typename Allocator>
 	template<typename... Args>
 	constexpr void List<T, Allocator>::appendConstruct(Args&&... args)
 	{
-		if(this->m_size >= this->m_capacity)
+		if(this->m_header.size >= this->m_header.capacity)
 		{
-			this->reallocate(this->m_capacity * 2);
+			this->reallocate(this->m_header.capacity * 2);
 		}
-		this->m_data[this->m_size] = T(args...);
-		this->m_size++;
+		fsds::listInternalFunctions::appendConstruct(this->m_header, this->m_data, this->m_data, args...);
 	}
 	template<typename T, typename Allocator>
 	template<typename... Args>
 	constexpr void List<T, Allocator>::prependConstruct(Args&&... args)
 	{
-		if(this->m_size >= this->m_capacity)
+		if(this->m_header.size >= this->m_header.capacity)
 		{
-			this->reallocate(this->m_capacity * 2);
+			this->reallocate(this->m_header.capacity * 2);
 		}
-		std::copy(this->m_data, this->m_data + this->m_size, this->m_data + 1);
-		this->m_data[0] = T(args...);
-		this->m_size++;
+		fsds::listInternalFunctions::prependConstruct(this->m_header, this->m_data, this->m_data, args...);
 	}
 	template<typename T, typename Allocator>
 	template<typename... Args>
 	constexpr void List<T, Allocator>::insertConstruct(size_t pos, Args&&... args)
 	{
-		#ifdef FSDS_DEBUG
-			if(pos > this->m_size) [[unlikely]]
-			{
-				throw std::out_of_range("List::insertConstruct pos out of range");
-			}
-		#endif
-		if(this->m_size >= this->m_capacity)
+		if(this->m_header.size >= this->m_header.capacity)
 		{
-			this->reallocate(this->m_capacity * 2);
+			this->reallocate(this->m_header.capacity * 2);
 		}
-		std::copy(this->m_data + pos, this->m_data + this->m_size, this->m_data + pos + 1);
-		this->m_data[pos] = T(args...);
-		this->m_size++;
+		fsds::listInternalFunctions::insertConstruct(this->m_header, this->m_data, this->m_data, pos, args...);
 	}
 
 	template<typename T, typename Allocator>
 	constexpr void List<T, Allocator>::remove(size_t pos)
 	{
-		#ifdef FSDS_DEBUG
-			if(pos >= this->m_size) [[unlikely]]
-			{
-				throw std::out_of_range("List::remove pos out of range");
-			}
-		#endif
-		std::copy(this->m_data + pos + 1, this->m_data + this->m_size, this->m_data + pos);
-		this->m_size--;
+		fsds::listInternalFunctions::remove(this->m_header, this->m_data, pos);
 	}
 	template<typename T, typename Allocator>
 	constexpr void List<T, Allocator>::removeBack()
 	{
-		this->m_size--;
+		fsds::listInternalFunctions::removeBack(this->m_header, this->m_data);
 	}
 	template<typename T, typename Allocator>
 	constexpr void List<T, Allocator>::removeFront()
 	{
-		std::copy(this->m_data + 1, this->m_data + this->m_size, this->m_data);
-		this->m_size--;
+		fsds::listInternalFunctions::removeFront(this->m_header, this->m_data);
 	}
 	template<typename T, typename Allocator>
 	constexpr void List<T, Allocator>::removeDeconstruct(size_t pos)
 	{
-		#ifdef FSDS_DEBUG
-			if(pos >= this->m_size) [[unlikely]]
-			{
-				throw std::out_of_range("List::removeDeconstruct pos out of range");
-			}
-		#endif
-		this->deconstructElement(this->m_data+pos);
-		this->remove(pos);
+		fsds::listInternalFunctions::removeDeconstruct(this->m_header, this->m_data, pos);
 	}
 	template<typename T, typename Allocator>
 	constexpr void List<T, Allocator>::removeBackDeconstruct()
 	{
-		this->deconstructElement(&(this->back()));
-		this->removeBack();
+		fsds::listInternalFunctions::removeBackDeconstruct(this->m_header, this->m_data);
 	}
 	template<typename T, typename Allocator>
 	constexpr void List<T, Allocator>::removeFrontDeconstruct()
 	{
-		this->deconstructElement(&(this->front()));
-		this->removeFront();
+		fsds::listInternalFunctions::removeFrontDeconstruct(this->m_header, this->m_data);
 	}
 
 	template<typename T, typename Allocator>
 	constexpr bool List<T, Allocator>::valueEquality(const List<T, Allocator>& other) const
 	{
-		//O(n) value equality linear search
-		if(this->m_size == other.m_size)
-		{
-			for(size_t i = 0; i < this->m_size; i++)
-			{
-				if(this->m_data[i] != other.m_data[i])
-				{
-					return false;
-				}
-			}
-			return true;
-		}
-		else
-		{
-			return false;
-		}
+		return fsds::listInternalFunctions::valueEquality<T>(this->m_header, this->m_data, other.m_header, other.m_data);
 	}
 
 	template<typename T, typename Allocator>
@@ -328,28 +263,26 @@ namespace fsds
 	{
 		if(dest.m_data != nullptr)
 		{
-			dest.getAllocator().deallocate(dest.m_data, dest.m_capacity);
+			dest.getAllocator().deallocate(dest.m_data, dest.m_header.capacity);
 		}
 		Allocator alloc;
-		dest.m_data = alloc.allocate(this->m_size);
-		std::copy(this->m_data, this->m_data + this->m_size, dest.m_data);
-		dest.m_size = this->m_size;
-		dest.m_capacity = this->m_size;
+		dest.m_data = alloc.allocate(this->m_header.size);
+		fsds::listInternalFunctions::deepCopy(this->m_header, this->m_data, dest.m_header, dest.m_data);
 	}
 
 	template<typename T, typename Allocator>
 	constexpr size_t List<T, Allocator>::getExternalReallocateMinimumRequiredSpace()
 	{
-		return this->m_capacity * sizeof(T);
+		return (this->m_header.capacity+1) * sizeof(T);
 	}
 	template<typename T, typename Allocator>
 	constexpr void List<T, Allocator>::externalReallocate(void* ptr, size_t newSizeBytes)
 	{
 		size_t newCapacity = newSizeBytes / sizeof(T);
-		if(newCapacity >= this->m_size) [[likely]]
+		if(newCapacity >= this->m_header.size) [[likely]]
 		{
-			std::copy(this->m_data, this->m_data+this->m_size, reinterpret_cast<T*>(ptr));
-			this->m_capacity = newCapacity;
+			std::copy(this->m_data, this->m_data+this->m_header.size, reinterpret_cast<T*>(ptr));
+			this->m_header.capacity = newCapacity;
 		}
 	}
 
@@ -359,9 +292,9 @@ namespace fsds
 		Allocator alloc;
 		T* oldData = this->m_data;
 		this->m_data = alloc.allocate(newSize);
-		std::copy(oldData, oldData + this->m_size, this->m_data);
-		alloc.deallocate(oldData, this->m_capacity);
-		this->m_capacity = newSize;
+		std::copy(oldData, oldData + this->m_header.size, this->m_data);
+		alloc.deallocate(oldData, this->m_header.capacity);
+		this->m_header.capacity = newSize;
 	}
 
 	template<typename T, typename Allocator>
@@ -370,10 +303,10 @@ namespace fsds
 		if(this->m_data != nullptr)
 		{
 			Allocator alloc;
-			alloc.deallocate(this->m_data, this->m_capacity);
+			alloc.deallocate(this->m_data, this->m_header.capacity);
 			this->m_data = nullptr;
-			this->m_size = 0;
-			this->m_capacity = 0;
+			this->m_header.size = 0;
+			this->m_header.capacity = 0;
 		}
 	}
 
@@ -390,7 +323,7 @@ namespace fsds
 	{
 		if(!std::is_trivially_destructible<T>::value)
 		{
-			std::destroy(this->m_data, this->m_data + this->m_size);
+			std::destroy(this->m_data, this->m_data + this->m_header.size);
 		}
 	}
 

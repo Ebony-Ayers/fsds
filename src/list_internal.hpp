@@ -52,13 +52,13 @@ namespace fsds
         constexpr const T& constBack(const ListHeader& header, const T* const data);
 
         template<typename T>
-        constexpr bool isEmpty(const ListHeader& header);
+        constexpr bool isEmpty(const ListHeader& header, const T* const data);
         template<typename T>
-        constexpr size_t size(const ListHeader& header);
+        constexpr size_t size(const ListHeader& header, const T* const data);
         template<typename T>
-        constexpr size_t maxSize(const ListHeader& header);
+        constexpr size_t maxSize(const ListHeader& header, const T* const data);
         template<typename T>
-        constexpr size_t capcity(const ListHeader& header);
+        constexpr size_t capacity(const ListHeader& header, const T* const data);
 
         template<typename T>
         constexpr void clear(ListHeader& header, T* const data);
@@ -77,17 +77,17 @@ namespace fsds
         //If a reallocation happened oldData should be the unmodified original data and newData is the pointer to the newlt allocated uninitialised memeory. In addition the capacity of the header must be updated externally as the append functions do not modify it.
         //returns a pointer to the old memory for deallocation. This pointer should only be deallocated if a reallocation previously took place
         template<typename T>
-        constexpr T* append(ListHeader& header, T* const oldData, const T* newData, const T& value);
+        constexpr T* append(ListHeader& header, T* const oldData, T* const newData, const T& value);
         template<typename T>
-        constexpr T* prepend(ListHeader& header, T* const oldData, const T* newData, const T& value);
+        constexpr T* prepend(ListHeader& header, T* const oldData, T* const newData, const T& value);
         template<typename T>
-        constexpr T* insert(ListHeader& header, T* const oldData, const T* newData, const size_t& pos, const T& value);
+        constexpr T* insert(ListHeader& header, T* const oldData, T* const newData, const size_t& pos, const T& value);
         template<typename T, typename... Args>
-        constexpr T* appendConstruct(ListHeader& header, T* const oldData, const T* newData, Args&&... args);
+        constexpr T* appendConstruct(ListHeader& header, T* const oldData, T* const newData, Args&&... args);
         template<typename T, typename... Args>
-        constexpr T* prependConstruct(ListHeader& header, T* const oldData, const T* newData, Args&&... args);
+        constexpr T* prependConstruct(ListHeader& header, T* const oldData, T* const newData, Args&&... args);
         template<typename T, typename... Args>
-        constexpr T* insertConstruct(ListHeader& header, T* const oldData, const T* newData, const size_t& pos, Args&&... args);
+        constexpr T* insertConstruct(ListHeader& header, T* const oldData, T* const newData, const size_t& pos, Args&&... args);
 
         template<typename T>
         constexpr void remove(ListHeader& header, T* const data, size_t pos);
@@ -103,13 +103,18 @@ namespace fsds
         constexpr void removeFrontDeconstruct(ListHeader& header, T* const data);
 
         template<typename T>
-        constexpr bool valueEquality(ListHeader& thisHeader, T* const thisData, ListHeader& otherHeader, T* const otherData);
+        constexpr bool valueEquality(const ListHeader& thisHeader, const T* const thisData, const ListHeader& otherHeader, const T* const otherData);
 
         template<typename T>
-        constexpr void deepCopy(ListHeader& thisHeader, T* const thisData, ListHeader& destHeader, T* const destData);
+        constexpr void deepCopy(const ListHeader& thisHeader, const T* const thisData, ListHeader& destHeader, T* const destData);
 
         template<typename T>
         constexpr void desconstructAllElements(ListHeader& header, T* const data);
+
+        template<typename AllocatorT, typename T>
+        constexpr T* reallocationAllocateHelper(ListHeader& header, T* const data, const size_t& desiredCapacity);
+        template<typename AllocatorT, typename T>
+        constexpr void reallocationDeallocateHelper(const ListHeader& header, T* const oldData, const T* const newData, const size_t& oldCapacity);
     }
 }
 

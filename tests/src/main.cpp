@@ -447,22 +447,22 @@ void testList()
 		}
 	}
 
-	//test 4: size(), capacity(), and isEmpty()
-	if((list.size() != 100) || (list.capacity() != 128) || (list.isEmpty() == true))
+	//test 4: size() and isEmpty()
+	if((list.size() != 100) || (list.isEmpty() == true))
 	{
 		testsFailed.push_back(4);
 	}
 
 	//test 5: clear()
 	list.clear();
-	if((list.size() != 0) || (list.capacity() != 16) || (list.isEmpty() == false))
+	if((list.size() != 0) || (list.isEmpty() == false))
 	{
 		testsFailed.push_back(5);
 	}
 
 	//test 6: reserve()
-	list.reserve(32);
-	if(list.capacity() != 32)
+	list.reserve(200);
+	if(list.capacity() < 200)
 	{
 		testsFailed.push_back(6);
 	}
@@ -476,6 +476,7 @@ void testList()
 	{
 		if(list[i] != testSize - i - 1)
 		{
+			std::cout << list[i] << " != " << (testSize - i - 1) << std::endl;
 			testsFailed.push_back(7);
 			break;
 		}

@@ -88,8 +88,9 @@ namespace fsds
 			constexpr void deconstructAll();
 
 			T* m_data;
-			size_t m_size;
-			size_t m_capacity;
+			fsds::listInternalFunctions::ListHeader m_header;
+			//size_t m_size;
+			//size_t m_capacity;
 	};
 
 	template<typename T, typename Allocator = std::allocator<T>>
