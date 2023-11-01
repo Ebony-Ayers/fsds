@@ -370,14 +370,14 @@ namespace fsds
         constexpr T* reallocationAllocateHelper(ListHeader& header, T* const data, const size_t& desiredCapacity)
         {
             const size_t desieredNumelements = desiredCapacity / sizeof(T);
-            T* newData;
             if(header.size >= header.capacity) [[unlikely]]
             {
                 if(desieredNumelements > header.size) [[likely]]
                 {
                     AllocatorT alloc;
-                    newData = alloc.allocate(desieredNumelements);
+                    T* newData = alloc.allocate(desieredNumelements);
                     header.capacity = desieredNumelements;
+                    return newData;
                 }
                 else
                 {
@@ -386,9 +386,8 @@ namespace fsds
             }
             else
             {
-                newData = data;
+                return data;
             }
-            return newData;
         }
         template<typename AllocatorT, typename T>
         constexpr void reallocationDeallocateHelper(const ListHeader& /*header*/, T* const oldData, const T* const newData, const size_t& oldCapacity)
