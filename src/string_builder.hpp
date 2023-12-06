@@ -8,6 +8,7 @@
 #include "utf-8.hpp"
 #include "static_string.hpp"
 #include "dynamic_string.hpp"
+#include "seperate_data_list.hpp"
 
 namespace fsds
 {
@@ -63,10 +64,10 @@ namespace fsds
 			constexpr void insertBeforePartialString(const PartialString&, const SizeType& partialStringIndex);
 			constexpr void removePartialString(const SizeType& partialStringIndex);
 
-			fsds::List<PartialString> m_partialStringTable;
+			fsds::SeperateDataList<PartialString> m_partialStringTable;
 
-			fsds::List<const StaticString*> m_staticStrings;
-			fsds::List<DynamicString> m_dynamicStrings;
+			fsds::SeperateDataList<const StaticString*> m_staticStrings;
+			fsds::SeperateDataList<DynamicString> m_dynamicStrings;
 
 			SizeType m_size;
 			SizeType m_numCodePoints;

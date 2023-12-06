@@ -304,7 +304,7 @@ namespace fsds
 		this->m_queueTails = std::array<Node*, numPriorities>();
 		this->m_queueSizes = std::array<size_t, numPriorities>();
 		this->m_availableNodes = fsds::SPSCQueue<Node*>(1);
-		this->m_rawNodeStorage = fsds::List<Node*>();
+		this->m_rawNodeStorage = fsds::SeperateDataList<Node*>();
 		this->m_totalSize = 0;
 
 		//constructor

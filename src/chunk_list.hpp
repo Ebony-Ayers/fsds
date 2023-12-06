@@ -3,7 +3,7 @@
 #include "fsds_options.hpp"
 #include "pch.hpp"
 
-#include "list.hpp"
+#include "seperate_data_list.hpp"
 
 #include <type_traits>
 #include <bitset>
@@ -50,7 +50,7 @@ namespace fsds
 			constexpr void deleteElement(T* element);
 			constexpr void clearWithoutAllocating();
 
-			fsds::List<Chunk*> m_chunks;
+			fsds::SeperateDataList<Chunk*> m_chunks;
 			size_t m_nextElementInChunk;
 	};
 }

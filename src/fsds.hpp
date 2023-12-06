@@ -6,7 +6,7 @@
 
 #include "fsds_options.hpp"
 
-#include "list.hpp"
+#include "seperate_data_list.hpp"
 #include "chunk_list.hpp"
 #include "linked_list.hpp"
 #include "spsc_queue.hpp"
@@ -18,5 +18,11 @@
 #include "static_string.hpp"
 #include "dynamic_string.hpp"
 #include "string_builder.hpp"
+
+namespace fsds
+{
+	template<typename T, typename Allocator = std::allocator<T>>
+	using List = fsds::SeperateDataList<T, Allocator>;
+}
 
 #endif //#ifndef FSDS_HPP_HEADER_GUARD

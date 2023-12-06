@@ -4,7 +4,7 @@
 #include "pch.hpp"
 
 #include <array>
-#include "list.hpp"
+#include "seperate_data_list.hpp"
 #include <iostream>
 #include <algorithm>
 
@@ -58,7 +58,7 @@ namespace fsds
 
 			fsds::SPSCQueue<Node*> m_availableNodes;
 
-			fsds::List<Node*> m_rawNodeStorage;
+			fsds::SeperateDataList<Node*> m_rawNodeStorage;
 
 			size_t m_totalSize;
 	};

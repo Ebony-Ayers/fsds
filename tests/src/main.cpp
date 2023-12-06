@@ -415,7 +415,7 @@ void testList()
 	std::vector<size_t> testsFailed;
 
 	size_t testSize = 100;
-	fsds::List<size_t> list;
+	fsds::SeperateDataList<size_t> list;
 
 	//test 1: append()
 	for(size_t i = 0; i < testSize; i++)
@@ -553,7 +553,7 @@ void testList()
 
 			size_t m_x;
 	};
-	fsds::List<placeHolderClass> list2;
+	fsds::SeperateDataList<placeHolderClass> list2;
 	list2.appendConstruct(static_cast<size_t>(0));
 	if(list2[0].m_x != 0)
 	{
@@ -571,8 +571,8 @@ void testList()
 	}
 
 	//test 13: operator==
-	fsds::List<size_t> list3;
-	fsds::List<size_t> list4;
+	fsds::SeperateDataList<size_t> list3;
+	fsds::SeperateDataList<size_t> list4;
 	for(size_t i = 0; i < testSize; i++)
 	{
 		list3.append(i);
@@ -591,7 +591,7 @@ void testList()
 	}
 
 	//test 15: copy constructor
-	fsds::List<size_t> list5 = list;
+	fsds::SeperateDataList<size_t> list5 = list;
 	if(list5 != list)
 	{
 		testsFailed.push_back(15);
@@ -605,7 +605,7 @@ void testList()
 	}
 
 	//test 17 move constructor
-	fsds::List<size_t> list6 = std::move(list5);
+	fsds::SeperateDataList<size_t> list6 = std::move(list5);
 	if((list6 != list4) || (list5.data() != nullptr))
 	{
 		testsFailed.push_back(17);
@@ -625,17 +625,17 @@ void testList()
 
 	if(testsFailed.size() == 0)
 	{
-		std::cout << "List passed all tests" << std::endl;
+		std::cout << "SeperateDataList passed all tests" << std::endl;
 	}
 	else
 	{
 		if(testsFailed.size() == 1)
 		{
-			std::cout << "List failed test " << testsFailed[0] << std::endl;
+			std::cout << "SeperateDataList failed test " << testsFailed[0] << std::endl;
 		}
 		else
 		{
-			std::cout << "List failed tests ";
+			std::cout << "SeperateDataList failed tests ";
 			for(size_t i = 0; i < testsFailed.size() - 1; i++)
 			{
 				std::cout << testsFailed[i] << ", ";

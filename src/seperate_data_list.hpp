@@ -1,5 +1,5 @@
-#ifndef LIST_HPP_HEADER_GUARD
-#define LIST_HPP_HEADER_GUARD
+#ifndef SEPERATE_DATA_LIST_HPP_HEADER_GUARD
+#define SEPERATE_DATA_LIST_HPP_HEADER_GUARD
 #include "fsds_options.hpp"
 #include "pch.hpp"
 
@@ -14,24 +14,24 @@
 namespace fsds
 {
 	template<typename T, typename Allocator = std::allocator<T>>
-	class List
+	class SeperateDataList
 	{
 		public:
-			constexpr List() noexcept(noexcept(Allocator()));	//default constructor
-			constexpr explicit List(const size_t& count);		//constructor specifying initial capacity
-			constexpr List(const List& other);					//copy constructor
-			constexpr List(List&& other) noexcept;				//move constructor
-			constexpr List(std::initializer_list<T> init, const Allocator& alloc = Allocator());	//initializer list
-			constexpr explicit List(const Allocator& alloc) noexcept = delete;
-			constexpr List(size_t count, const T& value, const Allocator& alloc = Allocator()) = delete;
+			constexpr SeperateDataList() noexcept(noexcept(Allocator()));										//default constructor
+			constexpr explicit SeperateDataList(const size_t& count);											//constructor specifying initial capacity
+			constexpr SeperateDataList(const SeperateDataList& other);											//copy constructor
+			constexpr SeperateDataList(SeperateDataList&& other) noexcept;										//move constructor
+			constexpr SeperateDataList(std::initializer_list<T> init, const Allocator& alloc = Allocator());	//initializer list
+			constexpr explicit SeperateDataList(const Allocator& alloc) noexcept = delete;
+			constexpr SeperateDataList(size_t count, const T& value, const Allocator& alloc = Allocator()) = delete;
 			template<typename InputIt>
-			constexpr List(InputIt first, InputIt last, const Allocator& alloc = Allocator()) = delete;
-			constexpr List(const List& other, const Allocator& alloc) = delete;
-			constexpr List(List&& other, const Allocator& alloc) = delete;
-			constexpr ~List();
+			constexpr SeperateDataList(InputIt first, InputIt last, const Allocator& alloc = Allocator()) = delete;
+			constexpr SeperateDataList(const SeperateDataList& other, const Allocator& alloc) = delete;
+			constexpr SeperateDataList(SeperateDataList&& other, const Allocator& alloc) = delete;
+			constexpr ~SeperateDataList();
 
-			constexpr List& operator=(const List& other);
-			constexpr List& operator=(List&& other) noexcept;
+			constexpr SeperateDataList& operator=(const SeperateDataList& other);
+			constexpr SeperateDataList& operator=(SeperateDataList&& other) noexcept;
 
 			constexpr Allocator getAllocator() const noexcept;
 
@@ -71,9 +71,9 @@ namespace fsds
 			constexpr void removeBackDeconstruct();
 			constexpr void removeFrontDeconstruct();
 
-			constexpr bool valueEquality(const List<T, Allocator>& other) const;
+			constexpr bool valueEquality(const SeperateDataList<T, Allocator>& other) const;
 
-			constexpr void deepCopy(List<T, Allocator>& dest) const;
+			constexpr void deepCopy(SeperateDataList<T, Allocator>& dest) const;
 
 			//returns the size in bytes
 			constexpr size_t getExternalReallocateMinimumRequiredSpace();
@@ -94,26 +94,26 @@ namespace fsds
 	};
 
 	template<typename T, typename Allocator = std::allocator<T>>
-	constexpr bool operator==(const List<T, Allocator>& lhs, const List<T, Allocator>& rhs);
+	constexpr bool operator==(const SeperateDataList<T, Allocator>& lhs, const SeperateDataList<T, Allocator>& rhs);
 	template<typename T, typename Allocator = std::allocator<T>>
-	constexpr bool operator!=(const List<T, Allocator>& lhs, const List<T, Allocator>& rhs);
+	constexpr bool operator!=(const SeperateDataList<T, Allocator>& lhs, const SeperateDataList<T, Allocator>& rhs);
 
 	template<typename T, typename Allocator = std::allocator<T>>
-	class ts_List
+	class ts_SeperateDataList
 	{
 		public:
-			constexpr ts_List() noexcept(noexcept(Allocator()));	//default constructor
-			constexpr explicit ts_List(const size_t& count);		//constructor specifying initial capacity
-			constexpr ts_List(const ts_List& other);					//copy constructor
-			constexpr ts_List(ts_List&& other) noexcept;				//move constructor
-			constexpr ts_List(std::initializer_list<T> init, const Allocator& alloc = Allocator());	//initializer list
-			constexpr explicit ts_List(const Allocator& alloc) noexcept = delete;
-			constexpr ts_List(size_t count, const T& value, const Allocator& alloc = Allocator()) = delete;
+			constexpr ts_SeperateDataList() noexcept(noexcept(Allocator()));	//default constructor
+			constexpr explicit ts_SeperateDataList(const size_t& count);		//constructor specifying initial capacity
+			constexpr ts_SeperateDataList(const ts_SeperateDataList& other);					//copy constructor
+			constexpr ts_SeperateDataList(ts_SeperateDataList&& other) noexcept;				//move constructor
+			constexpr ts_SeperateDataList(std::initializer_list<T> init, const Allocator& alloc = Allocator());	//initializer list
+			constexpr explicit ts_SeperateDataList(const Allocator& alloc) noexcept = delete;
+			constexpr ts_SeperateDataList(size_t count, const T& value, const Allocator& alloc = Allocator()) = delete;
 			template<typename InputIt>
-			constexpr ts_List(InputIt first, InputIt last, const Allocator& alloc = Allocator()) = delete;
-			constexpr ts_List(const ts_List& other, const Allocator& alloc) = delete;
-			constexpr ts_List(ts_List&& other, const Allocator& alloc) = delete;
-			constexpr ~ts_List();
+			constexpr ts_SeperateDataList(InputIt first, InputIt last, const Allocator& alloc = Allocator()) = delete;
+			constexpr ts_SeperateDataList(const ts_SeperateDataList& other, const Allocator& alloc) = delete;
+			constexpr ts_SeperateDataList(ts_SeperateDataList&& other, const Allocator& alloc) = delete;
+			constexpr ~ts_SeperateDataList();
 
 			constexpr Allocator getAllocator() const noexcept;
 
@@ -149,26 +149,26 @@ namespace fsds
 			constexpr void removeBackDeconstruct();
 			constexpr void removeFrontDeconstruct();
 
-			constexpr bool valueEquality(const ts_List<T, Allocator>& other);
+			constexpr bool valueEquality(const ts_SeperateDataList<T, Allocator>& other);
 
-			constexpr void deepCopy(ts_List<T, Allocator>& dest) const;
+			constexpr void deepCopy(ts_SeperateDataList<T, Allocator>& dest) const;
 
 			//returns the size in bytes
 			constexpr size_t getExternalReallocateMinimumRequiredSpace();
 			constexpr void externalReallocate(void* ptr, size_t newSizeBytes);
 		
 		private:
-			fsds::List<T,Allocator> m_list;
+			fsds::SeperateDataList<T,Allocator> m_list;
 			fts::ReadWriteLock m_lock;
 	};
 
 	template<typename T, typename Allocator = std::allocator<T>>
-	constexpr bool operator==(const ts_List<T, Allocator>& lhs, const ts_List<T, Allocator>& rhs);
+	constexpr bool operator==(const ts_SeperateDataList<T, Allocator>& lhs, const ts_SeperateDataList<T, Allocator>& rhs);
 	template<typename T, typename Allocator = std::allocator<T>>
-	constexpr bool operator!=(const ts_List<T, Allocator>& lhs, const ts_List<T, Allocator>& rhs);
+	constexpr bool operator!=(const ts_SeperateDataList<T, Allocator>& lhs, const ts_SeperateDataList<T, Allocator>& rhs);
 }
 
-#include "list.inl"
-#include "ts_list.inl"
+#include "seperate_data_list.inl"
+#include "ts_seperate_data_list.inl"
 
-#endif //#ifndef LIST_HPP_HEADER_GUARD
+#endif //#ifndef SEPERATE_DATA_LIST_HPP_HEADER_GUARD
