@@ -2,45 +2,37 @@ namespace fsds
 {
 	template<typename T, typename Allocator>
 	constexpr SeperateDataList<T, Allocator>::SeperateDataList() noexcept(noexcept(Allocator()))
-	: m_data(nullptr)//, m_size(0), m_capacity(SeperateDataList<T, Allocator>::sm_baseAllocation)
+	: m_data(nullptr), m_header({0, SeperateDataList<T, Allocator>::sm_baseAllocation, 0})
 	{
-		this->m_header.size = 0;
-		this->m_header.capacity = SeperateDataList<T, Allocator>::sm_baseAllocation;
 		Allocator alloc;
 		this->m_data = alloc.allocate(SeperateDataList<T, Allocator>::sm_baseAllocation);
 	}
 	template<typename T, typename Allocator>
 	constexpr SeperateDataList<T, Allocator>::SeperateDataList(const size_t& count)
-	: m_data(nullptr)//, m_size(count), m_capacity(count)
+	: m_data(nullptr), m_header({0, count, 0}) //bug where initial size was set to the initial capacity not zero was not caught by testing
 	{
-		this->m_header.size = count;
-		this->m_header.capacity = count;
 		Allocator alloc;
 		this->m_data = alloc.allocate(count);
 	}
 	template<typename T, typename Allocator>
 	constexpr SeperateDataList<T, Allocator>::SeperateDataList(const SeperateDataList& other)
+	: m_data(nullptr), m_header({0, 0, 0})
 	{
-		this->m_data = nullptr;
 		other.deepCopy(*this);
 	}
 	template<typename T, typename Allocator>
 	constexpr SeperateDataList<T, Allocator>::SeperateDataList(SeperateDataList&& other) noexcept
+	: m_data(other.m_data), m_header({other.m_header.size, other.m_header.capacity, other.m_header.front})
 	{
-		this->m_data = other.m_data;
-		this->m_header.size = other.m_header.size;
-		this->m_header.capacity = other.m_header.capacity;
-
 		other.m_data = nullptr;
 		other.m_header.size = 0;
 		other.m_header.capacity = 0;
+		other.m_header.front = 0;
 	}
 	template<typename T, typename Allocator>
 	constexpr SeperateDataList<T, Allocator>::SeperateDataList(std::initializer_list<T> init, const Allocator& alloc)
-	: m_data(nullptr)//, m_size(init.size()), m_capacity(init.size())
+	: m_data(nullptr), m_header({init.size(), init.size(), 0})
 	{
-		this->m_header.size = init.size();
-		this->m_header.capacity = init.size();
 		this->m_data = alloc.allocate(init.size());
 		std::copy(init.begin(), init.end(), this->m_data);
 	}
@@ -69,10 +61,12 @@ namespace fsds
 		this->m_data = other.m_data;
 		this->m_header.size = other.m_header.size;
 		this->m_header.capacity = other.m_header.capacity;
+		this->m_header.front = other.m_header.front;
 
 		other.m_data = nullptr;
 		other.m_header.size = 0;
 		other.m_header.capacity = 0;
+		other.m_header.front = 0;
 
 		return *this;
 	}
@@ -175,7 +169,7 @@ namespace fsds
 	template<typename T, typename Allocator>
 	constexpr void SeperateDataList<T, Allocator>::prepend(const T& value)
 	{
-		if(this->m_header.size >= this->m_header.capacity)
+		if(this->m_header.size + this->m_header.front >= this->m_header.capacity)
 		{
 			this->reallocate(this->m_header.capacity * 2);
 		}
@@ -184,7 +178,7 @@ namespace fsds
 	template<typename T, typename Allocator>
 	constexpr void SeperateDataList<T, Allocator>::insert(size_t pos, const T& value)
 	{
-		if(this->m_header.size >= this->m_header.capacity)
+		if(this->m_header.size + this->m_header.front >= this->m_header.capacity)
 		{
 			this->reallocate(this->m_header.capacity * 2);
 		}
@@ -194,7 +188,7 @@ namespace fsds
 	template<typename... Args>
 	constexpr void SeperateDataList<T, Allocator>::appendConstruct(Args&&... args)
 	{
-		if(this->m_header.size >= this->m_header.capacity)
+		if(this->m_header.size + this->m_header.front >= this->m_header.capacity)
 		{
 			this->reallocate(this->m_header.capacity * 2);
 		}
@@ -204,7 +198,7 @@ namespace fsds
 	template<typename... Args>
 	constexpr void SeperateDataList<T, Allocator>::prependConstruct(Args&&... args)
 	{
-		if(this->m_header.size >= this->m_header.capacity)
+		if(this->m_header.size + this->m_header.front >= this->m_header.capacity)
 		{
 			this->reallocate(this->m_header.capacity * 2);
 		}
@@ -214,7 +208,7 @@ namespace fsds
 	template<typename... Args>
 	constexpr void SeperateDataList<T, Allocator>::insertConstruct(size_t pos, Args&&... args)
 	{
-		if(this->m_header.size >= this->m_header.capacity)
+		if(this->m_header.size + this->m_header.front >= this->m_header.capacity)
 		{
 			this->reallocate(this->m_header.capacity * 2);
 		}
@@ -281,8 +275,9 @@ namespace fsds
 		size_t newCapacity = newSizeBytes / sizeof(T);
 		if(newCapacity >= this->m_header.size) [[likely]]
 		{
-			std::copy(this->m_data, this->m_data+this->m_header.size, reinterpret_cast<T*>(ptr));
+			std::copy(this->m_data+this->m_header.front, this->m_data+this->m_header.front+this->m_header.size, reinterpret_cast<T*>(ptr));
 			this->m_header.capacity = newCapacity;
+			this->m_header.front = 0;
 		}
 	}
 
@@ -292,9 +287,10 @@ namespace fsds
 		Allocator alloc;
 		T* oldData = this->m_data;
 		this->m_data = alloc.allocate(newSize);
-		std::copy(oldData, oldData + this->m_header.size, this->m_data);
+		std::copy(oldData + this->m_header.front, oldData + this->m_header.front + this->m_header.size, this->m_data);
 		alloc.deallocate(oldData, this->m_header.capacity);
 		this->m_header.capacity = newSize;
+		this->m_header.front = 0;
 	}
 
 	template<typename T, typename Allocator>
@@ -307,6 +303,7 @@ namespace fsds
 			this->m_data = nullptr;
 			this->m_header.size = 0;
 			this->m_header.capacity = 0;
+			this->m_header.front = 0;
 		}
 	}
 

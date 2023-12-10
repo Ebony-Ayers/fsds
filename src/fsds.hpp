@@ -7,6 +7,7 @@
 #include "fsds_options.hpp"
 
 #include "seperate_data_list.hpp"
+#include "inline_list.hpp"
 #include "chunk_list.hpp"
 #include "linked_list.hpp"
 #include "spsc_queue.hpp"

@@ -13,6 +13,7 @@ namespace fsds
         {
             size_t size;
 			size_t capacity;
+            size_t front;
         };
 
         //you need to manually allocate space for data. capacity is how many elements were allocated
@@ -23,7 +24,7 @@ namespace fsds
         constexpr void copyConstructor(ListHeader& thisHeader, T* const thisData, ListHeader& otherHeader, T* const otherData, const size_t& capacity);
         template<typename T>
         //the move constructor does not require space to be allocated
-        constexpr void moveConstructor(ListHeader& thisHeader, T* const thisData, ListHeader& otherHeader, T* const otherData);
+        constexpr void moveConstructor(ListHeader& thisHeader, T* const thisData, ListHeader& otherHeader, T* const otherData, const size_t& front);
         template<typename T>
         //you need to manually allocate space for data. capacity is how many elements were allocated
         constexpr void initialiserListConstructor(ListHeader& header, T* data, std::initializer_list<T> init, const size_t& capacity);

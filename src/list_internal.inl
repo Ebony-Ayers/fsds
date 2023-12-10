@@ -8,6 +8,7 @@ namespace fsds
         {
             header.size = 0;
             header.capacity = capacity;
+            header.front = 0;
         }
         //you need to manually allocate space for data. capacity is how many elements were allocated
         template<typename T>
@@ -15,14 +16,16 @@ namespace fsds
         {
             thisHeader.size = otherHeader.size;
             thisHeader.capacity = capacity;
-            std::copy(otherData, otherData + otherHeader.size, thisData);
+            thisHeader.front = 0;
+            std::copy(otherData + otherHeader.front, otherData + otherHeader.front + otherHeader.size, thisData);
         }
         template<typename T>
         //the move constructor does not require space to be allocated
-        constexpr void moveConstructor(ListHeader& thisHeader, T* const thisData, ListHeader& otherHeader, T* const otherData)
+        constexpr void moveConstructor(ListHeader& thisHeader, T* const thisData, ListHeader& otherHeader, T* const otherData, const size_t& front)
         {
             thisHeader.size = otherHeader.size;
             thisHeader.capacity = otherHeader.capacity;
+            thisHeader.front = otherHeader.front;
             thisData = otherData;
         }
         template<typename T>
@@ -31,7 +34,8 @@ namespace fsds
         {
             header.size = init.size();
             header.capacity = capacity;
-            std::copy(init.begin(), init.end(), data);
+            header.front = 0;
+            std::copy(init.begin(), init.end(), data + 0);
         }
         template<typename T>
         constexpr void destructor(ListHeader& header, T* data)
@@ -45,7 +49,8 @@ namespace fsds
         {
             thisHeader.size = otherHeader.size;
             thisHeader.capacity = capacity;
-            std::copy(otherData, otherData + otherHeader.size, thisData);
+            thisHeader.front = 0;
+            std::copy(otherData + otherHeader.front, otherData + otherHeader.front + otherHeader.size, thisData);
         }
         //move assignment does not require reallocating space
         template<typename T>
@@ -53,6 +58,7 @@ namespace fsds
         {
             thisHeader.size = otherHeader.size;
             thisHeader.capacity = otherHeader.capacity;
+            thisHeader.front = otherHeader.front;
             thisData = otherData;
         }
 
@@ -63,12 +69,12 @@ namespace fsds
 			{
 				throw std::out_of_range("fsds::listInternalFunctions::elementAccessOperator() attempting to access list with no data");
 			}
-            else if (pos >= header.size) [[unlikely]]
+            else if(pos >= header.size) [[unlikely]]
             {
                 throw std::out_of_range("fsds::listInternalFunctions::elementAccessOperator() index out of range");
             }
             
-            return data[pos];
+            return data[pos + header.front];
         }
         template<typename T>
         constexpr const T& constElementAccessOperator(const ListHeader& header, const T* const data, const size_t& pos)
@@ -77,12 +83,12 @@ namespace fsds
 			{
 				throw std::out_of_range("fsds::listInternalFunctions::constElementAccessOperator() attempting to access list with no data");
 			}
-            else if (pos >= header.size) [[unlikely]]
+            else if(pos >= header.size) [[unlikely]]
             {
                 throw std::out_of_range("fsds::listInternalFunctions::constElementAccessOperator() index out of range");
             }
             
-            return data[pos];
+            return data[pos + header.front];
         }
 
         template<typename T>
@@ -93,7 +99,7 @@ namespace fsds
 				throw std::out_of_range("fsds::listInternalFunctions::front() attempting to access list with no data");
 			}
             
-            return data[0];
+            return data[header.front];
         }
         template<typename T>
         constexpr const T& constFront(const ListHeader& header, const T* const data)
@@ -103,7 +109,7 @@ namespace fsds
 				throw std::out_of_range("fsds::listInternalFunctions::constFront() attempting to access list with no data");
 			}
             
-            return data[0];
+            return data[header.front];
         }
         template<typename T>
         constexpr T& back(ListHeader& header, T* const data)
@@ -113,7 +119,7 @@ namespace fsds
 				throw std::out_of_range("fsds::listInternalFunctions::back() attempting to access list with no data");
 			}
             
-            return data[header.size-1];
+            return data[header.size + header.front - 1];
         }
         template<typename T>
         constexpr const T& constBack(const ListHeader& header, const T* const data)
@@ -123,7 +129,7 @@ namespace fsds
 				throw std::out_of_range("fsds::listInternalFunctions::constBack() attempting to access list with no data");
 			}
 
-            return data[header.size-1];
+            return data[header.size + header.front - 1];
         }
 
         template<typename T>
@@ -152,6 +158,7 @@ namespace fsds
         {
             fsds::listInternalFunctions::desconstructAllElements(header, data);
             header.size = 0;
+            header.front = 0;
         }
 
         //number of elements not bytes required when reallocating to allow the opperation
@@ -181,7 +188,8 @@ namespace fsds
         {
             if(oldData != newData)
             {
-                std::copy(oldData, oldData + header.size, newData);
+                std::copy(oldData + header.front, oldData + header.front + header.size, newData);
+                header.front = 0;
             }
             newData[header.size] = value;
             header.size++;
@@ -190,18 +198,20 @@ namespace fsds
         template<typename T>
         constexpr T* prepend(ListHeader& header, T* const oldData, T* const newData, const T& value)
         {
-            std::copy_backward(oldData, oldData + header.size, newData + header.size + 1);
+            std::copy_backward(oldData + header.front, oldData + header.front + header.size, newData + header.size + 1);
             newData[0] = value;
             header.size++;
+            header.front = 0;
             return oldData;
         }
         template<typename T>
         constexpr T* insert(ListHeader& header, T* const oldData, T* const newData, const size_t& pos, const T& value)
         {
-            std::copy_backward(oldData + pos, oldData + header.size, newData + header.size + 1);
+            std::copy_backward(oldData + header.front + pos, oldData + header.front + header.size, newData + header.size + 1);
             if(oldData != newData)
             {
-                std::copy(oldData, oldData + pos, newData);
+                std::copy(oldData + header.front, oldData + header.front + pos, newData);
+                header.front = 0;
             }
             newData[pos] = value;
             header.size++;
@@ -212,7 +222,8 @@ namespace fsds
         {
             if(oldData != newData)
             {
-                std::copy(oldData, oldData + header.size, newData);
+                std::copy(oldData + header.front, oldData + header.front + header.size, newData);
+                header.front = 0;
             }
             std::construct_at(newData + header.size, args...);
             header.size++;
@@ -221,9 +232,10 @@ namespace fsds
         template<typename T, typename... Args>
         constexpr T* prependConstruct(ListHeader& header, T* const oldData, T* const newData, Args&&... args)
         {
-            std::copy_backward(oldData, oldData + header.size, newData + header.size + 1);
+            std::copy_backward(oldData + header.front, oldData + header.front + header.size, newData + header.size + 1);
             std::construct_at(newData, args...);
             header.size++;
+            header.front = 0;
             return oldData;
         }
         template<typename T, typename... Args>
@@ -234,10 +246,11 @@ namespace fsds
                 throw std::out_of_range("fsds::listInternalFunctions::insertConstruct() index out of range");
             }
 
-            std::copy_backward(oldData + pos, oldData + header.size, newData + header.size + 1);
+            std::copy_backward(oldData + header.front + pos, oldData + header.front + header.size, newData + header.size + 1);
             if(oldData != newData)
             {
-                std::copy(oldData, oldData + pos, newData);
+                std::copy(oldData + header.front, oldData + header.front + pos, newData);
+                header.front = 0;
             }
             std::construct_at(newData + pos, args...);
             header.size++;
@@ -256,7 +269,7 @@ namespace fsds
                 throw std::out_of_range("fsds::listInternalFunctions::remove() index out of range");
             }
             
-            std::copy(data + pos + 1, data + header.size, data + pos);
+            std::copy(data + header.front + pos + 1, data + header.front + header.size, data + header.front + pos);
             header.size--;
         }
         template<typename T>
@@ -277,8 +290,9 @@ namespace fsds
                 throw std::out_of_range("fsds::listInternalFunctions::removeFront() attempting to remove from list with no data");
             }
 
-            std::copy(data + 1, data + header.size, data);
+            //std::copy(data + 1, data + header.size, data);
             header.size--;
+            header.front++;
         }
         template<typename T>
         constexpr void removeDeconstruct(ListHeader& header, T* const data, size_t pos)
@@ -293,7 +307,7 @@ namespace fsds
             }
             
             std::destroy_at(data + pos);
-            std::copy(data + pos + 1, data + header.size, data + pos);
+            std::copy(data + header.front + pos + 1, data + header.front + header.size, data + header.front + pos);
             header.size--;
         }
         template<typename T>
@@ -316,8 +330,9 @@ namespace fsds
             }
 
             std::destroy_at(data);
-            std::copy(data + 1, data + header.size, data);
+            //std::copy(data + 1, data + header.size, data);
             header.size--;
+            header.front++;
         }
 
         template<typename T>
@@ -337,7 +352,7 @@ namespace fsds
                 {
                     for(size_t i = 0; i < thisHeader.size; i++)
                     {
-                        if(thisData[i] != otherData[i])
+                        if(thisData[i + thisHeader.front] != otherData[i + otherHeader.front])
                         {
                             return false;
                         }
@@ -350,8 +365,9 @@ namespace fsds
         template<typename T>
         constexpr void deepCopy(const ListHeader& thisHeader, const T* const thisData, ListHeader& destHeader, T* const destData)
         {
-            std::copy(thisData, thisData + thisHeader.size, destData);
+            std::copy(thisData + thisHeader.front, thisData + thisHeader.front + thisHeader.size, destData);
             destHeader.size = thisHeader.size;
+            destHeader.front = 0;
         }
 
         template<typename T>
@@ -361,7 +377,7 @@ namespace fsds
             {
                 for(size_t i = 0; i < header.size; i++)
                 {
-                    std::destroy_at(data + i);
+                    std::destroy_at(data + header.front + i);
                 }
             }
         }
@@ -370,7 +386,7 @@ namespace fsds
         constexpr T* reallocationAllocateHelper(ListHeader& header, T* const data, const size_t& desiredCapacity)
         {
             const size_t desieredNumelements = desiredCapacity / sizeof(T);
-            if(header.size >= header.capacity) [[unlikely]]
+            if(header.size + header.front >= header.capacity) [[unlikely]]
             {
                 if(desieredNumelements > header.size) [[likely]]
                 {
