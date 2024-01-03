@@ -283,7 +283,7 @@ namespace fsds
             header.size--;
         }
         template<typename T>
-        constexpr void removeFront(ListHeader& header, T* const data)
+        constexpr void removeFront(ListHeader& header, T* const /*data*/)
         {
             if(header.size == 0) [[unlikely]]
             {

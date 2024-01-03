@@ -69,8 +69,8 @@ namespace fsds
 			constexpr void removeFrontDeconstruct();
 		
 		private:
-			fsds::listInternalFunctions::ListHeader header;
-			T data[1];
+			fsds::listInternalFunctions::ListHeader m_header;
+			T m_data[1];
 	};
 
 	template<typename T, typename Allocator = std::allocator<T>>
