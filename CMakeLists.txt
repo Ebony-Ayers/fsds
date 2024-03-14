@@ -17,7 +17,7 @@ string(CONCAT project_options_library ${primary_target_name} _project_options)
 add_library(${project_options_library} INTERFACE)
 
 #set the c++ standard required
-target_compile_features(${project_options_library} INTERFACE cxx_std_20)
+target_compile_features(${project_options_library} INTERFACE cxx_std_23)
 
 #link pthreads for multithreading
 option(ENABLE_MULTITHREADING "Adds required linker option for using std::thread" ON)

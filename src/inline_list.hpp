@@ -10,6 +10,7 @@
 #include <type_traits>
 
 #include "list_internal.hpp"
+#include "aligned_allocator.hpp"
 
 namespace fsds
 {
@@ -18,11 +19,14 @@ namespace fsds
 	{
 		public:
 			constexpr InlineListDataBlock();
+			constexpr InlineListDataBlock(const size_t& size, const size_t& capacity, const size_t& front);
 
+			constexpr static size_t calculateRuntimeSizeOf(size_t predictedSize);
 			constexpr size_t runtimeSizeOf();
 			constexpr size_t runtimeSizeOfDouble();
 			template<double factor>
 			constexpr size_t runtimeSizeOfFactorIncrease();
+			constexpr static size_t calculateNumElementsFromSize(size_t runtimeSize);
 
 			constexpr fsds::listInternalFunctions::ListHeader* getHeader();
 			constexpr const fsds::listInternalFunctions::ListHeader* getHeader() const;
@@ -64,16 +68,16 @@ namespace fsds
 			constexpr void remove(size_t pos);
 			constexpr void removeBack();
 			constexpr void removeFront();
-			constexpr void removeDeconstruct(size_t pos);
-			constexpr void removeBackDeconstruct();
-			constexpr void removeFrontDeconstruct();
+			constexpr void removeWithoutDeconstruct(size_t pos);
+			constexpr void removeBackWithoutDeconstruct();
+			constexpr void removeFrontWithoutDeconstruct();
 		
 		private:
 			fsds::listInternalFunctions::ListHeader m_header;
 			T m_data[1];
 	};
 
-	template<typename T, typename Allocator = std::allocator<T>>
+	template<typename T, typename Allocator = fsds::AlignedRawAllocator<64>>
 	class InlineList
 	{
 		public:
@@ -105,6 +109,8 @@ namespace fsds
 
 			constexpr T* data();
 			constexpr const T* data() const;
+			constexpr InlineListDataBlock<T>* getInlineDataBlock();
+			constexpr const InlineListDataBlock<T>* getInlineDataBlock() const;
 
 			[[nodiscard]] constexpr bool isEmpty() const noexcept;
 			constexpr size_t size() const noexcept;
@@ -127,30 +133,41 @@ namespace fsds
 			constexpr void remove(size_t pos);
 			constexpr void removeBack();
 			constexpr void removeFront();
-			constexpr void removeDeconstruct(size_t pos);
-			constexpr void removeBackDeconstruct();
-			constexpr void removeFrontDeconstruct();
+			constexpr void removeWithoutDeconstruct(size_t pos);
+			constexpr void removeBackWithoutDeconstruct();
+			constexpr void removeFrontWithoutDeconstruct();
 
 			constexpr bool valueEquality(const InlineList<T, Allocator>& other) const;
-
+			
 			constexpr void deepCopy(InlineList<T, Allocator>& dest) const;
 
 			//returns the size in bytes
 			constexpr size_t getExternalReallocateMinimumRequiredSpace();
 			constexpr void externalReallocate(void* ptr, size_t newSizeBytes);
-		
+			
 		private:
 			constexpr static size_t sm_baseAllocation = 16;
+
+			struct allocationByteResult
+			{
+				InlineListDataBlock<T>* newList;
+				size_t numBytesAllocated;
+			};
 			
-			void reallocate(size_t newSize);
-			constexpr void deallocate();
+			constexpr allocationByteResult allocateBytes(size_t size);
+			constexpr InlineListDataBlock<T>* allocateElements(size_t size);
+			constexpr void deallocate(InlineListDataBlock<T>* oldList);
+			constexpr InlineListDataBlock<T>* reallocate();
 			constexpr void deconstructElement(T* element);
 			constexpr void deconstructAll();
 
-			InlineListDataBlock<T>* dataBlock;
+			constexpr size_t getEffectiveSize() const;
+
+			InlineListDataBlock<T>* m_dataBlock;
 	};
 }
 
+#include "inline_list_data_block.inl"
 #include "inline_list.inl"
 
 #endif //#ifndef INLINE_LIST_HPP_HEADER_GUARD

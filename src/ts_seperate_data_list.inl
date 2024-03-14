@@ -138,25 +138,6 @@ namespace fsds
 		this->m_list.insertConstruct(pos, args...);
 	}
 	template<typename T, typename Allocator>
-	constexpr void ts_SeperateDataList<T, Allocator>::removeDeconstruct(size_t pos)
-	{
-		FTS_READ_WRITE_WRITE_LOCKGUARD(&this->m_lock);
-		this->m_list.removeDeconstruct(pos);
-	}
-	template<typename T, typename Allocator>
-	constexpr void ts_SeperateDataList<T, Allocator>::removeBackDeconstruct()
-	{
-		FTS_READ_WRITE_WRITE_LOCKGUARD(&this->m_lock);
-		this->m_list.removeBackDeconstruct();
-	}
-	template<typename T, typename Allocator>
-	constexpr void ts_SeperateDataList<T, Allocator>::removeFrontDeconstruct()
-	{
-		FTS_READ_WRITE_WRITE_LOCKGUARD(&this->m_lock);
-		this->m_list.removeFrontDeconstruct();
-	}
-
-	template<typename T, typename Allocator>
 	constexpr void ts_SeperateDataList<T, Allocator>::remove(size_t pos)
 	{
 		FTS_READ_WRITE_WRITE_LOCKGUARD(&this->m_lock);
@@ -173,6 +154,24 @@ namespace fsds
 	{
 		FTS_READ_WRITE_WRITE_LOCKGUARD(&this->m_lock);
 		this->m_list.removeFront();
+	}
+	template<typename T, typename Allocator>
+	constexpr void ts_SeperateDataList<T, Allocator>::removeWithoutDeconstruct(size_t pos)
+	{
+		FTS_READ_WRITE_WRITE_LOCKGUARD(&this->m_lock);
+		this->m_list.removeWithoutDeconstruct(pos);
+	}
+	template<typename T, typename Allocator>
+	constexpr void ts_SeperateDataList<T, Allocator>::removeBackWithoutDeconstruct()
+	{
+		FTS_READ_WRITE_WRITE_LOCKGUARD(&this->m_lock);
+		this->m_list.removeBackWithoutDeconstruct();
+	}
+	template<typename T, typename Allocator>
+	constexpr void ts_SeperateDataList<T, Allocator>::removeFrontWithoutDeconstruct()
+	{
+		FTS_READ_WRITE_WRITE_LOCKGUARD(&this->m_lock);
+		this->m_list.removeFrontWithoutDeconstruct();
 	}
 
 	template<typename T, typename Allocator>

@@ -39,8 +39,8 @@ namespace fsds
 	template<typename T, typename Allocator>
 	constexpr SeperateDataList<T, Allocator>::~SeperateDataList()
 	{
-		this->deallocate();
 		this->deconstructAll();
+		this->deallocate();
 	}
 
 	template<typename T, typename Allocator>
@@ -159,12 +159,11 @@ namespace fsds
 	template<typename T, typename Allocator>
 	constexpr void SeperateDataList<T, Allocator>::append(const T& value)
 	{
-		//test to see if allocation helpers work
-		const size_t oldCapacity = this->m_header.capacity;
-		T* newData = fsds::listInternalFunctions::reallocationAllocateHelper<std::allocator<T>>(this->m_header, this->m_data, this->getExternalReallocateMinimumRequiredSpace()*2);
-		fsds::listInternalFunctions::append(this->m_header, this->m_data, newData, value);
-		fsds::listInternalFunctions::reallocationDeallocateHelper<std::allocator<T>>(this->m_header, this->m_data, newData, oldCapacity);
-		this->m_data = newData;
+		if(this->m_header.size + this->m_header.front >= this->m_header.capacity)
+		{
+			this->reallocate(this->m_header.capacity * 2);
+		}
+		fsds::listInternalFunctions::appendConstruct(this->m_header, this->m_header, this->m_data, this->m_data, value);
 	}
 	template<typename T, typename Allocator>
 	constexpr void SeperateDataList<T, Allocator>::prepend(const T& value)
@@ -173,7 +172,7 @@ namespace fsds
 		{
 			this->reallocate(this->m_header.capacity * 2);
 		}
-		fsds::listInternalFunctions::prepend(this->m_header, this->m_data, this->m_data, value);
+		fsds::listInternalFunctions::prepend(this->m_header, this->m_header, this->m_data, this->m_data, value);
 	}
 	template<typename T, typename Allocator>
 	constexpr void SeperateDataList<T, Allocator>::insert(size_t pos, const T& value)
@@ -182,7 +181,7 @@ namespace fsds
 		{
 			this->reallocate(this->m_header.capacity * 2);
 		}
-		fsds::listInternalFunctions::insert(this->m_header, this->m_data, this->m_data, pos, value);
+		fsds::listInternalFunctions::insert(this->m_header, this->m_header, this->m_data, this->m_data, pos, value);
 	}
 	template<typename T, typename Allocator>
 	template<typename... Args>
@@ -192,7 +191,7 @@ namespace fsds
 		{
 			this->reallocate(this->m_header.capacity * 2);
 		}
-		fsds::listInternalFunctions::appendConstruct(this->m_header, this->m_data, this->m_data, args...);
+		fsds::listInternalFunctions::appendConstruct(this->m_header, this->m_header, this->m_data, this->m_data, args...);
 	}
 	template<typename T, typename Allocator>
 	template<typename... Args>
@@ -202,7 +201,7 @@ namespace fsds
 		{
 			this->reallocate(this->m_header.capacity * 2);
 		}
-		fsds::listInternalFunctions::prependConstruct(this->m_header, this->m_data, this->m_data, args...);
+		fsds::listInternalFunctions::prependConstruct(this->m_header, this->m_header, this->m_data, this->m_data, args...);
 	}
 	template<typename T, typename Allocator>
 	template<typename... Args>
@@ -212,38 +211,38 @@ namespace fsds
 		{
 			this->reallocate(this->m_header.capacity * 2);
 		}
-		fsds::listInternalFunctions::insertConstruct(this->m_header, this->m_data, this->m_data, pos, args...);
+		fsds::listInternalFunctions::insertConstruct(this->m_header, this->m_header, this->m_data, this->m_data, pos, args...);
 	}
 
 	template<typename T, typename Allocator>
 	constexpr void SeperateDataList<T, Allocator>::remove(size_t pos)
 	{
-		fsds::listInternalFunctions::remove(this->m_header, this->m_data, pos);
+		fsds::listInternalFunctions::removeDeconstruct(this->m_header, this->m_data, pos);
 	}
 	template<typename T, typename Allocator>
 	constexpr void SeperateDataList<T, Allocator>::removeBack()
 	{
-		fsds::listInternalFunctions::removeBack(this->m_header, this->m_data);
+		fsds::listInternalFunctions::removeBackDeconstruct(this->m_header, this->m_data);
 	}
 	template<typename T, typename Allocator>
 	constexpr void SeperateDataList<T, Allocator>::removeFront()
 	{
-		fsds::listInternalFunctions::removeFront(this->m_header, this->m_data);
+		fsds::listInternalFunctions::removeFrontDeconstruct(this->m_header, this->m_data);
 	}
 	template<typename T, typename Allocator>
 	constexpr void SeperateDataList<T, Allocator>::removeDeconstruct(size_t pos)
 	{
-		fsds::listInternalFunctions::removeDeconstruct(this->m_header, this->m_data, pos);
+		fsds::listInternalFunctions::removeWithoutDeconstruct(this->m_header, this->m_data, pos);
 	}
 	template<typename T, typename Allocator>
 	constexpr void SeperateDataList<T, Allocator>::removeBackDeconstruct()
 	{
-		fsds::listInternalFunctions::removeBackDeconstruct(this->m_header, this->m_data);
+		fsds::listInternalFunctions::removeBackWithoutDeconstruct(this->m_header, this->m_data);
 	}
 	template<typename T, typename Allocator>
 	constexpr void SeperateDataList<T, Allocator>::removeFrontDeconstruct()
 	{
-		fsds::listInternalFunctions::removeFrontDeconstruct(this->m_header, this->m_data);
+		fsds::listInternalFunctions::removeFrontWithoutDeconstruct(this->m_header, this->m_data);
 	}
 
 	template<typename T, typename Allocator>

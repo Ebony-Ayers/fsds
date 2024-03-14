@@ -8,6 +8,8 @@
 #include <algorithm>
 
 #define FSDS_DEBUG
+//#define ALLIGNED_ALLOCATOR_PRINT_ALLOCATIONS
+//#define ALLIGNED_RAW_ALLOCATOR_PRINT_ALLOCATIONS
 #include "../../src/fsds.hpp"
 
 /*
@@ -410,7 +412,7 @@ void testSPSCQueue()
 	}
 }
 
-void testList()
+void testSeperateDataList()
 {
 	std::vector<size_t> testsFailed;
 
@@ -3118,14 +3120,206 @@ void testChunkList()
 	}
 }
 
+void testInlineList()
+{
+	std::vector<size_t> testsFailed;
+	
+	size_t testSize = 100;
+	fsds::InlineList<size_t> list;
+
+	//test 1: simple constructor
+	if(list.capacity() < 16)
+	{
+		testsFailed.push_back(1);
+	}
+
+	//test 2: append and operator[]
+	for(size_t i = 0; i < testSize; i++)
+	{
+		list.append(i);
+	}
+	for(size_t i = 0; i < testSize; i++)
+	{
+		if(list[i] != i)
+		{
+			testsFailed.push_back(2);
+			break;
+		}
+	}
+
+	//test 3: front
+	if(list.front() != 0)
+	{
+		testsFailed.push_back(3);
+	}
+
+	//test 4: back
+	if(list.back() != 99)
+	{
+		testsFailed.push_back(4);
+	}
+
+	//test 5: size
+	if(list.size() != 100)
+	{
+		testsFailed.push_back(5);
+	}
+
+	//test 6: isEmpty
+	if(list.isEmpty())
+	{
+		testsFailed.push_back(6);
+	}
+
+	//test 7: clear
+	list.clear();
+	if(list.size() != 0)
+	{
+		testsFailed.push_back(7);
+	}
+
+	//test 8: prepend
+	for(size_t i = 0; i < testSize; i++)
+	{
+		list.prepend(i);
+	}
+	for(size_t i = 0; i < testSize; i++)
+	{
+		if(list[i] != testSize - i - 1)
+		{
+			testsFailed.push_back(8);
+			break;
+		}
+	}
+
+	//test 9: insert at the front
+	list.insert(0, testSize);
+	if(list[0] != testSize)
+	{
+		testsFailed.push_back(9);
+	}
+
+	//test 10: insert in the middle
+	list.insert(50, testSize+1);
+	if(list[50] != testSize+1)
+	{
+		testsFailed.push_back(10);
+	}
+
+	//test 11: insert at the end
+	list.insert(list.size(), testSize+2);
+	if(list[list.size()-1] != testSize+2)
+	{
+		testsFailed.push_back(11);
+	}
+
+	//test 12: removeFront
+	list.removeFront();
+	if(list[0] != testSize-1)
+	{
+		testsFailed.push_back(12);
+	}
+	else if(list[list.size()-1] != testSize+2)
+	{
+		testsFailed.push_back(12);
+	}
+
+	//test 13: removeBack
+	list.removeBack();
+	if(list[list.size()-1] != 0)
+	{
+		testsFailed.push_back(13);
+	}
+	else if(list[0] != testSize-1)
+	{
+		testsFailed.push_back(13);
+	}
+
+	//test 14: remove from the front
+	list.remove(0);
+	if(list[0] != testSize-2)
+	{
+		testsFailed.push_back(14);
+	}
+	else if(list[list.size()-1] != 0)
+	{
+		testsFailed.push_back(14);
+	}
+
+	//test 15: remove from the back
+	list.remove(list.size()-1);
+	if(list[list.size()-1] != 1)
+	{
+		testsFailed.push_back(15);
+	}
+	else if(list[0] != testSize-2)
+	{
+		testsFailed.push_back(15);
+	}
+
+	//test 16: remove from the middle
+	list.remove(48);
+	for(size_t i = 0; i < testSize - 2; i++)
+	{
+		if(list[i] != testSize - i - 2)
+		{
+			testsFailed.push_back(16);
+			break;
+		}
+	}
+
+
+	//test 17: deepCopy
+	fsds::InlineList<size_t> listDuplicate;
+	list.deepCopy(listDuplicate);
+
+	//check that these two should both be the same either 97 ir 98
+	auto v1 = list[0];
+	auto v2 = listDuplicate[0];
+	for(size_t i = 0; i < list.size(); i++)
+	{
+		auto a = list[i];
+		auto b = listDuplicate[i];
+		std::cout << a<< " " << b << std::endl;
+		if(a != b)
+		{
+			testsFailed.push_back(17);
+			break;
+		}
+	}
+
+
+	if(testsFailed.size() == 0)
+	{
+		std::cout << "InlineList passed all tests" << std::endl;
+	}
+	else
+	{
+		if(testsFailed.size() == 1)
+		{
+			std::cout << "InlineList failed test " << testsFailed[0] << std::endl;
+		}
+		else
+		{
+			std::cout << "InlineList failed tests ";
+			for(size_t i = 0; i < testsFailed.size() - 1; i++)
+			{
+				std::cout << testsFailed[i] << ", ";
+			}
+			std::cout << "and " << testsFailed[testsFailed.size()-1] << std::endl;
+		}
+	}
+}
+
 int main(int /*argc*/, const char** /*argv*/)
 {
 	testSPSCQueue();
 	testFinitePQueue();
-	testList();
+	testSeperateDataList();
 	testStaticString();
 	testDynamicString();
 	testChunkList();
+	testInlineList();
 
 	return 0;
 }

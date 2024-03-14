@@ -184,116 +184,124 @@ namespace fsds
         //If a reallocation happened oldData should be the unmodified original data and newData is the pointer to the newlt allocated uninitialised memeory
         //returns a pointer to the old memory for deallocation. This pointer should only be deallocated if a reallocation previously took place
         template<typename T>
-        constexpr T* append(ListHeader& header, T* const oldData, T* const newData, const T& value)
+        constexpr T* append(ListHeader& oldHeader, ListHeader& newHeader, T* const oldData, T* const newData, const T& value)
         {
             if(oldData != newData)
             {
-                std::copy(oldData + header.front, oldData + header.front + header.size, newData);
-                header.front = 0;
+                std::copy(oldData + oldHeader.front, oldData + oldHeader.front + oldHeader.size, newData);
+                newData[oldHeader.size] = value;
+                newHeader.size = oldHeader.size + 1;
+                newHeader.front = 0;
             }
-            newData[header.size] = value;
-            header.size++;
+            else
+            {
+                newData[oldHeader.size] = value;
+                oldHeader.size++;
+            }
             return oldData;
         }
         template<typename T>
-        constexpr T* prepend(ListHeader& header, T* const oldData, T* const newData, const T& value)
+        constexpr T* prepend(ListHeader& oldHeader, ListHeader& newHeader, T* const oldData, T* const newData, const T& value)
         {
-            std::copy_backward(oldData + header.front, oldData + header.front + header.size, newData + header.size + 1);
+            std::copy_backward(oldData + oldHeader.front, oldData + oldHeader.front + oldHeader.size, newData + oldHeader.size + 1);
             newData[0] = value;
-            header.size++;
-            header.front = 0;
+            if(oldData != newData)
+            {
+                newHeader.size = oldHeader.size + 1;
+                newHeader.front = 0;
+            }
+            else
+            {
+                oldHeader.size++;
+                oldHeader.front = 0;
+            }
             return oldData;
         }
         template<typename T>
-        constexpr T* insert(ListHeader& header, T* const oldData, T* const newData, const size_t& pos, const T& value)
+        constexpr T* insert(ListHeader& oldHeader, ListHeader& newHeader, T* const oldData, T* const newData, const size_t& pos, const T& value)
         {
-            std::copy_backward(oldData + header.front + pos, oldData + header.front + header.size, newData + header.size + 1);
+            
+            if (pos > oldHeader.size) [[unlikely]]
+            {
+                throw std::out_of_range("fsds::listInternalFunctions::insert() index out of range");
+            }
+            
+            std::copy_backward(oldData + oldHeader.front + pos, oldData + oldHeader.front + oldHeader.size, newData + oldHeader.size + 1);
             if(oldData != newData)
             {
-                std::copy(oldData + header.front, oldData + header.front + pos, newData);
-                header.front = 0;
+                std::copy(oldData + oldHeader.front, oldData + oldHeader.front + pos, newData);
+                newData[pos] = value;
+                newHeader.size = oldHeader.size + 1;
+                newHeader.front = 0;
             }
-            newData[pos] = value;
-            header.size++;
+            else
+            {
+                newData[pos] = value;
+                oldHeader.size++;
+                oldHeader.front = 0;
+            }
             return oldData;
         }
         template<typename T, typename... Args>
-        constexpr T* appendConstruct(ListHeader& header, T* const oldData, T* const newData, Args&&... args)
+        constexpr T* appendConstruct(ListHeader& oldHeader, ListHeader& newHeader, T* const oldData, T* const newData, Args&&... args)
         {
             if(oldData != newData)
             {
-                std::copy(oldData + header.front, oldData + header.front + header.size, newData);
-                header.front = 0;
+                std::copy(oldData + oldHeader.front, oldData + oldHeader.front + oldHeader.size, newData);
+                std::construct_at(newData + oldHeader.size, args...);
+                newHeader.size = oldHeader.size + 1;
+                newHeader.front = 0;
             }
-            std::construct_at(newData + header.size, args...);
-            header.size++;
+            else
+            {
+                std::construct_at(newData + oldHeader.size, args...);
+                oldHeader.size++;
+                oldHeader.front = 0;
+            }
             return oldData;
         }
         template<typename T, typename... Args>
-        constexpr T* prependConstruct(ListHeader& header, T* const oldData, T* const newData, Args&&... args)
+        constexpr T* prependConstruct(ListHeader& oldHeader, ListHeader& newHeader, T* const oldData, T* const newData, Args&&... args)
         {
-            std::copy_backward(oldData + header.front, oldData + header.front + header.size, newData + header.size + 1);
+            std::copy_backward(oldData + oldHeader.front, oldData + oldHeader.front + oldHeader.size, newData + oldHeader.size + 1);
             std::construct_at(newData, args...);
-            header.size++;
-            header.front = 0;
+            if(oldData != newData)
+            {
+                newHeader.size = oldHeader.size + 1;
+                newHeader.front = 0;
+            }
+            else
+            {
+                oldHeader.size++;
+                oldHeader.front = 0;
+            }
             return oldData;
         }
         template<typename T, typename... Args>
-        constexpr T* insertConstruct(ListHeader& header, T* const oldData, T* const newData, const size_t& pos, Args&&... args)
+        constexpr T* insertConstruct(ListHeader& oldHeader, ListHeader& newHeader, T* const oldData, T* const newData, const size_t& pos, Args&&... args)
         {
-            if (pos >= header.size) [[unlikely]]
+            if (pos > oldHeader.size) [[unlikely]]
             {
                 throw std::out_of_range("fsds::listInternalFunctions::insertConstruct() index out of range");
             }
 
-            std::copy_backward(oldData + header.front + pos, oldData + header.front + header.size, newData + header.size + 1);
+            std::copy_backward(oldData + oldHeader.front + pos, oldData + oldHeader.front + oldHeader.size, newData + oldHeader.size + 1);
             if(oldData != newData)
             {
-                std::copy(oldData + header.front, oldData + header.front + pos, newData);
-                header.front = 0;
+                std::copy(oldData + oldHeader.front, oldData + oldHeader.front + pos, newData);
+                std::construct_at(newData + pos, args...);
+                newHeader.size = oldHeader.size + 1;
+                newHeader.front = 0;
             }
-            std::construct_at(newData + pos, args...);
-            header.size++;
+            else
+            {
+                std::construct_at(newData + pos, args...);
+                oldHeader.size++;
+                oldHeader.front = 0;
+            }
             return oldData;
         }
 
-        template<typename T>
-        constexpr void remove(ListHeader& header, T* const data, size_t pos)
-        {
-            if(header.size == 0) [[unlikely]]
-            {
-                throw std::out_of_range("fsds::listInternalFunctions::remove() attempting to remove from list with no data");
-            }
-            else if (pos >= header.size) [[unlikely]]
-            {
-                throw std::out_of_range("fsds::listInternalFunctions::remove() index out of range");
-            }
-            
-            std::copy(data + header.front + pos + 1, data + header.front + header.size, data + header.front + pos);
-            header.size--;
-        }
-        template<typename T>
-        constexpr void removeBack(ListHeader& header, T* const /*data*/)
-        {
-            if(header.size == 0) [[unlikely]]
-            {
-                throw std::out_of_range("fsds::listInternalFunctions::removeBack() attempting to remove from list with no data");
-            }
-            
-            header.size--;
-        }
-        template<typename T>
-        constexpr void removeFront(ListHeader& header, T* const /*data*/)
-        {
-            if(header.size == 0) [[unlikely]]
-            {
-                throw std::out_of_range("fsds::listInternalFunctions::removeFront() attempting to remove from list with no data");
-            }
-
-            //std::copy(data + 1, data + header.size, data);
-            header.size--;
-            header.front++;
-        }
         template<typename T>
         constexpr void removeDeconstruct(ListHeader& header, T* const data, size_t pos)
         {
@@ -330,7 +338,42 @@ namespace fsds
             }
 
             std::destroy_at(data);
-            //std::copy(data + 1, data + header.size, data);
+            header.size--;
+            header.front++;
+        }
+        template<typename T>
+        constexpr void removeWithoutDeconstruct(ListHeader& header, T* const data, size_t pos)
+        {
+            if(header.size == 0) [[unlikely]]
+            {
+                throw std::out_of_range("fsds::listInternalFunctions::remove() attempting to remove from list with no data");
+            }
+            else if (pos >= header.size) [[unlikely]]
+            {
+                throw std::out_of_range("fsds::listInternalFunctions::remove() index out of range");
+            }
+            
+            std::copy(data + header.front + pos + 1, data + header.front + header.size, data + header.front + pos);
+            header.size--;
+        }
+        template<typename T>
+        constexpr void removeBackWithoutDeconstruct(ListHeader& header, T* const /*data*/)
+        {
+            if(header.size == 0) [[unlikely]]
+            {
+                throw std::out_of_range("fsds::listInternalFunctions::removeBack() attempting to remove from list with no data");
+            }
+            
+            header.size--;
+        }
+        template<typename T>
+        constexpr void removeFrontWithoutDeconstruct(ListHeader& header, T* const /*data*/)
+        {
+            if(header.size == 0) [[unlikely]]
+            {
+                throw std::out_of_range("fsds::listInternalFunctions::removeFront() attempting to remove from list with no data");
+            }
+
             header.size--;
             header.front++;
         }
@@ -365,6 +408,7 @@ namespace fsds
         template<typename T>
         constexpr void deepCopy(const ListHeader& thisHeader, const T* const thisData, ListHeader& destHeader, T* const destData)
         {
+            //this is a comment
             std::copy(thisData + thisHeader.front, thisData + thisHeader.front + thisHeader.size, destData);
             destHeader.size = thisHeader.size;
             destHeader.front = 0;

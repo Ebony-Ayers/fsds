@@ -145,9 +145,9 @@ namespace fsds
 			constexpr void remove(size_t pos);
 			constexpr void removeBack();
 			constexpr void removeFront();
-			constexpr void removeDeconstruct(size_t pos);
-			constexpr void removeBackDeconstruct();
-			constexpr void removeFrontDeconstruct();
+			constexpr void removeWithoutDeconstruct(size_t pos);
+			constexpr void removeBackWithoutDeconstruct();
+			constexpr void removeFrontWithoutDeconstruct();
 
 			constexpr bool valueEquality(const ts_SeperateDataList<T, Allocator>& other);
 
