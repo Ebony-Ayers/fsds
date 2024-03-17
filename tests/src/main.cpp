@@ -3268,24 +3268,23 @@ void testInlineList()
 		}
 	}
 
-
 	//test 17: deepCopy
 	fsds::InlineList<size_t> listDuplicate;
 	list.deepCopy(listDuplicate);
 
-	//check that these two should both be the same either 97 ir 98
-	auto v1 = list[0];
-	auto v2 = listDuplicate[0];
 	for(size_t i = 0; i < list.size(); i++)
 	{
-		auto a = list[i];
-		auto b = listDuplicate[i];
-		std::cout << a<< " " << b << std::endl;
-		if(a != b)
+		if(list[i] != listDuplicate[i])
 		{
 			testsFailed.push_back(17);
 			break;
 		}
+	}
+
+	//test 18: valueEquality
+	if(list.valueEquality(listDuplicate) == false)
+	{
+		testsFailed.push_back(18);
 	}
 
 

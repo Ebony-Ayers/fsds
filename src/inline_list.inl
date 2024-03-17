@@ -138,7 +138,7 @@ namespace fsds
 	constexpr void InlineList<T, Allocator>::reserve(size_t newCap)
 	{
 		auto newList = this->allocateElements(newCap);
-		std::copy(this->m_dataBlock->getData() + this->m_dataBlock->getHeader()->front, this->m_dataBlock->getData() + this->m_dataBlock->getHeader()->front + this->m_dataBlock->getHeader()->size, newList->getData());
+		std::copy(this->m_dataBlock->getUnoffsetedDataPtr() + this->m_dataBlock->getHeader()->front, this->m_dataBlock->getUnoffsetedDataPtr() + this->m_dataBlock->getHeader()->front + this->m_dataBlock->getHeader()->size, newList->getUnoffsetedDataPtr());
 		newList->getHeader()->size = this->m_dataBlock->getHeader()->size;
 		newList->getHeader()->front = 0;
 		this->deallocate(this->m_dataBlock);
@@ -282,7 +282,7 @@ namespace fsds
 	template<typename T, typename Allocator>
 	constexpr bool InlineList<T, Allocator>::valueEquality(const InlineList<T, Allocator>& other) const
 	{
-		return fsds::listInternalFunctions::valueEquality(*this->m_dataBlock->getHeader(), this->m_dataBlock->getData(), *other.getInlineDataBlock()->getHeader(), other.data());
+		return fsds::listInternalFunctions::valueEquality(*this->m_dataBlock->getHeader(), this->m_dataBlock->getUnoffsetedDataPtr(), *other.getInlineDataBlock()->getHeader(), other.m_dataBlock->getUnoffsetedDataPtr());
 	}
 
 	template<typename T, typename Allocator>
@@ -290,7 +290,7 @@ namespace fsds
 	{
 		dest.clear();
 		dest.reserve(this->m_dataBlock->getHeader()->size);
-		fsds::listInternalFunctions::deepCopy(*this->m_dataBlock->getHeader(), this->m_dataBlock->getData(), *dest.getInlineDataBlock()->getHeader(), dest.data());
+		fsds::listInternalFunctions::deepCopy(*this->m_dataBlock->getHeader(), this->m_dataBlock->getUnoffsetedDataPtr(), *dest.getInlineDataBlock()->getHeader(), dest.m_dataBlock->getUnoffsetedDataPtr());
 	}
 
 
@@ -352,7 +352,7 @@ namespace fsds
 	{
 		if(!std::is_trivially_destructible<T>::value)
 		{
-			std::destroy(this->m_dataBlock->getData() + this->m_dataBlock->getHeader()->front, this->m_dataBlock->getData() + this->m_dataBlock->getHeader()->front + this->m_dataBlock->getHeader()->size);
+			std::destroy(this->m_dataBlock->getUnoffsetedDataPtr() + this->m_dataBlock->getHeader()->front, this->m_dataBlock->getUnoffsetedDataPtr() + this->m_dataBlock->getHeader()->front + this->m_dataBlock->getHeader()->size);
 		}
 	}
 

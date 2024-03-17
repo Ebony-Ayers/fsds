@@ -32,6 +32,8 @@ namespace fsds
 			constexpr const fsds::listInternalFunctions::ListHeader* getHeader() const;
 			constexpr T* getData();
 			constexpr const T* getData() const;
+			constexpr T* getUnoffsetedDataPtr();
+			constexpr const T* getUnoffsetedDataPtr() const;
 
 			constexpr T& get(size_t pos);
 			constexpr const T& get(size_t pos) const;

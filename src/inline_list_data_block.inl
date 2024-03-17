@@ -57,6 +57,16 @@ namespace fsds
 	{
 		return this->m_data + this->m_header.front;
 	}
+	template<typename T>
+	constexpr T* InlineListDataBlock<T>::getUnoffsetedDataPtr()
+	{
+		return this->m_data;
+	}
+	template<typename T>
+	constexpr const T* InlineListDataBlock<T>::getUnoffsetedDataPtr() const
+	{
+		return this->m_data;
+	}
 
 	template<typename T>
 	constexpr T& InlineListDataBlock<T>::get(size_t pos)

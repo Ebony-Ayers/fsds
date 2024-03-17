@@ -408,7 +408,6 @@ namespace fsds
         template<typename T>
         constexpr void deepCopy(const ListHeader& thisHeader, const T* const thisData, ListHeader& destHeader, T* const destData)
         {
-            //this is a comment
             std::copy(thisData + thisHeader.front, thisData + thisHeader.front + thisHeader.size, destData);
             destHeader.size = thisHeader.size;
             destHeader.front = 0;
