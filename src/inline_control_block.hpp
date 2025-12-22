@@ -21,11 +21,14 @@ namespace fsds
     {
         public:
             ControlBlockT controlBlock;
-            #if(minimalAlignmentOfData == 0)
+            if constexpr(minimalAlignmentOfData == 0)
+            {
                 DataT data[0]
-            #else
+            }
+            else
+            {
                 ALIGN_MEMBER_PREFIX(minimalAlignmentOfData) DataT data[0] ALIGN_MEMBER_POSTFIX(minimalAlignmentOfData);
-            #endif
+            }
 
             //returns the number of bytes required to allocate the control block and data based on the number of elements in the data
             constexpr size_t requiredAlocationSize(const size_t& n) const

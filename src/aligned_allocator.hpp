@@ -6,7 +6,7 @@
 #include <memory>
 
 //if the project is being compiled on c++ version less than c++23 manually define the allocation result struct
-#if __cplusplus < 202302L
+//#if __cplusplus < 202302L
 namespace std
 {
     template<typename T, typename U>
@@ -16,7 +16,7 @@ namespace std
         U count;
     };
 }
-#endif
+//#endif
 
 #ifndef ALLIGNED_RAW_ALLOCATOR_FAKE_TYPE
     #define ALLIGNED_RAW_ALLOCATOR_FAKE_TYPE char

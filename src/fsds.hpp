@@ -14,6 +14,7 @@
 #include "spmc_queue.hpp"
 #include "mpsc_queue.hpp"
 #include "finite_pqueue.hpp"
+#include "stable_list.hpp"
 
 #include "utf-8.hpp"
 #include "static_string.hpp"
