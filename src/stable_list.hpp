@@ -4,6 +4,8 @@
 #include "fsds_options.hpp"
 #include "pch.hpp"
 
+#include "stable_list.h"
+
 #include <iterator>
 
 //cache line size (x86)
