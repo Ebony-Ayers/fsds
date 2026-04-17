@@ -13,6 +13,10 @@
 #define FSDS_STABLE_LIST_DEFAULT_FRONT_MARGIN 16
 #define FSDS_STABLE_LIST_INSTANCE_IREF_OFFSET_INCREMENT 0x100000000
 
+#ifdef __cplusplus                                                                                                                                                                                                                                                                       
+extern "C" {                                                                                                                                                                                                                                                                             
+#endif
+
 typedef size_t FSDS_StableList_IRef;
 
 typedef struct FSDS_StableListHeader
@@ -33,7 +37,7 @@ typedef struct FSDS_StableListHeader
 typedef struct FSDS_StableListBlock
 {
 	FSDS_StableListHeader header;
-	char data[1];
+	char data[];
 } FSDS_StableListBlock;
 
 typedef struct FSDS_StableList
@@ -52,17 +56,20 @@ int FSDS_StableList_getElementIRef(const FSDS_StableList list, const FSDS_Stable
 size_t FSDS_StableList_size(const FSDS_StableList list);
 size_t FSDS_StableList_capacity(const FSDS_StableList list);
 
-int iRefToIndex(const FSDS_StableList list, const FSDS_StableList_IRef iRef, size_t* outIndex);
-int indexToIRef(const FSDS_StableList list, const size_t index, FSDS_StableList_IRef* outIRef);
+int FSDS_StableList_iRefToIndex(const FSDS_StableList list, const FSDS_StableList_IRef iRef, size_t* outIndex);
+int FSDS_StableList_indexToIRef(const FSDS_StableList list, const size_t index, FSDS_StableList_IRef* outIRef);
 
 int FSDS_StableList_reserve(FSDS_StableList* const list, size_t newCapacity);
 int FSDS_StableList_shrink_to_fit(FSDS_StableList* const list);
 int FSDS_StableList_clear(const FSDS_StableList list);
 
-//append function return pointer to the new memory
+//append functions return pointer to the new memory
 int FSDS_StableList_appendFront(FSDS_StableList* const list, void** outPtr);
 int FSDS_StableList_appendBack(FSDS_StableList* const list, void** outPtr);
 int FSDS_StableList_removeFront(const FSDS_StableList list);
 int FSDS_StableList_removeBack(const FSDS_StableList list);
 
+#ifdef __cplusplus                                                                                                                                                                                                                                                                       
+}               
+#endif
 #endif //STABLE_LIST_H_HEADER_GUARD

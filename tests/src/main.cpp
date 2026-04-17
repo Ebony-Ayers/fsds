@@ -199,8 +199,7 @@ void testFinitePQueue()
 			}
 			std::cout << "and " << testsFailed[testsFailed.size()-1] << std::endl;
 		}
-	}
-	
+	}	
 }
 
 void testSPSCQueue()
@@ -3310,6 +3309,705 @@ void testInlineList()
 	}
 }
 
+void testStableListC()
+{
+	const size_t elementSize = sizeof(size_t);
+	const size_t testMagicNumber = 1000;
+	std::vector<size_t> testsFailed;
+
+	FSDS_StableList list;
+
+	int retcode;
+
+	//test 1: constructor
+	retcode = FSDS_StableList_constructSizeFront(&list, 20, 5, elementSize);
+	FSDS_StableListHeader* header = &list.memBlock->header;
+	if(retcode)
+	{
+		std::cout << "StableList (C) failed test 1. Constructor returned error." << std::endl;
+		return;
+	}
+	if(header->size != 0)
+	{
+		std::cout << "StableList (C) failed test 1. Incorrect size." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	if(header->capacity != 20)
+	{
+		std::cout << "StableList (C) failed test 1. Incorrect capacity." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	if(header->front != 5)
+	{
+		std::cout << "StableList (C) failed test 1. Incorrect front." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	if(header->iRefOffset != 0)
+	{
+		std::cout << "StableList (C) failed test 1. Incorrect iRefOffset." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	if(header->reallocationFrontMargin != 5)
+	{
+		std::cout << "StableList (C) failed test 1. Incorrect reallocationFrontMargin." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	if(header->elementSize != elementSize)
+	{
+		std::cout << "StableList (C) failed test 1. Incorrect elementSize." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+
+	//test 2: destructor
+	retcode = FSDS_StableList_destroy(list);
+	if(retcode)
+	{
+		std::cout << "StableList (C) failed test 2. Destructor returned error." << std::endl;
+		return;
+	}
+
+	//reconstruct the list for future testing knowing the constructor works
+	FSDS_StableList_constructSizeFront(&list, 20, 5, elementSize);
+	header = &list.memBlock->header;
+
+	//test 3: adding elements with out reallocation
+	for(size_t i = 0; i < 10; i++)
+	{
+		void* ptr;
+		retcode = FSDS_StableList_appendBack(&list, &ptr);
+		header = &list.memBlock->header;
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 3. appendBack returned error on element " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		*reinterpret_cast<size_t*>(ptr) = i + testMagicNumber;
+	}
+	if(header->size != 10)
+	{
+		std::cout << "StableList (C) failed test 3. Incorrect size." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	if(header->capacity != 20)
+	{
+		std::cout << "StableList (C) failed test 3. Incorrect capacity." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	if(header->front != 5)
+	{
+		std::cout << "StableList (C) failed test 3. Incorrect front." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	for(size_t i = 0; i < 10; i++)
+	{
+		void* ptr;
+		retcode = FSDS_StableList_getElementIndex(list, i, &ptr);
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 3. getElementIndex returned error on element " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(*reinterpret_cast<size_t*>(ptr) != i + testMagicNumber)
+		{
+			std::cout << "StableList (C) failed test 3. Incorrect value at index " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+	}
+
+	//create an iRef tracking index 5 (value 5 + testMagicNumber) for use in tests 4, 5, 6
+	FSDS_StableList_IRef trackedIRef;
+	retcode = FSDS_StableList_indexToIRef(list, 5, &trackedIRef);
+	if(retcode)
+	{
+		std::cout << "StableList (C) failed to create tracked iRef." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	const size_t iRefExpectedValue = 5 + testMagicNumber;
+
+	//test 4: adding elements with reallocation
+	for(size_t i = 10; i < 50; i++)
+	{
+		void* ptr;
+		retcode = FSDS_StableList_appendBack(&list, &ptr);
+		header = &list.memBlock->header;
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 4. appendBack returned error on element " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		*reinterpret_cast<size_t*>(ptr) = i + testMagicNumber;
+		retcode = FSDS_StableList_getElementIRef(list, trackedIRef, &ptr);
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 4. getElementIRef returned error on element " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(*reinterpret_cast<size_t*>(ptr) != iRefExpectedValue)
+		{
+			std::cout << "StableList (C) failed test 4. Tracked iRef points to incorrect value on element " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+	}
+	if(header->size != 50)
+	{
+		std::cout << "StableList (C) failed test 4. Incorrect size." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	if(header->capacity != 80)
+	{
+		std::cout << "StableList (C) failed test 4. Incorrect capacity." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	if(header->front != 5)
+	{
+		std::cout << "StableList (C) failed test 4. incorrect front." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	for(size_t i = 10; i < 50; i++)
+	{
+		void* ptr;
+		retcode = FSDS_StableList_getElementIndex(list, i, &ptr);
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 4. getElementIndex returned error on element " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(*reinterpret_cast<size_t*>(ptr) != i + testMagicNumber)
+		{
+			std::cout << "StableList (C) failed test 4. Incorrect value at index " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+	}
+
+	//test 5: adding elements to front without reallocation
+	for(size_t i = 0; i < 5; i++)
+	{
+		void* ptr;
+		retcode = FSDS_StableList_appendFront(&list, &ptr);
+		header = &list.memBlock->header;
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 5. appendFront returned error on element " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		*reinterpret_cast<size_t*>(ptr) = (50 + i) + testMagicNumber;
+		retcode = FSDS_StableList_getElementIRef(list, trackedIRef, &ptr);
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 5. getElementIRef returned error on element " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(*reinterpret_cast<size_t*>(ptr) != iRefExpectedValue)
+		{
+			std::cout << "StableList (C) failed test 5. Tracked iRef points to incorrect value on element " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+	}
+	if(header->size != 55)
+	{
+		std::cout << "StableList (C) failed test 5. Incorrect size." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	if(header->capacity != 80)
+	{
+		std::cout << "StableList (C) failed test 5. Capacity changed unexpectedly." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	if(header->front != 0)
+	{
+		std::cout << "StableList (C) failed test 5. Incorrect front." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	for(size_t i = 0; i < 5; i++)
+	{
+		void* ptr;
+		retcode = FSDS_StableList_getElementIndex(list, i, &ptr);
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 5. getElementIndex returned error on element " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(*reinterpret_cast<size_t*>(ptr) != (54 - i) + testMagicNumber)
+		{
+			std::cout << "StableList (C) failed test 5. Incorrect value at index " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+	}
+	for(size_t i = 5; i < 55; i++)
+	{
+		void* ptr;
+		retcode = FSDS_StableList_getElementIndex(list, i, &ptr);
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 5. getElementIndex returned error on element " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(*reinterpret_cast<size_t*>(ptr) != (i - 5) + testMagicNumber)
+		{
+			std::cout << "StableList (C) failed test 5. Incorrect value at index " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+	}
+
+	//test 6: adding elements to front with reallocation
+	for(size_t i = 0; i < 20; i++)
+	{
+		void* ptr;
+		retcode = FSDS_StableList_appendFront(&list, &ptr);
+		header = &list.memBlock->header;
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 6. appendFront returned error on element " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		*reinterpret_cast<size_t*>(ptr) = (55 + i) + testMagicNumber;
+		retcode = FSDS_StableList_getElementIRef(list, trackedIRef, &ptr);
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 6. getElementIRef returned error on element " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(*reinterpret_cast<size_t*>(ptr) != iRefExpectedValue)
+		{
+			std::cout << "StableList (C) failed test 6. Tracked iRef points to incorrect value on element " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+	}
+	if(header->size != 75)
+	{
+		std::cout << "StableList (C) failed test 6. Incorrect size." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	if(header->capacity != 100)
+	{
+		std::cout << "StableList (C) failed test 6. Incorrect capacity." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	if(header->front != 0)
+	{
+		std::cout << "StableList (C) failed test 6. Incorrect front." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	for(size_t i = 0; i < 20; i++)
+	{
+		void* ptr;
+		retcode = FSDS_StableList_getElementIndex(list, i, &ptr);
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 6. getElementIndex returned error on element " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(*reinterpret_cast<size_t*>(ptr) != (74 - i) + testMagicNumber)
+		{
+			std::cout << "StableList (C) failed test 6. Incorrect value at index " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+	}
+	for(size_t i = 20; i < 25; i++)
+	{
+		void* ptr;
+		retcode = FSDS_StableList_getElementIndex(list, i, &ptr);
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 6. getElementIndex returned error on element " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(*reinterpret_cast<size_t*>(ptr) != (74 - i) + testMagicNumber)
+		{
+			std::cout << "StableList (C) failed test 6. Incorrect value at index " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+	}
+	for(size_t i = 25; i < 75; i++)
+	{
+		void* ptr;
+		retcode = FSDS_StableList_getElementIndex(list, i, &ptr);
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 6. getElementIndex returned error on element " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(*reinterpret_cast<size_t*>(ptr) != (i - 25) + testMagicNumber)
+		{
+			std::cout << "StableList (C) failed test 6. Incorrect value at index " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+	}
+
+	//test 7: removing elements from front and back, checking iRef each time
+	for(size_t i = 0; i < 25; i++)
+	{
+		retcode = FSDS_StableList_removeFront(list);
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 7. removeFront returned error on iteration " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		void* ptr;
+		retcode = FSDS_StableList_getElementIRef(list, trackedIRef, &ptr);
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 7. getElementIRef returned error after removeFront iteration " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(*reinterpret_cast<size_t*>(ptr) != iRefExpectedValue)
+		{
+			std::cout << "StableList (C) failed test 7. Tracked iRef points to incorrect value after removeFront iteration " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(header->capacity != 100)
+		{
+			std::cout << "StableList (C) failed test 7. Incorrect capacity after removeFront iteration " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(header->front != i + 1)
+		{
+			std::cout << "StableList (C) failed test 7. Incorrect front after removeFront iteration " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+	}
+	for(size_t i = 0; i < 10; i++)
+	{
+		retcode = FSDS_StableList_removeBack(list);
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 7. removeBack returned error on iteration " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		void* ptr;
+		retcode = FSDS_StableList_getElementIRef(list, trackedIRef, &ptr);
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 7. getElementIRef returned error after removeBack iteration " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(*reinterpret_cast<size_t*>(ptr) != iRefExpectedValue)
+		{
+			std::cout << "StableList (C) failed test 7. Tracked iRef points to incorrect value after removeBack iteration " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(header->capacity != 100)
+		{
+			std::cout << "StableList (C) failed test 7. Incorrect capacity after removeBack iteration " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(header->front != 25)
+		{
+			std::cout << "StableList (C) failed test 7. Incorrect front after removeBack iteration " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+	}
+	if(header->size != 40)
+	{
+		std::cout << "StableList (C) failed test 7. Incorrect size. Expected 40, got " << header->size << "." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+
+	//test 8: appendBack to 120 elements, triggering reallocation, check iRef each time
+	for(size_t i = 0; i < 80; i++)
+	{
+		void* ptr;
+		retcode = FSDS_StableList_appendBack(&list, &ptr);
+		header = &list.memBlock->header;
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 8. appendBack returned error on element " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		*reinterpret_cast<size_t*>(ptr) = (40 + i) + testMagicNumber;
+		retcode = FSDS_StableList_getElementIRef(list, trackedIRef, &ptr);
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 8. getElementIRef returned error on element " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(*reinterpret_cast<size_t*>(ptr) != iRefExpectedValue)
+		{
+			std::cout << "StableList (C) failed test 8. Tracked iRef points to incorrect value on element " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+	}
+	if(header->size != 120)
+	{
+		std::cout << "StableList (C) failed test 8. Incorrect size. Expected 120, got " << header->size << "." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+
+	//test 9: indexToIRef for all elements, verify via getElementIRef
+	for(size_t i = 0; i < 120; i++)
+	{
+		FSDS_StableList_IRef iRef;
+		retcode = FSDS_StableList_indexToIRef(list, i, &iRef);
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 9. indexToIRef returned error on index " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		void* ptr;
+		retcode = FSDS_StableList_getElementIRef(list, iRef, &ptr);
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 9. getElementIRef returned error on index " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(*reinterpret_cast<size_t*>(ptr) != i + testMagicNumber)
+		{
+			std::cout << "StableList (C) failed test 9. Incorrect value at index " << i << ". Expected " << i + testMagicNumber << ", got " << *reinterpret_cast<size_t*>(ptr) << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+	}
+	//check that indexToIRef returns an error for an out-of-bounds index
+	{
+		FSDS_StableList_IRef iRef;
+		retcode = FSDS_StableList_indexToIRef(list, 120, &iRef);
+		if(!retcode)
+		{
+			std::cout << "StableList (C) failed test 9. indexToIRef did not return error for out-of-bounds index." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+	}
+
+	//test 10: iRefToIndex for all elements, verify round-trip with indexToIRef
+	for(size_t i = 0; i < 120; i++)
+	{
+		FSDS_StableList_IRef iRef;
+		retcode = FSDS_StableList_indexToIRef(list, i, &iRef);
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 10. indexToIRef returned error on index " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		size_t roundTrippedIndex;
+		retcode = FSDS_StableList_iRefToIndex(list, iRef, &roundTrippedIndex);
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 10. iRefToIndex returned error on index " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(roundTrippedIndex != i)
+		{
+			std::cout << "StableList (C) failed test 10. Round-trip failed on index " << i << ". Expected " << i << ", got " << roundTrippedIndex << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+	}
+
+	//test 11: reserve to a larger capacity, check size and iRef preserved
+	retcode = FSDS_StableList_reserve(&list, 500);
+	header = &list.memBlock->header;
+	if(retcode)
+	{
+		std::cout << "StableList (C) failed test 11. reserve returned error." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	if(header->size != 120)
+	{
+		std::cout << "StableList (C) failed test 11. Incorrect size. Expected 120, got " << header->size << "." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	if(header->capacity != 500)
+	{
+		std::cout << "StableList (C) failed test 11. Incorrect capacity. Expected 500, got " << header->capacity << "." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	{
+		void* ptr;
+		retcode = FSDS_StableList_getElementIRef(list, trackedIRef, &ptr);
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 11. getElementIRef returned error." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(*reinterpret_cast<size_t*>(ptr) != iRefExpectedValue)
+		{
+			std::cout << "StableList (C) failed test 11. Tracked iRef points to incorrect value." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+	}
+	//check that reserving smaller than size returns an error
+	retcode = FSDS_StableList_reserve(&list, 50);
+	header = &list.memBlock->header;
+	if(!retcode)
+	{
+		std::cout << "StableList (C) failed test 11. reserve did not return error for capacity smaller than size." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	//verify values are intact
+	for(size_t i = 0; i < 120; i++)
+	{
+		void* ptr;
+		retcode = FSDS_StableList_getElementIndex(list, i, &ptr);
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 11. getElementIndex returned error on element " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(*reinterpret_cast<size_t*>(ptr) != i + testMagicNumber)
+		{
+			std::cout << "StableList (C) failed test 11. Incorrect value at index " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+	}
+
+	//test 12: shrink_to_fit, check capacity equals size, front becomes 0, iRef preserved
+	retcode = FSDS_StableList_shrink_to_fit(&list);
+	header = &list.memBlock->header;
+	if(retcode)
+	{
+		std::cout << "StableList (C) failed test 12. shrink_to_fit returned error." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	if(header->size != 120)
+	{
+		std::cout << "StableList (C) failed test 12. Incorrect size. Expected 120, got " << header->size << "." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	if(header->capacity != 120)
+	{
+		std::cout << "StableList (C) failed test 12. Incorrect capacity. Expected 120, got " << header->capacity << "." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	if(header->front != 0)
+	{
+		std::cout << "StableList (C) failed test 12. Incorrect front. Expected 0, got " << header->front << "." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	{
+		void* ptr;
+		retcode = FSDS_StableList_getElementIRef(list, trackedIRef, &ptr);
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 12. getElementIRef returned error." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(*reinterpret_cast<size_t*>(ptr) != iRefExpectedValue)
+		{
+			std::cout << "StableList (C) failed test 12. Tracked iRef points to incorrect value." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+	}
+	//verify values are intact
+	for(size_t i = 0; i < 120; i++)
+	{
+		void* ptr;
+		retcode = FSDS_StableList_getElementIndex(list, i, &ptr);
+		if(retcode)
+		{
+			std::cout << "StableList (C) failed test 12. getElementIndex returned error on element " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(*reinterpret_cast<size_t*>(ptr) != i + testMagicNumber)
+		{
+			std::cout << "StableList (C) failed test 12. Incorrect value at index " << i << "." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+	}
+
+	//test 13: clear, check size becomes 0, capacity unchanged
+	retcode = FSDS_StableList_clear(list);
+	if(retcode)
+	{
+		std::cout << "StableList (C) failed test 13. clear returned error." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	if(header->size != 0)
+	{
+		std::cout << "StableList (C) failed test 13. Incorrect size. Expected 0, got " << header->size << "." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	if(header->capacity != 120)
+	{
+		std::cout << "StableList (C) failed test 13. Capacity changed unexpectedly. Expected 120, got " << header->capacity << "." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+
+	FSDS_StableList_destroy(list);
+	std::cout << "StableList (C) passed all tests" << std::endl;
+}
+
 int main(int /*argc*/, const char** /*argv*/)
 {
 	testSPSCQueue();
@@ -3319,6 +4017,7 @@ int main(int /*argc*/, const char** /*argv*/)
 	testDynamicString();
 	testChunkList();
 	testInlineList();
+	testStableListC();
 
 	return 0;
 }

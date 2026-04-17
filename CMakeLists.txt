@@ -4,7 +4,7 @@ if(TARGET fsds)
 endif()
 
 # Set the project name to your project name, "my project" isn't very descriptive as a project can contain multiple distinct targets all grouped under an umbrella
-project(fsds CXX)
+project(fsds C CXX)
 
 #set the name of the primary target for future reference. This will only exist in the "scope" of thise file
 set(primary_target_name fsds)
@@ -61,7 +61,7 @@ if(ENABLE_PCH)
   target_precompile_headers(
     ${project_options_library}
     INTERFACE
-    <iostream>)
+    src/pch.hpp)
 endif()
 
 add_subdirectory(src)
