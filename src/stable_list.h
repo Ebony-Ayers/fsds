@@ -13,6 +13,19 @@
 #define FSDS_STABLE_LIST_DEFAULT_FRONT_MARGIN 16
 #define FSDS_STABLE_LIST_INSTANCE_IREF_OFFSET_INCREMENT 0x100000000
 
+//error codes returned by FSDS_StableList functions
+#define FSDS_STABLE_LIST_SUCCESS 0
+//memory allocation (malloc) failed
+#define FSDS_STABLE_LIST_ERROR_ALLOCATION_FAILED 1
+//an index argument was greater than or equal to size
+#define FSDS_STABLE_LIST_ERROR_INDEX_OUT_OF_BOUNDS 2
+//a requested capacity was smaller than the current size
+#define FSDS_STABLE_LIST_ERROR_CAPACITY_TOO_SMALL 3
+//the iRef is invalid but likely belongs to the correct instance of the list
+#define FSDS_STABLE_LIST_ERROR_IREF_INVALID 4
+//the iRef is invalid but likely belongs to a difference instance of the list
+#define FSDS_STABLE_LIST_ERROR_IREF_DIFFERENT_INSTANCE 5
+
 #ifdef __cplusplus                                                                                                                                                                                                                                                                       
 extern "C" {                                                                                                                                                                                                                                                                             
 #endif
@@ -60,7 +73,7 @@ int FSDS_StableList_iRefToIndex(const FSDS_StableList list, const FSDS_StableLis
 int FSDS_StableList_indexToIRef(const FSDS_StableList list, const size_t index, FSDS_StableList_IRef* outIRef);
 
 int FSDS_StableList_reserve(FSDS_StableList* const list, size_t newCapacity);
-int FSDS_StableList_shrink_to_fit(FSDS_StableList* const list);
+int FSDS_StableList_shrinkToFit(FSDS_StableList* const list);
 int FSDS_StableList_clear(const FSDS_StableList list);
 
 //append functions return pointer to the new memory
@@ -69,7 +82,10 @@ int FSDS_StableList_appendBack(FSDS_StableList* const list, void** outPtr);
 int FSDS_StableList_removeFront(const FSDS_StableList list);
 int FSDS_StableList_removeBack(const FSDS_StableList list);
 
-#ifdef __cplusplus                                                                                                                                                                                                                                                                       
-}               
+//returns a statically allocated human-readable description of the given error code. The returned pointer is valid for the lifetime of the program and must not be freed.
+const char* FSDS_StableList_errorString(const int errorCode);
+
+#ifdef __cplusplus
+}
 #endif
 #endif //STABLE_LIST_H_HEADER_GUARD

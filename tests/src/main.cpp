@@ -3345,7 +3345,7 @@ void testStableListC()
 		FSDS_StableList_destroy(list);
 		return;
 	}
-	if(header->iRefOffset != 0)
+	if(header->iRefOffset != header->instanceIRefOffsetStart)
 	{
 		std::cout << "StableList (C) failed test 1. Incorrect iRefOffset." << std::endl;
 		FSDS_StableList_destroy(list);
@@ -3922,7 +3922,7 @@ void testStableListC()
 	}
 
 	//test 12: shrink_to_fit, check capacity equals size, front becomes 0, iRef preserved
-	retcode = FSDS_StableList_shrink_to_fit(&list);
+	retcode = FSDS_StableList_shrinkToFit(&list);
 	header = &list.memBlock->header;
 	if(retcode)
 	{
@@ -4004,8 +4004,1507 @@ void testStableListC()
 		return;
 	}
 
+	//test 14: check iRef errors correct idenfity wrong instance
+	FSDS_StableList_IRef underflowIRef(0);
+	FSDS_StableList_IRef overflowIRef(0x1000000000000);
+	{
+		size_t index;
+		retcode = FSDS_StableList_iRefToIndex(list, underflowIRef, &index);
+		if(retcode != FSDS_STABLE_LIST_ERROR_IREF_DIFFERENT_INSTANCE)
+		{
+			std::cout << "StableList (C) failed test 14. Did not identify iRef came from different iRef." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		retcode = FSDS_StableList_iRefToIndex(list, overflowIRef, &index);
+		if(retcode != FSDS_STABLE_LIST_ERROR_IREF_DIFFERENT_INSTANCE)
+		{
+			std::cout << "StableList (C) failed test 14. Did not identify iRef came from different iRef." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+	}
+
 	FSDS_StableList_destroy(list);
 	std::cout << "StableList (C) passed all tests" << std::endl;
+}
+
+template class fsds::StableList<size_t>;
+
+void testStableListCpp()
+{
+	const size_t testMagicNumber = 2000;
+	std::vector<size_t> testsFailed;
+
+	//test 1: default constructor
+	{
+		fsds::StableList<size_t> list;
+		if(list.size() != 0)
+		{
+			std::cout << "StableList (Cpp) failed test 1. Incorrect size. Expected 0, got " << list.size() << "." << std::endl;
+			return;
+		}
+		if(!list.isEmpty())
+		{
+			std::cout << "StableList (Cpp) failed test 1. isEmpty() returned false on default-constructed list." << std::endl;
+			return;
+		}
+	}
+
+	//test 2: size constructor
+	{
+		fsds::StableList<size_t> list(10);
+		if(list.size() != 10)
+		{
+			std::cout << "StableList (Cpp) failed test 2. Incorrect size. Expected 10, got " << list.size() << "." << std::endl;
+			return;
+		}
+	}
+
+	//test 3: fill constructor
+	{
+		fsds::StableList<size_t> list(10, testMagicNumber);
+		if(list.size() != 10)
+		{
+			std::cout << "StableList (Cpp) failed test 3. Incorrect size. Expected 10, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 10; i++)
+		{
+			if(list.at(i) != testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 3. Incorrect value at index " << i << "." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 4: copy constructor
+	{
+		fsds::StableList<size_t> src(10, testMagicNumber);
+		fsds::StableList<size_t> dst(src);
+		if(dst.size() != 10)
+		{
+			std::cout << "StableList (Cpp) failed test 4. Incorrect size in copy. Expected 10, got " << dst.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 10; i++)
+		{
+			if(dst.at(i) != testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 4. Incorrect value at index " << i << " in copy." << std::endl;
+				return;
+			}
+		}
+		dst.append(testMagicNumber + 1);
+		if(src.size() != 10)
+		{
+			std::cout << "StableList (Cpp) failed test 4. Modifying copy affected source." << std::endl;
+			return;
+		}
+	}
+
+	//test 5: move constructor
+	{
+		fsds::StableList<size_t> src(10, testMagicNumber);
+		fsds::StableList<size_t> dst(std::move(src));
+		if(dst.size() != 10)
+		{
+			std::cout << "StableList (Cpp) failed test 5. Incorrect size after move. Expected 10, got " << dst.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 10; i++)
+		{
+			if(dst.at(i) != testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 5. Incorrect value at index " << i << " after move." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 6: iterator constructor
+	{
+		std::vector<size_t> src;
+		for(size_t i = 0; i < 10; i++) { src.push_back(i + testMagicNumber); }
+		fsds::StableList<size_t> list(src.begin(), src.end());
+		if(list.size() != 10)
+		{
+			std::cout << "StableList (Cpp) failed test 6. Incorrect size. Expected 10, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 10; i++)
+		{
+			if(list.at(i) != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 6. Incorrect value at index " << i << "." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 7: initializer list constructor
+	{
+		fsds::StableList<size_t> list = {100, 200, 300, 400, 500};
+		const size_t expected[] = {100, 200, 300, 400, 500};
+		if(list.size() != 5)
+		{
+			std::cout << "StableList (Cpp) failed test 7. Incorrect size. Expected 5, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 5; i++)
+		{
+			if(list.at(i) != expected[i])
+			{
+				std::cout << "StableList (Cpp) failed test 7. Incorrect value at index " << i << "." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 8: copy assign
+	{
+		fsds::StableList<size_t> src(10, testMagicNumber);
+		fsds::StableList<size_t> dst(3, testMagicNumber + 1);
+		dst = src;
+		if(dst.size() != 10)
+		{
+			std::cout << "StableList (Cpp) failed test 8. Incorrect size after copy assign. Expected 10, got " << dst.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 10; i++)
+		{
+			if(dst.at(i) != testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 8. Incorrect value at index " << i << " after copy assign." << std::endl;
+				return;
+			}
+		}
+		dst.append(testMagicNumber + 2);
+		if(src.size() != 10)
+		{
+			std::cout << "StableList (Cpp) failed test 8. Modifying copy affected source." << std::endl;
+			return;
+		}
+	}
+
+	//test 9: move assign
+	{
+		fsds::StableList<size_t> src(10, testMagicNumber);
+		fsds::StableList<size_t> dst(3, testMagicNumber + 1);
+		dst = std::move(src);
+		if(dst.size() != 10)
+		{
+			std::cout << "StableList (Cpp) failed test 9. Incorrect size after move assign. Expected 10, got " << dst.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 10; i++)
+		{
+			if(dst.at(i) != testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 9. Incorrect value at index " << i << " after move assign." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 10: initializer list assign (operator=)
+	{
+		fsds::StableList<size_t> list(3, testMagicNumber);
+		list = {100, 200, 300, 400, 500};
+		const size_t expected[] = {100, 200, 300, 400, 500};
+		if(list.size() != 5)
+		{
+			std::cout << "StableList (Cpp) failed test 10. Incorrect size. Expected 5, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 5; i++)
+		{
+			if(list.at(i) != expected[i])
+			{
+				std::cout << "StableList (Cpp) failed test 10. Incorrect value at index " << i << "." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 11: fill assign
+	{
+		fsds::StableList<size_t> list(3, testMagicNumber + 1);
+		list.assign(10, testMagicNumber);
+		if(list.size() != 10)
+		{
+			std::cout << "StableList (Cpp) failed test 11. Incorrect size. Expected 10, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 10; i++)
+		{
+			if(list.at(i) != testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 11. Incorrect value at index " << i << "." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 12: iterator assign
+	{
+		std::vector<size_t> src;
+		for(size_t i = 0; i < 10; i++) { src.push_back(i + testMagicNumber); }
+		fsds::StableList<size_t> list(3, testMagicNumber + 1);
+		list.assign(src.begin(), src.end());
+		if(list.size() != 10)
+		{
+			std::cout << "StableList (Cpp) failed test 12. Incorrect size. Expected 10, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 10; i++)
+		{
+			if(list.at(i) != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 12. Incorrect value at index " << i << "." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 13: initializer list assign (method)
+	{
+		fsds::StableList<size_t> list(3, testMagicNumber);
+		list.assign({100, 200, 300, 400, 500});
+		const size_t expected[] = {100, 200, 300, 400, 500};
+		if(list.size() != 5)
+		{
+			std::cout << "StableList (Cpp) failed test 13. Incorrect size. Expected 5, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 5; i++)
+		{
+			if(list.at(i) != expected[i])
+			{
+				std::cout << "StableList (Cpp) failed test 13. Incorrect value at index " << i << "." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 14: operator[](size_t) read, write, and const overload
+	{
+		fsds::StableList<size_t> list(10, testMagicNumber);
+		for(size_t i = 0; i < 10; i++)
+		{
+			if(list[i] != testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 14. Non-const operator[](size_t) returned incorrect value at index " << i << "." << std::endl;
+				return;
+			}
+		}
+		for(size_t i = 0; i < 10; i++)
+		{
+			list[i] = i + testMagicNumber;
+		}
+		const fsds::StableList<size_t>& clist = list;
+		for(size_t i = 0; i < 10; i++)
+		{
+			if(clist[i] != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 14. Const operator[](size_t) returned incorrect value at index " << i << "." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 15: operator[](IRef) read, write, and const overload
+	{
+		fsds::StableList<size_t> list(10, testMagicNumber);
+		for(size_t i = 0; i < 10; i++)
+		{
+			typename fsds::StableList<size_t>::IRef ref = list.indexToIRef(i);
+			if(list[ref] != testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 15. Non-const operator[](IRef) returned incorrect value at index " << i << "." << std::endl;
+				return;
+			}
+			list[ref] = i + testMagicNumber;
+		}
+		const fsds::StableList<size_t>& clist = list;
+		for(size_t i = 0; i < 10; i++)
+		{
+			typename fsds::StableList<size_t>::IRef ref = list.indexToIRef(i);
+			if(clist[ref] != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 15. Const operator[](IRef) returned incorrect value at index " << i << "." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 16: at(size_t) read, write, and const overload
+	{
+		fsds::StableList<size_t> list(10, testMagicNumber);
+		for(size_t i = 0; i < 10; i++)
+		{
+			if(list.at(i) != testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 16. Non-const at(size_t) returned incorrect value at index " << i << "." << std::endl;
+				return;
+			}
+		}
+		for(size_t i = 0; i < 10; i++)
+		{
+			list.at(i) = i + testMagicNumber;
+		}
+		const fsds::StableList<size_t>& clist = list;
+		for(size_t i = 0; i < 10; i++)
+		{
+			if(clist.at(i) != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 16. Const at(size_t) returned incorrect value at index " << i << "." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 17: at(IRef) read, write, and const overload
+	{
+		fsds::StableList<size_t> list(10, testMagicNumber);
+		for(size_t i = 0; i < 10; i++)
+		{
+			typename fsds::StableList<size_t>::IRef ref = list.indexToIRef(i);
+			if(list.at(ref) != testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 17. Non-const at(IRef) returned incorrect value at index " << i << "." << std::endl;
+				return;
+			}
+			list.at(ref) = i + testMagicNumber;
+		}
+		const fsds::StableList<size_t>& clist = list;
+		for(size_t i = 0; i < 10; i++)
+		{
+			typename fsds::StableList<size_t>::IRef ref = list.indexToIRef(i);
+			if(clist.at(ref) != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 17. Const at(IRef) returned incorrect value at index " << i << "." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 18: front, front() const, and frontIRef
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 10; i++) { list.append(i + testMagicNumber); }
+		if(list.front() != testMagicNumber)
+		{
+			std::cout << "StableList (Cpp) failed test 18. Non-const front() returned incorrect value." << std::endl;
+			return;
+		}
+		list.front() = testMagicNumber + 100;
+		const fsds::StableList<size_t>& clist = list;
+		if(clist.front() != testMagicNumber + 100)
+		{
+			std::cout << "StableList (Cpp) failed test 18. Const front() did not reflect write." << std::endl;
+			return;
+		}
+		typename fsds::StableList<size_t>::IRef ref = list.frontIRef();
+		if(list.at(ref) != testMagicNumber + 100)
+		{
+			std::cout << "StableList (Cpp) failed test 18. frontIRef() does not resolve to the front element." << std::endl;
+			return;
+		}
+		if(list.iRefToIndex(ref) != 0)
+		{
+			std::cout << "StableList (Cpp) failed test 18. frontIRef() does not resolve to index 0." << std::endl;
+			return;
+		}
+	}
+
+	//test 19: back, back() const, and backIRef
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 10; i++) { list.append(i + testMagicNumber); }
+		if(list.back() != 9 + testMagicNumber)
+		{
+			std::cout << "StableList (Cpp) failed test 19. Non-const back() returned incorrect value." << std::endl;
+			return;
+		}
+		list.back() = testMagicNumber + 100;
+		const fsds::StableList<size_t>& clist = list;
+		if(clist.back() != testMagicNumber + 100)
+		{
+			std::cout << "StableList (Cpp) failed test 19. Const back() did not reflect write." << std::endl;
+			return;
+		}
+		typename fsds::StableList<size_t>::IRef ref = list.backIRef();
+		if(list.at(ref) != testMagicNumber + 100)
+		{
+			std::cout << "StableList (Cpp) failed test 19. backIRef() does not resolve to the back element." << std::endl;
+			return;
+		}
+		if(list.iRefToIndex(ref) != list.size() - 1)
+		{
+			std::cout << "StableList (Cpp) failed test 19. backIRef() does not resolve to the last index." << std::endl;
+			return;
+		}
+	}
+
+	//test 20: empty and isEmpty
+	{
+		fsds::StableList<size_t> list;
+		if(!list.empty())
+		{
+			std::cout << "StableList (Cpp) failed test 20. empty() returned false on fresh list." << std::endl;
+			return;
+		}
+		if(!list.isEmpty())
+		{
+			std::cout << "StableList (Cpp) failed test 20. isEmpty() returned false on fresh list." << std::endl;
+			return;
+		}
+		list.append(testMagicNumber);
+		if(list.empty())
+		{
+			std::cout << "StableList (Cpp) failed test 20. empty() returned true after append." << std::endl;
+			return;
+		}
+		if(list.isEmpty())
+		{
+			std::cout << "StableList (Cpp) failed test 20. isEmpty() returned true after append." << std::endl;
+			return;
+		}
+	}
+
+	//test 21: size
+	{
+		fsds::StableList<size_t> list;
+		if(list.size() != 0)
+		{
+			std::cout << "StableList (Cpp) failed test 21. size() was " << list.size() << ", expected 0 on fresh list." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 25; i++) { list.append(i + testMagicNumber); }
+		if(list.size() != 25)
+		{
+			std::cout << "StableList (Cpp) failed test 21. size() was " << list.size() << ", expected 25 after 25 appends." << std::endl;
+			return;
+		}
+	}
+
+	//test 22: maxSize
+	{
+		fsds::StableList<size_t> list;
+		if(list.maxSize() != std::numeric_limits<size_t>::max())
+		{
+			std::cout << "StableList (Cpp) failed test 22. maxSize() did not equal numeric_limits<size_t>::max()." << std::endl;
+			return;
+		}
+	}
+
+	//test 23: capacity grows with size
+	{
+		fsds::StableList<size_t> list;
+		const size_t initialCapacity = list.capacity();
+		if(initialCapacity == 0)
+		{
+			std::cout << "StableList (Cpp) failed test 23. Initial capacity was 0." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < initialCapacity * 4; i++) { list.append(i + testMagicNumber); }
+		if(list.capacity() < list.size())
+		{
+			std::cout << "StableList (Cpp) failed test 23. capacity() < size() after appends." << std::endl;
+			return;
+		}
+		if(list.capacity() <= initialCapacity)
+		{
+			std::cout << "StableList (Cpp) failed test 23. capacity() did not grow after exceeding initial capacity." << std::endl;
+			return;
+		}
+	}
+
+	//test 24: reserve
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 10; i++) { list.append(i + testMagicNumber); }
+		list.reserve(500);
+		if(list.capacity() < 500)
+		{
+			std::cout << "StableList (Cpp) failed test 24. capacity() was " << list.capacity() << ", expected at least 500 after reserve(500)." << std::endl;
+			return;
+		}
+		if(list.size() != 10)
+		{
+			std::cout << "StableList (Cpp) failed test 24. size() changed after reserve. Expected 10, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 10; i++)
+		{
+			if(list.at(i) != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 24. Value at index " << i << " changed after reserve." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 25: shrinkToFit
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 10; i++) { list.append(i + testMagicNumber); }
+		list.reserve(500);
+		list.shrinkToFit();
+		if(list.capacity() != list.size())
+		{
+			std::cout << "StableList (Cpp) failed test 25. capacity() was " << list.capacity() << ", expected " << list.size() << " after shrinkToFit." << std::endl;
+			return;
+		}
+		if(list.size() != 10)
+		{
+			std::cout << "StableList (Cpp) failed test 25. size() changed after shrinkToFit. Expected 10, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 10; i++)
+		{
+			if(list.at(i) != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 25. Value at index " << i << " changed after shrinkToFit." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 26: shrink_to_fit
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 10; i++) { list.append(i + testMagicNumber); }
+		list.reserve(500);
+		list.shrink_to_fit();
+		if(list.capacity() != list.size())
+		{
+			std::cout << "StableList (Cpp) failed test 26. capacity() was " << list.capacity() << ", expected " << list.size() << " after shrink_to_fit." << std::endl;
+			return;
+		}
+		if(list.size() != 10)
+		{
+			std::cout << "StableList (Cpp) failed test 26. size() changed after shrink_to_fit. Expected 10, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 10; i++)
+		{
+			if(list.at(i) != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 26. Value at index " << i << " changed after shrink_to_fit." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 27: clear
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 10; i++) { list.append(i + testMagicNumber); }
+		const size_t preClearCapacity = list.capacity();
+		list.clear();
+		if(list.size() != 0)
+		{
+			std::cout << "StableList (Cpp) failed test 27. size() was " << list.size() << ", expected 0 after clear." << std::endl;
+			return;
+		}
+		if(!list.isEmpty())
+		{
+			std::cout << "StableList (Cpp) failed test 27. isEmpty() returned false after clear." << std::endl;
+			return;
+		}
+		if(list.capacity() != preClearCapacity)
+		{
+			std::cout << "StableList (Cpp) failed test 27. capacity() changed after clear. Expected " << preClearCapacity << ", got " << list.capacity() << "." << std::endl;
+			return;
+		}
+		list.append(testMagicNumber);
+		if(list.size() != 1 || list.at(0) != testMagicNumber)
+		{
+			std::cout << "StableList (Cpp) failed test 27. List unusable after clear." << std::endl;
+			return;
+		}
+	}
+
+	//test 28: append
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 50; i++) { list.append(i + testMagicNumber); }
+		if(list.size() != 50)
+		{
+			std::cout << "StableList (Cpp) failed test 28. Incorrect size. Expected 50, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 50; i++)
+		{
+			if(list.at(i) != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 28. Incorrect value at index " << i << "." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 29: prepend
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 50; i++) { list.prepend(i + testMagicNumber); }
+		if(list.size() != 50)
+		{
+			std::cout << "StableList (Cpp) failed test 29. Incorrect size. Expected 50, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 50; i++)
+		{
+			const size_t expected = (49 - i) + testMagicNumber;
+			if(list.at(i) != expected)
+			{
+				std::cout << "StableList (Cpp) failed test 29. Incorrect value at index " << i << ". Expected " << expected << ", got " << list.at(i) << "." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 30: appendConstruct
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 50; i++) { list.appendConstruct(i + testMagicNumber); }
+		if(list.size() != 50)
+		{
+			std::cout << "StableList (Cpp) failed test 30. Incorrect size. Expected 50, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 50; i++)
+		{
+			if(list.at(i) != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 30. Incorrect value at index " << i << "." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 31: prependConstruct
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 50; i++) { list.prependConstruct(i + testMagicNumber); }
+		if(list.size() != 50)
+		{
+			std::cout << "StableList (Cpp) failed test 31. Incorrect size. Expected 50, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 50; i++)
+		{
+			const size_t expected = (49 - i) + testMagicNumber;
+			if(list.at(i) != expected)
+			{
+				std::cout << "StableList (Cpp) failed test 31. Incorrect value at index " << i << ". Expected " << expected << ", got " << list.at(i) << "." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 32: push_back
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 50; i++) { list.push_back(i + testMagicNumber); }
+		if(list.size() != 50)
+		{
+			std::cout << "StableList (Cpp) failed test 32. Incorrect size. Expected 50, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 50; i++)
+		{
+			if(list.at(i) != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 32. Incorrect value at index " << i << "." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 33: push_front
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 50; i++) { list.push_front(i + testMagicNumber); }
+		if(list.size() != 50)
+		{
+			std::cout << "StableList (Cpp) failed test 33. Incorrect size. Expected 50, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 50; i++)
+		{
+			const size_t expected = (49 - i) + testMagicNumber;
+			if(list.at(i) != expected)
+			{
+				std::cout << "StableList (Cpp) failed test 33. Incorrect value at index " << i << ". Expected " << expected << ", got " << list.at(i) << "." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 34: emplace_back
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 50; i++) { list.emplace_back(i + testMagicNumber); }
+		if(list.size() != 50)
+		{
+			std::cout << "StableList (Cpp) failed test 34. Incorrect size. Expected 50, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 50; i++)
+		{
+			if(list.at(i) != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 34. Incorrect value at index " << i << "." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 35: emplace_front
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 50; i++) { list.emplace_front(i + testMagicNumber); }
+		if(list.size() != 50)
+		{
+			std::cout << "StableList (Cpp) failed test 35. Incorrect size. Expected 50, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 50; i++)
+		{
+			const size_t expected = (49 - i) + testMagicNumber;
+			if(list.at(i) != expected)
+			{
+				std::cout << "StableList (Cpp) failed test 35. Incorrect value at index " << i << ". Expected " << expected << ", got " << list.at(i) << "." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 36: removeBack
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 50; i++) { list.append(i + testMagicNumber); }
+		for(size_t i = 0; i < 20; i++) { list.removeBack(); }
+		if(list.size() != 30)
+		{
+			std::cout << "StableList (Cpp) failed test 36. Incorrect size after removeBack. Expected 30, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 30; i++)
+		{
+			if(list.at(i) != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 36. Incorrect value at index " << i << "." << std::endl;
+				return;
+			}
+		}
+		if(list.back() != 29 + testMagicNumber)
+		{
+			std::cout << "StableList (Cpp) failed test 36. Incorrect back() value after removeBack." << std::endl;
+			return;
+		}
+	}
+
+	//test 37: removeFront
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 50; i++) { list.append(i + testMagicNumber); }
+		for(size_t i = 0; i < 20; i++) { list.removeFront(); }
+		if(list.size() != 30)
+		{
+			std::cout << "StableList (Cpp) failed test 37. Incorrect size after removeFront. Expected 30, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 30; i++)
+		{
+			const size_t expected = (i + 20) + testMagicNumber;
+			if(list.at(i) != expected)
+			{
+				std::cout << "StableList (Cpp) failed test 37. Incorrect value at index " << i << ". Expected " << expected << ", got " << list.at(i) << "." << std::endl;
+				return;
+			}
+		}
+		if(list.front() != 20 + testMagicNumber)
+		{
+			std::cout << "StableList (Cpp) failed test 37. Incorrect front() value after removeFront." << std::endl;
+			return;
+		}
+	}
+
+	//test 38: removeBackWithoutDeconstruct
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 50; i++) { list.append(i + testMagicNumber); }
+		for(size_t i = 0; i < 20; i++) { list.removeBackWithoutDeconstruct(); }
+		if(list.size() != 30)
+		{
+			std::cout << "StableList (Cpp) failed test 38. Incorrect size after removeBackWithoutDeconstruct. Expected 30, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 30; i++)
+		{
+			if(list.at(i) != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 38. Incorrect value at index " << i << "." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 39: removeFrontWithoutDeconstruct
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 50; i++) { list.append(i + testMagicNumber); }
+		for(size_t i = 0; i < 20; i++) { list.removeFrontWithoutDeconstruct(); }
+		if(list.size() != 30)
+		{
+			std::cout << "StableList (Cpp) failed test 39. Incorrect size after removeFrontWithoutDeconstruct. Expected 30, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 30; i++)
+		{
+			const size_t expected = (i + 20) + testMagicNumber;
+			if(list.at(i) != expected)
+			{
+				std::cout << "StableList (Cpp) failed test 39. Incorrect value at index " << i << ". Expected " << expected << ", got " << list.at(i) << "." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 40: pop_back
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 50; i++) { list.append(i + testMagicNumber); }
+		for(size_t i = 0; i < 20; i++) { list.pop_back(); }
+		if(list.size() != 30)
+		{
+			std::cout << "StableList (Cpp) failed test 40. Incorrect size after pop_back. Expected 30, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 30; i++)
+		{
+			if(list.at(i) != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 40. Incorrect value at index " << i << "." << std::endl;
+				return;
+			}
+		}
+		if(list.back() != 29 + testMagicNumber)
+		{
+			std::cout << "StableList (Cpp) failed test 40. Incorrect back() value after pop_back." << std::endl;
+			return;
+		}
+	}
+
+	//test 41: pop_front
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 50; i++) { list.append(i + testMagicNumber); }
+		for(size_t i = 0; i < 20; i++) { list.pop_front(); }
+		if(list.size() != 30)
+		{
+			std::cout << "StableList (Cpp) failed test 41. Incorrect size after pop_front. Expected 30, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 30; i++)
+		{
+			const size_t expected = (i + 20) + testMagicNumber;
+			if(list.at(i) != expected)
+			{
+				std::cout << "StableList (Cpp) failed test 41. Incorrect value at index " << i << ". Expected " << expected << ", got " << list.at(i) << "." << std::endl;
+				return;
+			}
+		}
+		if(list.front() != 20 + testMagicNumber)
+		{
+			std::cout << "StableList (Cpp) failed test 41. Incorrect front() value after pop_front." << std::endl;
+			return;
+		}
+	}
+
+	//test 42: remove all elements then re-add
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 10; i++) { list.append(i + testMagicNumber); }
+		for(size_t i = 0; i < 10; i++) { list.removeBack(); }
+		if(list.size() != 0 || !list.isEmpty())
+		{
+			std::cout << "StableList (Cpp) failed test 42. List not empty after removing all elements." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 10; i++) { list.append(i + testMagicNumber); }
+		if(list.size() != 10)
+		{
+			std::cout << "StableList (Cpp) failed test 42. Incorrect size after re-adding. Expected 10, got " << list.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 10; i++)
+		{
+			if(list.at(i) != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 42. Incorrect value at index " << i << " after re-adding." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 43: concatenateBack
+	{
+		fsds::StableList<size_t> a;
+		for(size_t i = 0; i < 15; i++) { a.append(i + testMagicNumber); }
+		fsds::StableList<size_t> b;
+		for(size_t i = 0; i < 20; i++) { b.append(i + testMagicNumber + 100); }
+		a.concatenateBack(b);
+		if(a.size() != 35)
+		{
+			std::cout << "StableList (Cpp) failed test 43. Incorrect size after concatenateBack. Expected 35, got " << a.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 15; i++)
+		{
+			if(a.at(i) != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 43. Incorrect value at index " << i << " in original range." << std::endl;
+				return;
+			}
+		}
+		for(size_t i = 0; i < 20; i++)
+		{
+			const size_t expected = i + testMagicNumber + 100;
+			if(a.at(15 + i) != expected)
+			{
+				std::cout << "StableList (Cpp) failed test 43. Incorrect value at index " << 15 + i << " in appended range. Expected " << expected << ", got " << a.at(15 + i) << "." << std::endl;
+				return;
+			}
+		}
+		if(b.size() != 20)
+		{
+			std::cout << "StableList (Cpp) failed test 43. Source size changed after concatenateBack. Expected 20, got " << b.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 20; i++)
+		{
+			if(b.at(i) != i + testMagicNumber + 100)
+			{
+				std::cout << "StableList (Cpp) failed test 43. Source value at index " << i << " changed after concatenateBack." << std::endl;
+				return;
+			}
+		}
+		b.append(testMagicNumber + 999);
+		if(a.size() != 35 || a.at(34) != 19 + testMagicNumber + 100)
+		{
+			std::cout << "StableList (Cpp) failed test 43. Modifying source affected destination (not a deep copy)." << std::endl;
+			return;
+		}
+	}
+
+	//test 44: concatenateFront
+	{
+		fsds::StableList<size_t> a;
+		for(size_t i = 0; i < 15; i++) { a.append(i + testMagicNumber); }
+		fsds::StableList<size_t> b;
+		for(size_t i = 0; i < 20; i++) { b.append(i + testMagicNumber + 100); }
+		a.concatenateFront(b);
+		if(a.size() != 35)
+		{
+			std::cout << "StableList (Cpp) failed test 44. Incorrect size after concatenateFront. Expected 35, got " << a.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 20; i++)
+		{
+			const size_t expected = i + testMagicNumber + 100;
+			if(a.at(i) != expected)
+			{
+				std::cout << "StableList (Cpp) failed test 44. Incorrect value at index " << i << " in prepended range. Expected " << expected << ", got " << a.at(i) << "." << std::endl;
+				return;
+			}
+		}
+		for(size_t i = 0; i < 15; i++)
+		{
+			if(a.at(20 + i) != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 44. Incorrect value at index " << 20 + i << " in original range." << std::endl;
+				return;
+			}
+		}
+		if(b.size() != 20)
+		{
+			std::cout << "StableList (Cpp) failed test 44. Source size changed after concatenateFront. Expected 20, got " << b.size() << "." << std::endl;
+			return;
+		}
+		for(size_t i = 0; i < 20; i++)
+		{
+			if(b.at(i) != i + testMagicNumber + 100)
+			{
+				std::cout << "StableList (Cpp) failed test 44. Source value at index " << i << " changed after concatenateFront." << std::endl;
+				return;
+			}
+		}
+		b.append(testMagicNumber + 999);
+		if(a.size() != 35 || a.at(0) != testMagicNumber + 100)
+		{
+			std::cout << "StableList (Cpp) failed test 44. Modifying source affected destination (not a deep copy)." << std::endl;
+			return;
+		}
+	}
+
+	//test 45: indexToIRef
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 20; i++) { list.append(i + testMagicNumber); }
+		for(size_t i = 0; i < 20; i++)
+		{
+			typename fsds::StableList<size_t>::IRef iRef = list.indexToIRef(i);
+			if(list.at(iRef) != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 45. indexToIRef returned iRef with incorrect value at index " << i << ". Expected " << i + testMagicNumber << ", got " << list.at(iRef) << "." << std::endl;
+				return;
+			}
+		}
+		for(size_t i = 0; i < 20; i++)
+		{
+			typename fsds::StableList<size_t>::IRef a = list.indexToIRef(i);
+			typename fsds::StableList<size_t>::IRef b = list.indexToIRef(i);
+			if(a != b)
+			{
+				std::cout << "StableList (Cpp) failed test 45. indexToIRef not deterministic at index " << i << "." << std::endl;
+				return;
+			}
+		}
+		bool threw = false;
+		try
+		{
+			list.indexToIRef(20);
+		}
+		catch(const std::runtime_error&)
+		{
+			threw = true;
+		}
+		if(!threw)
+		{
+			std::cout << "StableList (Cpp) failed test 45. indexToIRef did not throw for out-of-bounds index." << std::endl;
+			return;
+		}
+	}
+
+	//test 46: iRefToIndex round-trip with indexToIRef
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 20; i++) { list.append(i + testMagicNumber); }
+		for(size_t i = 0; i < 20; i++)
+		{
+			typename fsds::StableList<size_t>::IRef iRef = list.indexToIRef(i);
+			size_t roundTrippedIndex = list.iRefToIndex(iRef);
+			if(roundTrippedIndex != i)
+			{
+				std::cout << "StableList (Cpp) failed test 46. iRefToIndex round-trip failed at index " << i << ". Expected " << i << ", got " << roundTrippedIndex << "." << std::endl;
+				return;
+			}
+		}
+		bool threwUnderflow = false;
+		try
+		{
+			typename fsds::StableList<size_t>::IRef bad(0);
+			list.iRefToIndex(bad);
+		}
+		catch(const std::runtime_error&)
+		{
+			threwUnderflow = true;
+		}
+		if(!threwUnderflow)
+		{
+			std::cout << "StableList (Cpp) failed test 46. iRefToIndex did not throw for invalid (underflow) iRef." << std::endl;
+			return;
+		}
+		bool threwOverflow = false;
+		try
+		{
+			typename fsds::StableList<size_t>::IRef bad(0x1000000000000);
+			list.iRefToIndex(bad);
+		}
+		catch(const std::runtime_error&)
+		{
+			threwOverflow = true;
+		}
+		if(!threwOverflow)
+		{
+			std::cout << "StableList (Cpp) failed test 46. iRefToIndex did not throw for invalid (overflow) iRef." << std::endl;
+			return;
+		}
+	}
+
+	//test 47: begin/end forward iteration
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 20; i++) { list.append(i + testMagicNumber); }
+		size_t i = 0;
+		for(auto it = list.begin(); it != list.end(); ++it)
+		{
+			if(*it != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 47. Incorrect value at iterator position " << i << ". Expected " << i + testMagicNumber << ", got " << *it << "." << std::endl;
+				return;
+			}
+			i++;
+		}
+		if(i != 20)
+		{
+			std::cout << "StableList (Cpp) failed test 47. Iterator range covered " << i << " elements, expected 20." << std::endl;
+			return;
+		}
+	}
+
+	//test 48: begin() == end() on empty list
+	{
+		fsds::StableList<size_t> list;
+		if(list.begin() != list.end())
+		{
+			std::cout << "StableList (Cpp) failed test 48. begin() != end() on empty list." << std::endl;
+			return;
+		}
+		const fsds::StableList<size_t>& clist = list;
+		if(clist.begin() != clist.end())
+		{
+			std::cout << "StableList (Cpp) failed test 48. const begin() != end() on empty list." << std::endl;
+			return;
+		}
+		if(list.cbegin() != list.cend())
+		{
+			std::cout << "StableList (Cpp) failed test 48. cbegin() != cend() on empty list." << std::endl;
+			return;
+		}
+	}
+
+	//test 49: const begin/end and cbegin/cend
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 20; i++) { list.append(i + testMagicNumber); }
+		const fsds::StableList<size_t>& clist = list;
+		size_t i = 0;
+		for(auto it = clist.begin(); it != clist.end(); ++it)
+		{
+			if(*it != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 49. Incorrect value via const begin()/end() at position " << i << "." << std::endl;
+				return;
+			}
+			i++;
+		}
+		if(i != 20)
+		{
+			std::cout << "StableList (Cpp) failed test 49. Const iterator range covered " << i << " elements, expected 20." << std::endl;
+			return;
+		}
+		i = 0;
+		for(auto it = list.cbegin(); it != list.cend(); ++it)
+		{
+			if(*it != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 49. Incorrect value via cbegin()/cend() at position " << i << "." << std::endl;
+				return;
+			}
+			i++;
+		}
+		if(i != 20)
+		{
+			std::cout << "StableList (Cpp) failed test 49. cbegin()/cend() range covered " << i << " elements, expected 20." << std::endl;
+			return;
+		}
+	}
+
+	//test 50: rbegin/rend reverse iteration
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 20; i++) { list.append(i + testMagicNumber); }
+		size_t i = 20;
+		for(auto it = list.rbegin(); it != list.rend(); ++it)
+		{
+			i--;
+			if(*it != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 50. Incorrect value via rbegin()/rend() at position " << i << ". Expected " << i + testMagicNumber << ", got " << *it << "." << std::endl;
+				return;
+			}
+		}
+		if(i != 0)
+		{
+			std::cout << "StableList (Cpp) failed test 50. Reverse iterator covered " << 20 - i << " elements, expected 20." << std::endl;
+			return;
+		}
+	}
+
+	//test 51: const rbegin/rend and rcbegin/rcend
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 20; i++) { list.append(i + testMagicNumber); }
+		const fsds::StableList<size_t>& clist = list;
+		size_t i = 20;
+		for(auto it = clist.rbegin(); it != clist.rend(); ++it)
+		{
+			i--;
+			if(*it != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 51. Incorrect value via const rbegin()/rend() at position " << i << "." << std::endl;
+				return;
+			}
+		}
+		if(i != 0)
+		{
+			std::cout << "StableList (Cpp) failed test 51. Const reverse iterator covered wrong number of elements." << std::endl;
+			return;
+		}
+		i = 20;
+		for(auto it = list.rcbegin(); it != list.rcend(); ++it)
+		{
+			i--;
+			if(*it != i + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 51. Incorrect value via rcbegin()/rcend() at position " << i << "." << std::endl;
+				return;
+			}
+		}
+		if(i != 0)
+		{
+			std::cout << "StableList (Cpp) failed test 51. rcbegin()/rcend() covered wrong number of elements." << std::endl;
+			return;
+		}
+	}
+
+	//test 52: iterator arithmetic (++, --, +=, -=, +, -, [])
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 20; i++) { list.append(i + testMagicNumber); }
+		auto it = list.begin();
+		++it;
+		if(*it != 1 + testMagicNumber) { std::cout << "StableList (Cpp) failed test 52. pre-increment incorrect." << std::endl; return; }
+		auto prev = it++;
+		if(*prev != 1 + testMagicNumber) { std::cout << "StableList (Cpp) failed test 52. post-increment returned wrong value." << std::endl; return; }
+		if(*it != 2 + testMagicNumber) { std::cout << "StableList (Cpp) failed test 52. post-increment did not advance." << std::endl; return; }
+		--it;
+		if(*it != 1 + testMagicNumber) { std::cout << "StableList (Cpp) failed test 52. pre-decrement incorrect." << std::endl; return; }
+		auto next = it--;
+		if(*next != 1 + testMagicNumber) { std::cout << "StableList (Cpp) failed test 52. post-decrement returned wrong value." << std::endl; return; }
+		if(*it != 0 + testMagicNumber) { std::cout << "StableList (Cpp) failed test 52. post-decrement did not move back." << std::endl; return; }
+		it += 5;
+		if(*it != 5 + testMagicNumber) { std::cout << "StableList (Cpp) failed test 52. += incorrect." << std::endl; return; }
+		it -= 3;
+		if(*it != 2 + testMagicNumber) { std::cout << "StableList (Cpp) failed test 52. -= incorrect." << std::endl; return; }
+		auto plus = it + 4;
+		if(*plus != 6 + testMagicNumber) { std::cout << "StableList (Cpp) failed test 52. operator+ incorrect." << std::endl; return; }
+		auto minus = plus - 2;
+		if(*minus != 4 + testMagicNumber) { std::cout << "StableList (Cpp) failed test 52. operator- incorrect." << std::endl; return; }
+		auto friendPlus = 3 + list.begin();
+		if(*friendPlus != 3 + testMagicNumber) { std::cout << "StableList (Cpp) failed test 52. friend n + iterator incorrect." << std::endl; return; }
+		if(list.begin()[7] != 7 + testMagicNumber) { std::cout << "StableList (Cpp) failed test 52. operator[] incorrect." << std::endl; return; }
+	}
+
+	//test 53: iterator difference
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 20; i++) { list.append(i + testMagicNumber); }
+		if((list.end() - list.begin()) != 20)
+		{
+			std::cout << "StableList (Cpp) failed test 53. end() - begin() = " << (list.end() - list.begin()) << ", expected 20." << std::endl;
+			return;
+		}
+		auto a = list.begin() + 5;
+		auto b = list.begin() + 12;
+		if((b - a) != 7)
+		{
+			std::cout << "StableList (Cpp) failed test 53. Iterator difference incorrect. Got " << (b - a) << ", expected 7." << std::endl;
+			return;
+		}
+	}
+
+	//test 54: iterator comparisons
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 20; i++) { list.append(i + testMagicNumber); }
+		auto a = list.begin();
+		auto b = list.begin() + 5;
+		auto c = list.begin();
+		if(!(a == c)) { std::cout << "StableList (Cpp) failed test 54. a == c should be true." << std::endl; return; }
+		if(a == b) { std::cout << "StableList (Cpp) failed test 54. a == b should be false." << std::endl; return; }
+		if(!(a != b)) { std::cout << "StableList (Cpp) failed test 54. a != b should be true." << std::endl; return; }
+		if(!(a < b)) { std::cout << "StableList (Cpp) failed test 54. a < b should be true." << std::endl; return; }
+		if(!(b > a)) { std::cout << "StableList (Cpp) failed test 54. b > a should be true." << std::endl; return; }
+		if(!(a <= c)) { std::cout << "StableList (Cpp) failed test 54. a <= c should be true." << std::endl; return; }
+		if(!(a >= c)) { std::cout << "StableList (Cpp) failed test 54. a >= c should be true." << std::endl; return; }
+		if(!(a <= b)) { std::cout << "StableList (Cpp) failed test 54. a <= b should be true." << std::endl; return; }
+		if(!(b >= a)) { std::cout << "StableList (Cpp) failed test 54. b >= a should be true." << std::endl; return; }
+	}
+
+	//test 55: write through iterator
+	{
+		fsds::StableList<size_t> list(20, testMagicNumber);
+		size_t i = 0;
+		for(auto it = list.begin(); it != list.end(); ++it)
+		{
+			*it = i + testMagicNumber;
+			i++;
+		}
+		for(size_t j = 0; j < 20; j++)
+		{
+			if(list.at(j) != j + testMagicNumber)
+			{
+				std::cout << "StableList (Cpp) failed test 55. Write through iterator did not persist at index " << j << "." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 56: getIterator with positive and negative step
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 20; i++) { list.append(i + testMagicNumber); }
+		{
+			auto start = list.indexToIRef(0);
+			auto it = list.getIterator(start, 2);
+			if(*it != 0 + testMagicNumber) { std::cout << "StableList (Cpp) failed test 56. getIterator step 2 initial value wrong." << std::endl; return; }
+			++it;
+			if(*it != 2 + testMagicNumber) { std::cout << "StableList (Cpp) failed test 56. getIterator step 2 after ++ wrong." << std::endl; return; }
+			++it;
+			if(*it != 4 + testMagicNumber) { std::cout << "StableList (Cpp) failed test 56. getIterator step 2 after second ++ wrong." << std::endl; return; }
+		}
+		{
+			auto start = list.indexToIRef(19);
+			auto it = list.getIterator(start, -1);
+			if(*it != 19 + testMagicNumber) { std::cout << "StableList (Cpp) failed test 56. getIterator negative step initial value wrong." << std::endl; return; }
+			++it;
+			if(*it != 18 + testMagicNumber) { std::cout << "StableList (Cpp) failed test 56. getIterator negative step after ++ wrong." << std::endl; return; }
+		}
+	}
+
+	//test 57: getConstIterator with positive and negative step
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 20; i++) { list.append(i + testMagicNumber); }
+		const fsds::StableList<size_t>& clist = list;
+		{
+			auto start = list.indexToIRef(0);
+			auto it = clist.getConstIterator(start, 3);
+			if(*it != 0 + testMagicNumber) { std::cout << "StableList (Cpp) failed test 57. getConstIterator step 3 initial wrong." << std::endl; return; }
+			++it;
+			if(*it != 3 + testMagicNumber) { std::cout << "StableList (Cpp) failed test 57. getConstIterator step 3 after ++ wrong." << std::endl; return; }
+		}
+		{
+			auto start = list.indexToIRef(10);
+			auto it = clist.getConstIterator(start, -2);
+			if(*it != 10 + testMagicNumber) { std::cout << "StableList (Cpp) failed test 57. getConstIterator step -2 initial wrong." << std::endl; return; }
+			++it;
+			if(*it != 8 + testMagicNumber) { std::cout << "StableList (Cpp) failed test 57. getConstIterator step -2 after ++ wrong." << std::endl; return; }
+		}
+	}
+
+	//test 58: getUnorderedIterator and getUnorderedConstIterator visit all elements exactly once
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 20; i++) { list.append(i + testMagicNumber); }
+		std::vector<bool> seen(20, false);
+		auto it = list.getUnorderedIterator();
+		for(size_t i = 0; i < 20; i++)
+		{
+			size_t val = *it;
+			if(val < testMagicNumber || val >= testMagicNumber + 20)
+			{
+				std::cout << "StableList (Cpp) failed test 58. getUnorderedIterator yielded out-of-range value " << val << "." << std::endl;
+				return;
+			}
+			if(seen[val - testMagicNumber])
+			{
+				std::cout << "StableList (Cpp) failed test 58. getUnorderedIterator yielded duplicate value " << val << "." << std::endl;
+				return;
+			}
+			seen[val - testMagicNumber] = true;
+			++it;
+		}
+		for(size_t i = 0; i < 20; i++)
+		{
+			if(!seen[i])
+			{
+				std::cout << "StableList (Cpp) failed test 58. getUnorderedIterator missed value " << i + testMagicNumber << "." << std::endl;
+				return;
+			}
+		}
+		const fsds::StableList<size_t>& clist = list;
+		std::vector<bool> seenConst(20, false);
+		auto cit = clist.getUnorderedConstIterator();
+		for(size_t i = 0; i < 20; i++)
+		{
+			size_t val = *cit;
+			if(val < testMagicNumber || val >= testMagicNumber + 20 || seenConst[val - testMagicNumber])
+			{
+				std::cout << "StableList (Cpp) failed test 58. getUnorderedConstIterator yielded bad or duplicate value " << val << "." << std::endl;
+				return;
+			}
+			seenConst[val - testMagicNumber] = true;
+			++cit;
+		}
+		for(size_t i = 0; i < 20; i++)
+		{
+			if(!seenConst[i])
+			{
+				std::cout << "StableList (Cpp) failed test 58. getUnorderedConstIterator missed value " << i + testMagicNumber << "." << std::endl;
+				return;
+			}
+		}
+	}
+
+	//test 59: Iterator to ConstIterator conversion
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 20; i++) { list.append(i + testMagicNumber); }
+		typename fsds::StableList<size_t>::Iterator it = list.begin();
+		typename fsds::StableList<size_t>::ConstIterator cit = it;
+		if(*cit != 0 + testMagicNumber)
+		{
+			std::cout << "StableList (Cpp) failed test 59. ConstIterator converted from Iterator has wrong value." << std::endl;
+			return;
+		}
+		++cit;
+		if(*cit != 1 + testMagicNumber)
+		{
+			std::cout << "StableList (Cpp) failed test 59. Advanced converted ConstIterator has wrong value." << std::endl;
+			return;
+		}
+	}
+
+	//test 60: iRef() and step() accessors
+	{
+		fsds::StableList<size_t> list;
+		for(size_t i = 0; i < 20; i++) { list.append(i + testMagicNumber); }
+		auto start = list.indexToIRef(5);
+		auto it = list.getIterator(start, 2);
+		if(it.iRef() != start)
+		{
+			std::cout << "StableList (Cpp) failed test 60. Iterator::iRef() returned wrong iRef." << std::endl;
+			return;
+		}
+		if(it.step() != 2)
+		{
+			std::cout << "StableList (Cpp) failed test 60. Iterator::step() returned " << it.step() << ", expected 2." << std::endl;
+			return;
+		}
+		const fsds::StableList<size_t>& clist = list;
+		auto cit = clist.getConstIterator(start, -3);
+		if(cit.iRef() != start)
+		{
+			std::cout << "StableList (Cpp) failed test 60. ConstIterator::iRef() returned wrong iRef." << std::endl;
+			return;
+		}
+		if(cit.step() != -3)
+		{
+			std::cout << "StableList (Cpp) failed test 60. ConstIterator::step() returned " << cit.step() << ", expected -3." << std::endl;
+			return;
+		}
+	}
+
+	std::cout << "StableList (Cpp) passed all tests" << std::endl;
 }
 
 int main(int /*argc*/, const char** /*argv*/)
@@ -4018,6 +5517,7 @@ int main(int /*argc*/, const char** /*argv*/)
 	testChunkList();
 	testInlineList();
 	testStableListC();
+	testStableListCpp();
 
 	return 0;
 }

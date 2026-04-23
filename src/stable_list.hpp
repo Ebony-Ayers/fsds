@@ -7,15 +7,18 @@
 #include "stable_list.h"
 
 #include <iterator>
+#include <limits>
+#include <memory>
+#include <utility>
 
 //cache line size (x86)
 #define FSDS_STABLE_LIST_CACHE_LINE_SIZE_BYTES 64
 //how many elements to allocate default
-#define FSDS_STABLE_LIST_DEFAULT_ALLOCATION_SIZE = 16
+#define FSDS_STABLE_LIST_DEFAULT_ALLOCATION_SIZE 16
 //how many elements to put at the start of the list be default
-#define FSDS_STABLE_LIST_DEFAULT_FRONT_OFFSET = 4
+#define FSDS_STABLE_LIST_DEFAULT_FRONT_OFFSET 4
 //when reallocating if there are less then threshold elements at the other end of the list to that which is being reallocated reallocate both ends
-#define FSDS_STABLE_LIST_DOUBLE_REALLOCATION_THRESHOLD = 4
+#define FSDS_STABLE_LIST_DOUBLE_REALLOCATION_THRESHOLD 4
 
 namespace fsds
 {
@@ -34,25 +37,112 @@ namespace fsds
             struct IRef
             {
                 size_t value;
+
+                explicit constexpr IRef(size_t v) : value(v) {}
+                constexpr IRef() : value(0) {}
+
+                constexpr bool operator==(const IRef& other) const = default;
+                constexpr auto operator<=>(const IRef& other) const = default;
             };
+
+            class ConstIterator;
 
             class Iterator
             {
+                public:
+                    using iterator_category = std::random_access_iterator_tag;
+                    using value_type = T;
+                    using difference_type = std::ptrdiff_t;
+                    using pointer = T*;
+                    using reference = T&;
+
+                    constexpr Iterator() noexcept;
+                    constexpr Iterator(IRef iRef, StableList* list, int step) noexcept;
+
+                    [[nodiscard]] constexpr reference operator*() const;
+                    [[nodiscard]] constexpr pointer operator->() const;
+                    [[nodiscard]] constexpr reference operator[](difference_type n) const;
+
+                    constexpr Iterator& operator++() noexcept;
+                    constexpr Iterator operator++(int) noexcept;
+                    constexpr Iterator& operator--() noexcept;
+                    constexpr Iterator operator--(int) noexcept;
+
+                    constexpr Iterator& operator+=(difference_type n) noexcept;
+                    constexpr Iterator& operator-=(difference_type n) noexcept;
+
+                    [[nodiscard]] constexpr Iterator operator+(difference_type n) const noexcept;
+                    [[nodiscard]] constexpr Iterator operator-(difference_type n) const noexcept;
+                    [[nodiscard]] friend constexpr Iterator operator+(difference_type n, const Iterator& it) noexcept { return it + n; }
+
+                    [[nodiscard]] constexpr difference_type operator-(const Iterator& other) const noexcept;
+
+                    [[nodiscard]] constexpr bool operator==(const Iterator& other) const noexcept;
+                    [[nodiscard]] constexpr bool operator!=(const Iterator& other) const noexcept;
+                    [[nodiscard]] constexpr bool operator<(const Iterator& other) const noexcept;
+                    [[nodiscard]] constexpr bool operator>(const Iterator& other) const noexcept;
+                    [[nodiscard]] constexpr bool operator<=(const Iterator& other) const noexcept;
+                    [[nodiscard]] constexpr bool operator>=(const Iterator& other) const noexcept;
+
+                    [[nodiscard]] constexpr IRef iRef() const noexcept;
+                    [[nodiscard]] constexpr int step() const noexcept;
+
+                    friend class ConstIterator;
+
                 private:
                     IRef m_iRef;
                     StableList* m_list;
-                    const int step;
+                    int m_step;
             };
 
             class ConstIterator
             {
+                public:
+                    using iterator_category = std::random_access_iterator_tag;
+                    using value_type = T;
+                    using difference_type = std::ptrdiff_t;
+                    using pointer = const T*;
+                    using reference = const T&;
+
+                    constexpr ConstIterator() noexcept;
+                    constexpr ConstIterator(IRef iRef, const StableList* list, int step) noexcept;
+                    constexpr ConstIterator(const Iterator& it) noexcept;
+
+                    [[nodiscard]] constexpr reference operator*() const;
+                    [[nodiscard]] constexpr pointer operator->() const;
+                    [[nodiscard]] constexpr reference operator[](difference_type n) const;
+
+                    constexpr ConstIterator& operator++() noexcept;
+                    constexpr ConstIterator operator++(int) noexcept;
+                    constexpr ConstIterator& operator--() noexcept;
+                    constexpr ConstIterator operator--(int) noexcept;
+
+                    constexpr ConstIterator& operator+=(difference_type n) noexcept;
+                    constexpr ConstIterator& operator-=(difference_type n) noexcept;
+
+                    [[nodiscard]] constexpr ConstIterator operator+(difference_type n) const noexcept;
+                    [[nodiscard]] constexpr ConstIterator operator-(difference_type n) const noexcept;
+                    [[nodiscard]] friend constexpr ConstIterator operator+(difference_type n, const ConstIterator& it) noexcept { return it + n; }
+
+                    [[nodiscard]] constexpr difference_type operator-(const ConstIterator& other) const noexcept;
+
+                    [[nodiscard]] constexpr bool operator==(const ConstIterator& other) const noexcept;
+                    [[nodiscard]] constexpr bool operator!=(const ConstIterator& other) const noexcept;
+                    [[nodiscard]] constexpr bool operator<(const ConstIterator& other) const noexcept;
+                    [[nodiscard]] constexpr bool operator>(const ConstIterator& other) const noexcept;
+                    [[nodiscard]] constexpr bool operator<=(const ConstIterator& other) const noexcept;
+                    [[nodiscard]] constexpr bool operator>=(const ConstIterator& other) const noexcept;
+
+                    [[nodiscard]] constexpr IRef iRef() const noexcept;
+                    [[nodiscard]] constexpr int step() const noexcept;
+
                 private:
                     IRef m_iRef;
                     const StableList* m_list;
-                    const int step;
+                    int m_step;
             };
 
-            constexpr StableList() noexcept(noexcept(Allocator()));                                             //default constructor
+            constexpr StableList();                                                                             //default constructor
             constexpr explicit StableList(const Allocator& alloc);                                              //default constructor (with allocator)
             constexpr explicit StableList(size_t count, const Allocator& alloc = Allocator());                  //starting size constructor
             constexpr explicit StableList(size_t count, const T& value, const Allocator& alloc = Allocator());  //fill constructor
@@ -63,15 +153,16 @@ namespace fsds
             template<typename InputIt>
             constexpr StableList(InputIt first, InputIt last, const Allocator& alloc = Allocator());            //iterator constructor
             constexpr StableList(std::initializer_list<T> init, const Allocator& alloc = Allocator());          //initialiser list constructor
+            constexpr ~StableList();                                                                            //destructor
 
-            constexpr StableList& operator=(const StableList& other);                  //copy assign
-			constexpr StableList& operator=(StableList&& other) noexcept;              //move assign
-            constexpr StableList& operator=(std::initializer_list<T> ilist) noexcept;  //initialiser list assign
+            constexpr StableList& operator=(const StableList& other);          //copy assign
+			constexpr StableList& operator=(StableList&& other) noexcept;      //move assign
+            constexpr StableList& operator=(std::initializer_list<T> ilist);   //initialiser list assign
 
-            constexpr void assign(size_t count, const T& value);                       //fill assign
+            constexpr void assign(size_t count, const T& value);               //fill assign
             template<typename InputIt>
-            constexpr void assign(InputIt first, InputIt last);                        //iterator assign
-            constexpr void assign(std::initializer_list<T> ilist);                     //initialiser list assign
+            constexpr void assign(InputIt first, InputIt last);                //iterator assign
+            constexpr void assign(std::initializer_list<T> ilist);             //initialiser list assign
 
             [[nodiscard]] constexpr Allocator get_allocator() const;
 
@@ -131,6 +222,7 @@ namespace fsds
             [[nodiscard]] constexpr IRef indexToIRef(const size_t& index);
 
             constexpr void reserve(size_t newCap);
+            constexpr void shrinkToFit();
             constexpr void shrink_to_fit();
 			constexpr void clear();
 
@@ -143,11 +235,12 @@ namespace fsds
             constexpr void push_back(const T& value);
             constexpr void push_front(const T& value);
             template<typename... Args>
-            constexpr void emplace_back(const T& value);
+            constexpr void emplace_back(Args&&... args);
             template<typename... Args>
-            constexpr void emplace_front(const T& value);
+            constexpr void emplace_front(Args&&... args);
 
-            constexpr void concatenate(const StableList& other);
+            constexpr void concatenateBack(const StableList& other);
+            constexpr void concatenateFront(const StableList& other);
 			
 			constexpr void removeBack();
 			constexpr void removeFront();
@@ -169,33 +262,10 @@ namespace fsds
             constexpr Iterator erase(ConstIterator first, ConstIterator last) = delete;
         
         private:
-            struct StableListHeader
-            {
-                size_t size;
-                size_t capacity;
-                size_t front;
-                //"magic" constant to convert iRefs to indecies
-                size_t iRefOffset;
-                //"magic" constant to seperate iRef spaces of different instances for detection of applying iRef to wrong instnace
-                size_t instanceIRefOffsetStart;
-                //how much spare space to put at the front of the list
-                size_t reallocationFrontMargin;
-            };
-            struct alignas(FSDS_STABLE_LIST_CACHE_LINE_SIZE_BYTES) StableListControlBlock
-            {
-                StableListHeader header;
-                alignas(FSDS_STABLE_LIST_CACHE_LINE_SIZE_BYTES) T data[1];
-            };
-
-            constexpr size_t dereferenceIRef(const IRef& iRef) const;
-            constexpr void boundsCheckIndex(const size_t ref) const;
-            constexpr void forceReallocate(const size_t& newSize);
-            constexpr void reallocateIfNessesary();
-
-            inline static uint32_t sm_instanceCount = 0;
-
-            StableListControlBlock* m_controlBlock;
+            FSDS_StableList m_list;
     };
 }
+
+#include "stable_list.inl"
 
 #endif //STABLE_LIST_HPP_HEADER_GUARD
