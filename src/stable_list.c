@@ -8,7 +8,7 @@ static int FSDS_StableList_reallocate(FSDS_StableList* const list, size_t newCap
 	FSDS_StableListHeader* oldHeader = &oldMemBlock->header;
 
 	//allocate new memory
-	list->memBlock = (FSDS_StableListBlock*)malloc(sizeof(FSDS_StableListBlock) + (newCapacity * oldHeader->elementSize));
+	list->memBlock = (FSDS_StableListBlock*)aligned_alloc(FSDS_STABLE_LIST_CACHE_LINE_SIZE, sizeof(FSDS_StableListBlock) + (newCapacity * oldHeader->elementSize));
 	if(list->memBlock == nullptr)
 	{
 		list->memBlock = oldMemBlock;
@@ -73,7 +73,7 @@ int FSDS_StableList_constructSize(FSDS_StableList* const list, size_t initialCap
 }
 int FSDS_StableList_constructSizeFront(FSDS_StableList* const list, const size_t initialCapacity, const size_t frontMargin, const size_t elementSize)
 {
-	list->memBlock = (FSDS_StableListBlock*)malloc(sizeof(FSDS_StableListBlock) + (initialCapacity * elementSize));
+	list->memBlock = (FSDS_StableListBlock*)aligned_alloc(FSDS_STABLE_LIST_CACHE_LINE_SIZE, sizeof(FSDS_StableListBlock) + (initialCapacity * elementSize));
 	if(list->memBlock == nullptr) { return FSDS_STABLE_LIST_ERROR_ALLOCATION_FAILED; }
 
 	FSDS_StableListHeader* header = &list->memBlock->header;

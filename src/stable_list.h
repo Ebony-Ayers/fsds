@@ -11,7 +11,8 @@
 
 #define FSDS_STABLE_LIST_DEFAULT_CAPACITY 16
 #define FSDS_STABLE_LIST_DEFAULT_FRONT_MARGIN 16
-#define FSDS_STABLE_LIST_INSTANCE_IREF_OFFSET_INCREMENT 0x100000000
+#define FSDS_STABLE_LIST_INSTANCE_IREF_OFFSET_INCREMENT ((size_t)1 << ((size_t)4 * (size_t)sizeof(void*)))
+#define FSDS_STABLE_LIST_CACHE_LINE_SIZE 64
 
 //error codes returned by FSDS_StableList functions
 #define FSDS_STABLE_LIST_SUCCESS 0
@@ -50,7 +51,7 @@ typedef struct FSDS_StableListHeader
 typedef struct FSDS_StableListBlock
 {
 	FSDS_StableListHeader header;
-	char data[];
+	alignas(FSDS_STABLE_LIST_CACHE_LINE_SIZE) char data[];
 } FSDS_StableListBlock;
 
 typedef struct FSDS_StableList

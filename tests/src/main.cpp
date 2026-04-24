@@ -4025,6 +4025,43 @@ void testStableListC()
 		}
 	}
 
+	//test 15: check that FSDS_STABLE_LIST_INSTANCE_IREF_OFFSET_INCREMENT is calculated correctly
+	if(FSDS_STABLE_LIST_INSTANCE_IREF_OFFSET_INCREMENT == 0)
+	{
+		std::cout << "StableList (C) failed test 15. FSDS_STABLE_LIST_INSTANCE_IREF_OFFSET_INCREMENT is zero." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+	{
+		size_t popCount = 0;
+		size_t n = FSDS_STABLE_LIST_INSTANCE_IREF_OFFSET_INCREMENT;
+		for(int i = 0; i < CHAR_BIT * sizeof(void*); i++)
+		{
+			popCount += n & 0b1;
+			n >>= 1;
+		}
+		if(popCount != 1)
+		{
+			std::cout << "StableList (C) failed test 15. FSDS_STABLE_LIST_INSTANCE_IREF_OFFSET_INCREMENT does not contain a single bit." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+		if(FSDS_STABLE_LIST_INSTANCE_IREF_OFFSET_INCREMENT * FSDS_STABLE_LIST_INSTANCE_IREF_OFFSET_INCREMENT != 0)
+		{
+			std::cout << "StableList (C) failed test 15. FSDS_STABLE_LIST_INSTANCE_IREF_OFFSET_INCREMENT does not square to zero (with overflow)." << std::endl;
+			FSDS_StableList_destroy(list);
+			return;
+		}
+	}
+
+	//test 16: offset of data in memory block
+	if(offsetof(FSDS_StableListBlock, data) != FSDS_STABLE_LIST_CACHE_LINE_SIZE)
+	{
+		std::cout << "StableList (C) failed test 16. Data member of FSDS_StableListBlock is not alligned to a cache line." << std::endl;
+		FSDS_StableList_destroy(list);
+		return;
+	}
+
 	FSDS_StableList_destroy(list);
 	std::cout << "StableList (C) passed all tests" << std::endl;
 }
