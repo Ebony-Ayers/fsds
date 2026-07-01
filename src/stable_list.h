@@ -17,7 +17,7 @@
 //error codes returned by FSDS_StableList functions
 #define FSDS_STABLE_LIST_SUCCESS 0
 //memory allocation (malloc) failed
-#define FSDS_STABLE_LIST_ERROR_ALLOCATION_FAILED 1
+#define FSDS_STABLE_LIST_ERROR_ALOCATION_FAILED 1
 //an index argument was greater than or equal to size
 #define FSDS_STABLE_LIST_ERROR_INDEX_OUT_OF_BOUNDS 2
 //a requested capacity was smaller than the current size
@@ -27,8 +27,8 @@
 //the iRef is invalid but likely belongs to a difference instance of the list
 #define FSDS_STABLE_LIST_ERROR_IREF_DIFFERENT_INSTANCE 5
 
-#ifdef __cplusplus                                                                                                                                                                                                                                                                       
-extern "C" {                                                                                                                                                                                                                                                                             
+#ifdef __cplusplus
+extern "C" {
 #endif
 
 typedef size_t FSDS_StableList_IRef;

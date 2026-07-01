@@ -68,12 +68,12 @@ size_t FSDS_BFSKTree_capacity(const FSDS_BFSKTree tree);
 int FSDS_BFSKTree_reserveDepth(FSDS_BFSKTree* const tree, uint32_t newDepth);
 int FSDS_BFSKTree_clear(FSDS_BFSKTree* const tree);
 
-size_t FSDS_BFSKTree_calculateIndex(const FSDS_BFSKTree tree, const uint32_t depth, const uint64_t width);
+int FSDS_BFSKTree_calculateIndex(const FSDS_BFSKTree tree, const uint32_t depth, const uint64_t width, size_t* outIndex);
 int FSDS_BFSKTree_add(const FSDS_BFSKTree tree, size_t index, void** outPtr);
-int FSDS_DFSKTree_addGet(const FSDS_DFSKTree tree, size_t index, void** outPtr);
+int FSDS_BFSKTree_addGet(const FSDS_BFSKTree tree, size_t index, void** outPtr);
 int FSDS_BFSKTree_remove(const FSDS_BFSKTree tree, size_t index);
 int FSDS_BFSKTree_get(const FSDS_BFSKTree tree, size_t index, void** outPtr);
-int FSDS_DFSKTree_contains(const FSDS_DFSKTree tree, size_t index, bool* result);
+int FSDS_BFSKTree_contains(const FSDS_BFSKTree tree, size_t index, bool* result);
 
 /*
 bfs tree indexing
@@ -96,7 +96,7 @@ size_t FSDS_DFSKTree_capacity(const FSDS_DFSKTree tree);
 int FSDS_DFSKTree_reserveDepth(FSDS_DFSKTree* const tree, uint32_t newDepth);
 int FSDS_DFSKTree_clear(FSDS_DFSKTree* const tree);
 
-size_t FSDS_DFSKTree_calculateIndex(const FSDS_DFSKTree tree, const uint32_t depth, const uint64_t width);
+int FSDS_DFSKTree_calculateIndex(const FSDS_DFSKTree tree, const uint32_t depth, const uint64_t width, size_t* outIndex);
 int FSDS_DFSKTree_add(const FSDS_DFSKTree tree, size_t index, void** outPtr);
 int FSDS_DFSKTree_addGet(const FSDS_DFSKTree tree, size_t index, void** outPtr);
 int FSDS_DFSKTree_remove(const FSDS_DFSKTree tree, size_t index);
