@@ -8,18 +8,19 @@
 
 #include "seperate_data_list.hpp"
 #include "inline_list.hpp"
-#include "chunk_list.hpp"
 #include "linked_list.hpp"
-#include "spsc_queue.hpp"
-#include "spmc_queue.hpp"
-#include "mpsc_queue.hpp"
-#include "finite_pqueue.hpp"
-#include "stable_list.hpp"
 
-#include "utf-8.hpp"
-#include "static_string.hpp"
-#include "dynamic_string.hpp"
-#include "string_builder.hpp"
+#include "queue/finite_pqueue.hpp"
+#include "queue/spsc_queue.hpp"
+#include "queue/spmc_queue.hpp"
+#include "queue/mpsc_queue.hpp"
+
+#include "string/utf-8.hpp"
+#include "string/static_string.hpp"
+#include "string/dynamic_string.hpp"
+#include "string/string_builder.hpp"
+
+#include "stable_list/stable_list.hpp"
 
 namespace fsds
 {

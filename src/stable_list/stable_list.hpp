@@ -1,8 +1,8 @@
 #pragma once
 #ifndef STABLE_LIST_HPP_HEADER_GUARD
 #define STABLE_LIST_HPP_HEADER_GUARD
-#include "fsds_options.hpp"
-#include "pch.hpp"
+#include "../fsds_options.hpp"
+#include "../pch.hpp"
 
 #include "stable_list.h"
 

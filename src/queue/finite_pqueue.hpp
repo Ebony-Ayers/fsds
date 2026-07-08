@@ -1,10 +1,11 @@
 #ifndef FINITE_PQUEUE_HPP_HEADER_GUARD
 #define FINITE_PQUEUE_HPP_HEADER_GUARD
-#include "fsds_options.hpp"
-#include "pch.hpp"
+#include "../fsds_options.hpp"
+#include "../pch.hpp"
 
 #include <array>
-#include "seperate_data_list.hpp"
+#include "../seperate_data_list.hpp"
+#include "spsc_queue.hpp"
 #include <iostream>
 #include <algorithm>
 

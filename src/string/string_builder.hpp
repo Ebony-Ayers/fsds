@@ -1,14 +1,14 @@
 #ifndef STRING_BUILDER_HPP_HEADER_GUARD
 #define STRING_BUILDER_HPP_HEADER_GUARD
-#include "fsds_options.hpp"
-#include "pch.hpp"
+#include "../fsds_options.hpp"
+#include "../pch.hpp"
 
 #include <iostream>
 #include <algorithm>
 #include "utf-8.hpp"
 #include "static_string.hpp"
 #include "dynamic_string.hpp"
-#include "seperate_data_list.hpp"
+#include "../seperate_data_list.hpp"
 
 namespace fsds
 {

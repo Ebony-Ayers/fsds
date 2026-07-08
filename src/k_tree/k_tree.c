@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdckdint.h>
 
-#include "fsds_alloca.h"
+#include "../fsds_alloca.h"
 
 //note: every bit at index >= capacity must always be zero
 static inline uint64_t* FSDS_genericKTree_getActiveList(FSDS_KTreeBlock* memBlock)

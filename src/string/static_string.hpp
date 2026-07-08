@@ -1,7 +1,7 @@
 #ifndef STATIC_STRING_HPP_HEADER_GUARD
 #define STATIC_STRING_HPP_HEADER_GUARD
-#include "fsds_options.hpp"
-#include "pch.hpp"
+#include "../fsds_options.hpp"
+#include "../pch.hpp"
 
 #include <iostream>
 #include "utf-8.hpp"

@@ -7,7 +7,7 @@
 #include<stdlib.h>
 #include<string.h>
 
-#include "fsds_common.h"
+#include "../fsds_common.h"
 
 #define FSDS_SLOT_MAP_DEFAULT_CAPACITY 16
 #define FSDS_SLOT_MAP_CACHE_LINE_SIZE 64
